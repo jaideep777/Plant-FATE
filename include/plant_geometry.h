@@ -15,26 +15,45 @@ class PlantGeometry{
 	double leaf_area;	// leaf area
 	double sapwood_fraction = 1;	// sapwood fraction
 
-	double hv; // current realized huber value
-	double lai;
+	double fl = 1; // current realized fraction of the maximum possible LAI
 
-	void set_height(double _h, PlantParamaters &par, Traits &traits){
+	void set_height(double _h, PlantParameters &par, PlantTraits &traits){
 		height = _h;
+		double lai = par.lai_max*fl;
+		double hv = 1/(lai*par.c);
 		diameter = -log(1-height/traits.hmat) * traits.hmat/par.a;
-		crown_area = par.pic_4a * height * diamater;
+		crown_area = par.pic_4a * height * diameter;
 		leaf_area = crown_area*lai;
-		sapwood_fraction = (hv*lai*par.c) * height/diamater/par.a;
+		sapwood_fraction = (hv*lai*par.c) * height/diameter/par.a;
 	}
 
-	double dheight_dmass(PlantParamaters &par, Traits &traits) const {
+	double dheight_dmass(PlantParameters &par, PlantTraits &traits) const {
+		double lai = par.lai_max*fl;
 		double dd_dh = 1/(par.a*(1-height/traits.hmat));
-		double dmleaf_dh = traits.lma*lai*par.pic_4a * (height*dd_dh + diamater);
-		double dmstem_dh = (par.eta_l*M_PI*traits.wood_density/4) * (2*height*dd_dh + diamater)*diamater;
+		double dmleaf_dh = traits.lma*lai*par.pic_4a * (height*dd_dh + diameter);
+		double dmstem_dh = (par.eta_l*M_PI*traits.wood_density/4) * (2*height*dd_dh + diameter)*diameter;
 		double dmroot_dh = (traits.zeta/traits.lma) * dmleaf_dh;
 
 		double dmass_dh = dmleaf_dh + dmstem_dh + dmroot_dh;
 		return 1/dmass_dh;
 	}
+
+	double leaf_mass(PlantParameters &par, PlantTraits &traits){
+		return leaf_area*traits.lma;	
+	}
+
+	double root_mass(PlantParameters &par, PlantTraits &traits){
+		return leaf_area*traits.zeta;	
+	}
+	
+	double stem_mass(PlantParameters &par, PlantTraits &traits){
+		return traits.wood_density*(M_PI*diameter*diameter/4)*height*par.eta_l;	
+	}
+
+	double total_mass(PlantParameters &par, PlantTraits &traits){
+		return stem_mass(par, traits) + leaf_mass(par, traits) + root_mass(par, traits);
+	}
+
 
 	double q(double z, double H, double n, double m){
 		if (z > H || z < 0) return 0;
@@ -56,7 +75,7 @@ class PlantGeometry{
 		}
 	}
 
-}
+};
 
 
 
