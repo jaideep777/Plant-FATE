@@ -1,6 +1,7 @@
 #include "plant_params.h"
 #include "plant_geometry.h"
 #include "initializer.h"
+#include "assimilation.h"
 using namespace std;
 
 int main(){
