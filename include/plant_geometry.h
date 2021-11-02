@@ -7,6 +7,31 @@
 
 namespace plant{
 
+template <class functor, class container>
+void Euler(double x, double h, container& y, functor& derivs){
+	container fk(y.size());
+	derivs(x, y, fk);
+	for (int i=0; i<y.size(); i++) y[i] += h*fk[i]; 
+}
+
+template <class functor, class container>
+void RK4(double x, double h, container& y, functor& derivs){
+	static container k1(y.size()), k2(y.size()), k3(y.size()), k4(y.size());// temporary arrays
+	static container yt(y.size());
+
+	double h2=h*0.5;
+	double xh = x + h2;
+	derivs(x, y, k1);     // First step : evaluating k1
+	for (int i=0; i<y.size(); i++) yt[i] = y[i] + h2*k1[i];// Preparing second step by  ty <- y + k1/2
+	derivs(xh, yt, k2);                                    // Second step : evaluating k2
+	for (int i=0; i<y.size(); i++) yt[i] = y[i] + h2*k2[i];// Preparing third step by   yt <- y + k2/2
+	derivs(xh, yt, k3);                                    // Third step : evaluating k3
+	for (int i=0; i<y.size(); i++) yt[i] = y[i] +  h*k3[i];// Preparing fourth step  yt <- y + k3
+	derivs(x+h, yt, k4);                                   // Final step : evaluating k4
+	for (int i=0; i<y.size(); i++) y[i] += h/6.0*(k1[i]+2.0*(k2[i]+k3[i])+k4[i]);
+}
+
+
 class PlantGeometry{
 	public:
 	double height;	// height
@@ -85,8 +110,28 @@ class PlantGeometry{
 		}
 	}
 
-};
+	
+	// ** 
+	// ** Simple growth simulator for testing purposes
+	// ** 
+	void grow_for_dt(double t, double dt, double &prod, double P, PlantParameters &par, PlantTraits &traits){
 
+		auto derivs = [P, &par, &traits, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+			set_height(S[1], par, traits);
+
+			dSdt[0] = P*leaf_area;	// biomass production rate
+			dSdt[1] = dheight_dmass(par, traits)*P*leaf_area; 
+		};
+
+		std::vector<double> S = {prod, height};
+		RK4(t, dt, S, derivs);
+		//Euler(t, dt, S, derivs);
+		set_height(S[1], par, traits);
+		prod = S[0];
+	}
+
+
+};
 
 
 } // namespace plant

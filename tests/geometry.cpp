@@ -34,6 +34,7 @@ int main(){
 
 	fout.open("geometric_growth_2.txt");
 	fout << "i" << "\t"
+		 << "assim" << "\t"
 		 << "height" << "\t"	
 		 << "diameter" << "\t"	
 		 << "crown_area" << "\t"	
@@ -44,16 +45,15 @@ int main(){
 	G.set_height(0.1, par, traits);
 	double dt = 0.1; // mass balance approx holds only for dt = 0.0001
 	double total_prod = G.total_mass(par, traits);
-	for (double t=0; t<100; t=t+dt){
+	for (double t=0; t<=100; t=t+dt){
 
-		cout << G.total_mass(par, traits) << " " << total_prod << "\n";
-
-		double P = 0.75;	// biomass generation rate - kg/m2/yr
-		total_prod += P*G.leaf_area*dt;
-		double dhdM = G.dheight_dmass(par, traits);
-		double h_new = G.height + dhdM*P*G.leaf_area*dt;
+		//cout << t << " " << G.total_mass(par, traits) << " " << total_prod << "\n";
+		if (abs(G.total_mass(par, traits) - total_prod) > 1e-6) return 1;
+		
+		double P = max(sin(M_PI/12.0*t), 0.0); //0.75;	// biomass generation rate - kg/m2/yr
 		
 		fout << t << "\t"
+			 << P << "\t"
 			 << G.height << "\t"	
 			 << G.diameter << "\t"	
 			 << G.crown_area << "\t"	
@@ -62,11 +62,20 @@ int main(){
 			 << G.total_mass(par,traits) << "\t"
 			 << total_prod << "\n";
 		
-		G.set_height(h_new, par, traits);
+		//total_prod += P*G.leaf_area*dt;
+		
+		G.grow_for_dt(t, dt, total_prod, P, par, traits);
+		//double dhdM = G.dheight_dmass(par, traits);
+		//double h_new = G.height + dhdM*P*G.leaf_area*dt;
+		//G.set_height(h_new, par, traits);
 
 	}
 	fout.close();
 
+	cout << "At t = " << 100 << "\n"
+		 << "Total biomass    = " << G.total_mass(par, traits) << "\n"
+		 << "Total production = " << total_prod << "\n";
+	
 	return 0;
 }
 

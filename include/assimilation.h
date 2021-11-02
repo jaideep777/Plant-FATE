@@ -59,7 +59,7 @@ class Assimilator : public PlantGeometry{
 		return root_mass(par, traits) / par.lr;
 	}
 
-	
+
 };
 
 
