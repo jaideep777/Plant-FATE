@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <cmath>
 
 
 namespace env{
@@ -27,7 +28,9 @@ class Climate{
 	double t_next = 0;	// next time in file for which data is available
 	Clim clim_prev;
 	Clim clim_next;
+	double t0 = 2000.0;
 	double t_base = 2000.0;
+	double delta = 0;
 
 	public:
 	double t_now;
@@ -60,7 +63,7 @@ class Climate{
 			return 1;
 		}
 		if (!fin_co2){
-			std::cerr << "Error: Could not open file " << metFile << "\n";
+			std::cerr << "Error: Could not open file " << co2File << "\n";
 			return 1;
 		}
 		
@@ -92,7 +95,7 @@ class Climate{
 		}
 
 		while (t >= t_next){
-			std::cout << "update - " << t << " --> " << t_next << "\n";
+			std::cout << "update - " << int(t) << "/" << (t-int(t))*12+1 << " --> " << int(t_next) << "/" << (t_next-int(t_next))*12+1 <<  "\n";
 			clim_prev = clim_next;
 			t_prev = t_next;
 			readNextLine_met();
@@ -113,25 +116,28 @@ class Climate{
 	int readNextLine_met(){
 
 		//std::vector<std::string>   result;
-		std::string                line;
-		std::getline(fin_met, line);
-
-		std::stringstream          lineStream(line);
-		std::string                cell;
+		std::string                line, cell;
 		
-		if (fin_met.eof()){
+		if (fin_met.peek() == EOF){
+			std::cout << "RESET FILE\n";
 			fin_met.clear();
 			fin_met.seekg(0);
 			std::getline(fin_met, line); // skip header
-			t_base = t_next;
+			t_base = t_next+1/12.0;
 		}
+		
+		// READ line
+		std::getline(fin_met, line);
 
+		std::stringstream          lineStream(line);
+		
+		// PARSE line
 		std::getline(lineStream, cell, ',');
 		int year = as<int>(cell);
 		
 		std::getline(lineStream, cell, ',');
 		int month = as<int>(cell);
-		
+
 		std::getline(lineStream, cell, ',');
 		clim_next.tc = as<double>(cell);
 		
@@ -144,23 +150,24 @@ class Climate{
 		std::getline(lineStream, cell, ',');
 		clim_next.swp = as<double>(cell);
 	
-		t_next = year-t_base + (month-1)/12.0;
+		t_next = t_base + (year-t0) + (month-1)/12.0;
 			
 		return 0;
 	}
 
 
 	void print(double t){
-		int year = 2000 + int(t);
+		int year = int(t);
 		double month = (t-int(t))*12+1;
-		int yearp = 2000 + int(t_prev);
+		year += int(month/12.0); month = fmod(month, 12.0);
+		int yearp = int(t_prev);
 		double monthp = (t_prev-int(t_prev))*12+1;
-		int yearn = 2000 + int(t_next);
+		int yearn = int(t_next);
 		double monthn = (t_next-int(t_next))*12+1;
-		std::cout << "Climate at t = " << year << "." << month << "\n";
-		std::cout << "prev: " << yearp << "." << monthp << " | " << clim_prev.vpd << " " << clim_prev.ppfd << "\n"; 
-		std::cout << "now : " << year  << "." << month  << " | " << clim.vpd      << " " << clim.ppfd      << "\n"; 
-		std::cout << "next: " << yearn << "." << monthn << " | " << clim_next.vpd << " " << clim_next.ppfd << "\n"; 
+		std::cout << "Climate at t = " << year << "/" << month << "\n";
+		std::cout << "prev: " << yearp << "/" << monthp << " | " << clim_prev.vpd << " " << clim_prev.ppfd << "\n"; 
+		std::cout << "now : " << year  << "/" << month  << " | " << clim.vpd      << " " << clim.ppfd      << "\n"; 
+		std::cout << "next: " << yearn << "/" << monthn << " | " << clim_next.vpd << " " << clim_next.ppfd << "\n"; 
 	}
 };
 

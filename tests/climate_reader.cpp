@@ -9,16 +9,16 @@ int main(){
 	
 	env::Climate C;
 
-	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
-	C.co2File = "tests/data/CO2_ELE_AmzFACE2000_2100.csv";
+	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2001_PlantFATE.csv";
+	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 
 	C.init();
 	C.print(0);
 
 	ofstream fout("climate.txt");
-	for (double t = 2015; t < 2017; t += 1/24.0){
-		C.updateClimate(t-2000);
-		C.print(t-2000);
+	for (double t = 2000; t < 2008; t += 1/120.0){
+		C.updateClimate(t);
+		C.print(t);
 		fout << t << "\t" << C.clim.tc << "\t" << C.clim.vpd << "\t" << C.clim.ppfd << "\t" << C.clim.swp << "\n";
 	}
 	fout.close();
@@ -27,12 +27,19 @@ int main(){
 
 }
 
-
-//dat = read.delim("/home/jaideep/codes/plant_fate_ppa/climate.txt", header=F)
-//dato = read.csv("/home/jaideep/codes/plant_fate_ppa/tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv", header=T)
+//dat = read.delim("~/codes/tmodel_cpp/climate.txt", header=F)
+//dato = read.csv("~/codes/tmodel_cpp/tests/data/MetData_AmzFACE_Monthly_2000_2001_PlantFATE.csv", header=T)
+//dato$t = dato$Year + (dato$Month-1)/12
+//dato = rbind(dato, dato, dato, dato, dato, dato)
+//dato$Year = c(rep(2000,12), rep(2001,12), 
+//              rep(2002,12), rep(2003,12),
+//              rep(2004,12), rep(2005,12),
+//              rep(2006,12), rep(2007,12),
+//              rep(2008,12), rep(2009,12),
+//              rep(2010,12), rep(2011,12))
 //dato$t = dato$Year + (dato$Month-1)/12
 
-//par(mfrow=c(2,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
+//par(mfrow=c(4,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
 //plot(dat$V2~dat$V1, type="l", col="black")
 //points(dato$Temp~dato$t, pch=20, type="p", col="red")
 //plot(dat$V3~dat$V1, type="l", col="black")
@@ -41,4 +48,3 @@ int main(){
 //points(dato$PAR~dato$t, pch=20, type="p", col="red")
 //plot(dat$V5~dat$V1, type="l", col="black")
 //points(dato$SWP~dato$t, pch=20, type="p", col="red")
-
