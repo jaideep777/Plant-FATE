@@ -113,14 +113,15 @@ class PlantGeometry{
 	
 	// ** 
 	// ** Simple growth simulator for testing purposes
+	// ** - simulates growth over dt with constant assimilation rate A
 	// ** 
-	void grow_for_dt(double t, double dt, double &prod, double P, PlantParameters &par, PlantTraits &traits){
+	void grow_for_dt(double t, double dt, double &prod, double A, PlantParameters &par, PlantTraits &traits){
 
-		auto derivs = [P, &par, &traits, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+		auto derivs = [A, &par, &traits, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 			set_height(S[1], par, traits);
 
-			dSdt[0] = P*leaf_area;	// biomass production rate
-			dSdt[1] = dheight_dmass(par, traits)*P*leaf_area; 
+			dSdt[0] = A*leaf_area;	// biomass production rate
+			dSdt[1] = dheight_dmass(par, traits) * A*leaf_area; 
 		};
 
 		std::vector<double> S = {prod, height};

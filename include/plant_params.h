@@ -42,7 +42,6 @@ class PlantParameters{
 	double pic_4a;
 
 	
-	
 	public:
 	int initFromFile(std::string fname){
 		io::Initializer I(fname);
@@ -68,6 +67,8 @@ class PlantParameters{
 		eta_c = tgamma(mc+1.0)*tgamma(1.0/nc)/(nc*tgamma(mc+1.0+1.0/nc));
 		eta_l = tgamma(ml+1.0)*tgamma(1.0/nl)/(nl*tgamma(ml+1.0+1.0/nl));
 		pic_4a = M_PI*c/4/a;
+
+		return 0;
 	}
 
 	void print(){
@@ -103,7 +104,7 @@ class PlantTraits{
 
 	// variable (plastic) traits
 	public:
-	double vcmax;	// current vcmax [umol CO2 m-2 s-1]
+	double vcmax = 40*1e-6*86400*365.2524;	// current vcmax [umol CO2 m-2 s-1]
 	double fl = 1;	// current fraction of max. leaf area
 	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
 };
