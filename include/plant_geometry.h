@@ -43,27 +43,56 @@ class PlantGeometry{
 	//double fl = 1; // current realized fraction of the maximum possible LAI
 	double hvlc = 1;
 
-	void set_height(double _h, PlantParameters &par, PlantTraits &traits){
-		height = _h;
+	//void set_size(double _x, PlantParameters &par, PlantTraits &traits){
+		//height = _x;
+		//double lai = par.lai_max * traits.fl;
+		//double hv_min = 1/(par.lai_max * par.c);
+		//double hv = 1/(lai*par.c);
+		//diameter = -log(1-height/traits.hmat) * traits.hmat/par.a;
+		//crown_area = par.pic_4a * height * diameter;
+		//leaf_area = crown_area*lai;
+		//sapwood_fraction = (hvlc) * height/diameter/par.a;	// FIXME: check LAI variation
+	//}
+
+	//double dsize_dmass(PlantParameters &par, PlantTraits &traits) const {
+		//double lai = par.lai_max * traits.fl;
+		//double dd_dh = 1/(par.a*(1-height/traits.hmat));
+		//double dmleaf_dh = traits.lma*lai*par.pic_4a * (height*dd_dh + diameter);	// FIXME: Carefully check LAI variation
+		//double dmstem_dh = (par.eta_l*M_PI*traits.wood_density/4) * (2*height*dd_dh + diameter)*diameter;
+		//double dmroot_dh = (traits.zeta/traits.lma) * dmleaf_dh;
+
+		//double dmass_dh = dmleaf_dh + dmstem_dh + dmroot_dh;
+		//return 1/dmass_dh;
+	//}
+
+
+	double get_size() const {
+		return diameter;
+	}
+
+	void set_size(double _x, PlantParameters &par, PlantTraits &traits){
+		diameter = _x;
 		double lai = par.lai_max * traits.fl;
 		double hv_min = 1/(par.lai_max * par.c);
 		double hv = 1/(lai*par.c);
-		diameter = -log(1-height/traits.hmat) * traits.hmat/par.a;
+		height = traits.hmat * (1 - exp(-par.a*diameter/traits.hmat));
 		crown_area = par.pic_4a * height * diameter;
 		leaf_area = crown_area*lai;
 		sapwood_fraction = (hvlc) * height/diameter/par.a;	// FIXME: check LAI variation
 	}
 
-	double dheight_dmass(PlantParameters &par, PlantTraits &traits) const {
-		double lai = par.lai_max * traits.fl;
-		double dd_dh = 1/(par.a*(1-height/traits.hmat));
-		double dmleaf_dh = traits.lma*lai*par.pic_4a * (height*dd_dh + diameter);	// FIXME: Carefully check LAI variation
-		double dmstem_dh = (par.eta_l*M_PI*traits.wood_density/4) * (2*height*dd_dh + diameter)*diameter;
-		double dmroot_dh = (traits.zeta/traits.lma) * dmleaf_dh;
 
-		double dmass_dh = dmleaf_dh + dmstem_dh + dmroot_dh;
-		return 1/dmass_dh;
+	double dsize_dmass(PlantParameters &par, PlantTraits &traits) const {
+		double lai = par.lai_max * traits.fl;
+		double dh_dd = par.a*exp(-par.a*diameter/traits.hmat);
+		double dmleaf_dd = traits.lma*lai*par.pic_4a * (height + diameter*dh_dd);	// FIXME: Carefully check LAI variation
+		double dmstem_dd = (par.eta_l*M_PI*traits.wood_density/4) * (2*height + diameter*dh_dd)*diameter;
+		double dmroot_dd = (traits.zeta/traits.lma) * dmleaf_dd;
+
+		double dmass_dd = dmleaf_dd + dmstem_dd + dmroot_dd;
+		return 1/dmass_dd;
 	}
+
 
 	double leaf_mass(PlantParameters &par, PlantTraits &traits){
 		return leaf_area*traits.lma;	
@@ -118,16 +147,16 @@ class PlantGeometry{
 	void grow_for_dt(double t, double dt, double &prod, double A, PlantParameters &par, PlantTraits &traits){
 
 		auto derivs = [A, &par, &traits, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
-			set_height(S[1], par, traits);
+			set_size(S[1], par, traits);
 
 			dSdt[0] = A*leaf_area;	// biomass production rate
-			dSdt[1] = dheight_dmass(par, traits) * A*leaf_area; 
+			dSdt[1] = dsize_dmass(par, traits) * A*leaf_area; 
 		};
 
-		std::vector<double> S = {prod, height};
+		std::vector<double> S = {prod, get_size()};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
-		set_height(S[1], par, traits);
+		set_size(S[1], par, traits);
 		prod = S[0];
 	}
 

@@ -39,7 +39,7 @@ int main(){
 		 << "sapwood_fraction" << "\t"
 		 << "total_mass" << "\t"
 		 << "total_prod" << "\n";
-	P.set_height(0.1);
+	P.set_size(0.01);
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
 	for (double t=0; t<=100; t=t+dt){

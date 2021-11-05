@@ -97,7 +97,7 @@ class PlantTraits{
 	// fixed (genetic) traits
 	public:
 	double lma = 0.09;			// leaf mass per leaf area [kg/m2]
-	double zeta = 0.34;			// root mass per leaf area [kg/m2]
+	double zeta = 0.14;			// root mass per leaf area [kg/m2]
 	double hmat = 20;			// height at maturity [m]
 	double seed_mass = 3.8e-5;	// [kg]
 	double wood_density = 608;	// [kg/m3]

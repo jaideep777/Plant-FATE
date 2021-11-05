@@ -21,7 +21,7 @@ class Assimilator{
 	// **
 	template<class Env>
 	double leaf_assimilation_rate(double fapar, Env &env){
-		double P = 15;	// umol/m2/s
+		double P = 40 * 0.25 * 0.5;	// umol/m2/s * daily fraction at max sunlight * yearly growth season fraction
 		return P * (1e-6*86400*365.2524);	// umol m-2 s-1 --> mol m-2 yr-1
 	}
 	
