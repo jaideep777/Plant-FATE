@@ -115,7 +115,7 @@ class PlantTraits{
 
 	// variable (plastic) traits
 	public:
-	double vcmax = 40*1e-6*86400*365.2524;	// current vcmax [umol CO2 m-2 s-1]
+	//double vcmax = 40*1e-6*86400*365.2524;	// current vcmax [umol CO2 m-2 s-1]
 	double fl = 1;	// current fraction of max. leaf area
 	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
 };
