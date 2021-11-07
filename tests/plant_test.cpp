@@ -25,6 +25,7 @@ int main(){
 
 	ofstream fout("assim.txt");
 	fout << "i" << "\t"
+		 << "ppfd" <<"\t"
 		 << "assim_net" << "\t"
 		 << "assim_gross" << "\t"
 		 << "rl" << "\t"
@@ -42,12 +43,13 @@ int main(){
 	P.set_size(0.01);
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
-	for (double t=0; t<=100; t=t+dt){
+	for (double t=2000; t<=2100; t=t+dt){
 
 		//cout << t << " " << P.geometry->total_mass(par, traits) << " " << total_prod << "\n";
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;
 		
 		fout << t << "\t"
+			 << C.clim.ppfd << "\t"
 			 << P.assimilator->Anet << "\t" 
 			 << P.assimilator->A << "\t" 
 			 << P.assimilator->rl << "\t"

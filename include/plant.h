@@ -46,9 +46,11 @@ class Plant{
 	void grow_for_dt(double t, double dt, Env &env, double &prod){
 
 		auto derivs = [&env, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+			env.updateClimate(t);
+
 			this->geometry->set_size(S[1], par, traits);
 			
-			double dmass_dt = this->assimilator->biomass_growth_rate(1.0, env, this->geometry, this->par, this->traits);
+			double dmass_dt = this->assimilator->biomass_growth_rate(env.clim, this->geometry, this->par, this->traits);
 
 			dSdt[0] = dmass_dt;	// biomass production rate
 			dSdt[1] = this->geometry->dsize_dmass(par, traits) * dmass_dt; 

@@ -9,6 +9,13 @@ namespace plant{
 class PlantParameters{
 	public:
 	// **
+	// ** Photosynthesis paramaters  
+	// **
+	double kphio = 0.087;
+	double alpha = 0.1;
+	double gamma = 1.96; 
+
+	// **
 	// ** Allocation and geometric paramaters  
 	// **
 	double ml, nl; // vertical leaf distribution paramaters 
@@ -101,6 +108,10 @@ class PlantTraits{
 	double hmat = 20;			// height at maturity [m]
 	double seed_mass = 3.8e-5;	// [kg]
 	double wood_density = 608;	// [kg/m3]
+	
+	double p50_leaf = -1.5;
+	double K_leaf = 1e-16;
+	double b_leaf = 1;
 
 	// variable (plastic) traits
 	public:

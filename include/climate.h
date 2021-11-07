@@ -12,11 +12,12 @@ namespace env{
 
 class Clim{
 	public:
-	double tc = 25;             // temperature, deg C
-	double ppfd = 600;          // umol/m2/s
-	double vpd  = 1000;         // Pa
-	double co2  = 400;          // ppm
-	double swp = -1;		// MPa
+	double tc = 25.5;             // temperature, deg C
+	double ppfd = 377;          // umol/m2/s
+	double vpd  = 540;         // Pa
+	double co2  = 380;          // ppm
+	double elv = 0;
+	double swp = -0.04;		// MPa
 
 };
 
@@ -142,7 +143,7 @@ class Climate{
 		clim_next.tc = as<double>(cell);
 		
 		std::getline(lineStream, cell, ',');
-		clim_next.vpd = as<double>(cell);
+		clim_next.vpd = as<double>(cell)*100;  // convert hPa to Pa
 		
 		std::getline(lineStream, cell, ',');
 		clim_next.ppfd = as<double>(cell);
