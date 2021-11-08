@@ -37,14 +37,6 @@ class Climate{
 	double t_now;
 	Clim clim;
 
-	// environmental parameters for phydro
-	double elv  = 0;            // m.a.s.l.
-	
-	// photosynthesis params
-	double kphio = 0.087;        // quantum yield efficiency
-	double rdark = 0.02;
-	double fapar = 1.0;         // fractioni
-
 	std::string metFile = "";
 	std::string co2File = "";
 	bool interpolate = false;

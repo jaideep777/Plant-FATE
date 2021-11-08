@@ -12,9 +12,9 @@ plot(dat$leaf_area~dat$crown_area)
 plot(dat$sapwood_fraction~dat$height)
 # plot(sqrt(4*dat$crown_area/pi)~dat$height)
   
-plot(dat$height~dat$i)
-plot(dat$diameter~dat$i)
-plot(dat$total_mass~dat$i)
+plot(dat$height~dat$i, ylab="Height", xlab="Year")
+plot(dat$diameter~dat$i, ylab="Diameter", xlab="Year")
+plot(dat$total_mass~dat$i, ylab="Total biomass", xlab="Year")
 points(dat$total_prod~dat$i, type="l", col="red")
 
 # plot(dat$ppfd[01:1000]~dat$i[01:1000], type="l")
@@ -23,13 +23,16 @@ points(dat$total_prod~dat$i, type="l", col="red")
 
 matplot(y=cbind(dat$assim_gross,
                 dat$assim_net), 
-                x=dat$i, col=c("green3", "green4"), log="", lty=1, type="l")
+                x=dat$i, col=c("green3", "green4"), log="", lty=1, type="l",
+                ylab="GPP, NPP", xlab="Year")
 
 matplot(y=cbind(dat$rr,
                 dat$rs,
                 dat$rl), 
-                x=dat$i, col=c("pink2", "pink3", "pink4"), log="", lty=1, type="l")
+                x=dat$i, col=c("pink2", "pink3", "pink4"), log="", lty=1, type="l",
+                ylab="Respiration", xlab="Year")
 
 matplot(y=cbind(dat$tr,
                 dat$tl), 
-                x=dat$i, col=c("orange3", "orange4"), log="", pch=20)
+                x=dat$i, col=c("orange3", "orange4"), log="", pch=20,
+                ylab="Turnover", xlab="Year")

@@ -25,16 +25,16 @@ class Assimilator{
 	// **
 	// ** Gross and Net Assimilation 
 	// **
-	template<class Env>
-	phydro::PHydroResult leaf_assimilation_rate(double fapar, Env &env, PlantParameters &par, PlantTraits &traits){
+	template<class _Climate>
+	phydro::PHydroResult leaf_assimilation_rate(double fapar, _Climate &clim, PlantParameters &par, PlantTraits &traits){
 		phydro::ParCost par_cost(par.alpha, par.gamma);
 		phydro::ParPlant par_plant(traits.K_leaf, traits.p50_leaf, traits.b_leaf);
 		par_plant.gs_method = phydro::GS_APX;
-		auto photo_leaf = phydro::phydro_analytical(env.tc,  env.ppfd*4,  env.vpd,   env.co2,	// FIXME: ppfd*4 here to convert daily average PAR to daily max PAR.
-													env.elv,    fapar,  par.kphio, env.swp, 
+		auto photo_leaf = phydro::phydro_analytical(clim.tc,  clim.ppfd*4,  clim.vpd,  clim.co2,	// FIXME: ppfd*4 here to convert daily average PAR to daily max PAR.
+													clim.elv,    fapar,    par.kphio,  clim.swp, 
 													par.rl, par_plant, par_cost);
 		
-		return photo_leaf;	// umol m-2 yr-1 --> mol m-2 yr-1
+		return photo_leaf;	// umol m-2 s-1 
 	}
 	
 	template<class Env>

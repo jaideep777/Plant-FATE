@@ -73,8 +73,6 @@ class PlantGeometry{
 	void set_size(double _x, PlantParameters &par, PlantTraits &traits){
 		diameter = _x;
 		double lai = par.lai_max * traits.fl;
-		double hv_min = 1/(par.lai_max * par.c);
-		double hv = 1/(lai*par.c);
 		height = traits.hmat * (1 - exp(-par.a*diameter/traits.hmat));
 		crown_area = par.pic_4a * height * diameter;
 		leaf_area = crown_area*lai;
