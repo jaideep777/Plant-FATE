@@ -39,10 +39,18 @@ int main(){
 		 << "diameter" << "\t"	
 		 << "crown_area" << "\t"	
 		 << "leaf_area" << "\t"	
+		 << "sapwood_fraction_ode" << "\t"
 		 << "sapwood_fraction" << "\t"
+		 << "sapwood_mass" << "\t"
+		 << "sapwood_turnover_rate" << "\t"
+		 << "heartwood_mass" << "\t"
+		 << "heartwood_mass_ode" << "\t"
 		 << "total_mass" << "\t"
 		 << "total_prod" << "\n";
 	G.set_size(0.01, par, traits);
+	G.sap_frac_ode = G.sapwood_fraction;
+	G.heart_mass_ode = G.stem_mass(par, traits) - G.sapwood_mass(par, traits);
+
 	double dt = 0.1; // mass balance approx holds only for dt = 0.0001
 	double total_prod = G.total_mass(par, traits);
 	for (double t=0; t<=100; t=t+dt){
@@ -50,7 +58,7 @@ int main(){
 		//cout << t << " " << G.total_mass(par, traits) << " " << total_prod << "\n";
 		if (abs(G.total_mass(par, traits) - total_prod) > 1e-6) return 1;
 		
-		double P = max(sin(M_PI/12.0*t), 0.0); //0.75;	// biomass generation rate - kg/m2/yr
+		double P = 1;//*max(sin(M_PI/12.0*t), 0.0); //0.75;	// biomass generation rate - kg/m2/yr
 		
 		fout << t << "\t"
 			 << P << "\t"
@@ -58,7 +66,12 @@ int main(){
 			 << G.diameter << "\t"	
 			 << G.crown_area << "\t"	
 			 << G.leaf_area << "\t"	
+			 << G.sap_frac_ode << "\t"	
 			 << G.sapwood_fraction << "\t"	
+			 << G.sapwood_mass(par, traits) << "\t"	
+			 << G.k_sap << "\t"	
+			 << G.stem_mass(par, traits) - G.sapwood_mass(par, traits) << "\t"	
+			 << G.heart_mass_ode << "\t"	
 			 << G.total_mass(par,traits) << "\t"
 			 << total_prod << "\n";
 		

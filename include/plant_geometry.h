@@ -43,6 +43,10 @@ class PlantGeometry{
 	//double fl = 1; // current realized fraction of the maximum possible LAI
 	double hvlc = 1;
 
+	double sap_frac_ode = 1;
+	double heart_mass_ode = 0;
+	double k_sap;
+
 	//void set_size(double _x, PlantParameters &par, PlantTraits &traits){
 		//height = _x;
 		//double lai = par.lai_max * traits.fl;
@@ -147,13 +151,21 @@ class PlantGeometry{
 		auto derivs = [A, &par, &traits, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 			set_size(S[1], par, traits);
 
+			double dh_dd = par.a*exp(-par.a*diameter/traits.hmat);
+
 			dSdt[0] = A*leaf_area;	// biomass production rate
 			dSdt[1] = dsize_dmass(par, traits) * A*leaf_area; 
+			dSdt[2] = (hvlc)/(par.a*diameter*diameter)*(diameter*dh_dd - height)*dSdt[1];
+			dSdt[3] = (M_PI/4)*traits.wood_density*par.eta_c*(2*diameter*height + diameter*diameter*dh_dd - (hvlc/par.a)*(height*height + 2*height*diameter*dh_dd))*dSdt[1];	
+			
+			k_sap = (M_PI/4)*traits.wood_density*par.eta_c*(2*diameter*height + diameter*diameter*dh_dd - (hvlc/par.a)*(height*height + 2*height*diameter*dh_dd))/sapwood_mass(par, traits)*dSdt[1];
 		};
 
-		std::vector<double> S = {prod, get_size()};
+		std::vector<double> S = {prod, get_size(), sap_frac_ode, heart_mass_ode};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
+		heart_mass_ode = S[3];
+		sap_frac_ode = S[2];
 		set_size(S[1], par, traits);
 		prod = S[0];
 	}
