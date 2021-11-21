@@ -76,19 +76,18 @@ class PlantGeometry{
 
 	void set_size(double _x, PlantParameters &par, PlantTraits &traits){
 		diameter = _x;
-		double lai = par.lai_max * traits.fl;
 		height = traits.hmat * (1 - exp(-par.a*diameter/traits.hmat));
 		crown_area = par.pic_4a * height * diameter;
-		leaf_area = crown_area*lai;
-		sapwood_fraction = (hvlc) * height/diameter/par.a;	// FIXME: check LAI variation
+		leaf_area = crown_area * traits.lai;
+		sapwood_fraction = height / (diameter * par.a);	
 	}
 
 
 	double dsize_dmass(PlantParameters &par, PlantTraits &traits) const {
-		double lai = par.lai_max * traits.fl;
-		double dh_dd = par.a*exp(-par.a*diameter/traits.hmat);
-		double dmleaf_dd = traits.lma*lai*par.pic_4a * (height + diameter*dh_dd);	// FIXME: Carefully check LAI variation
-		double dmstem_dd = (par.eta_l*M_PI*traits.wood_density/4) * (2*height + diameter*dh_dd)*diameter;
+		double dh_dd = par.a * exp(-par.a*diameter/traits.hmat);
+		double dmleaf_dd = traits.lma * traits.lai * par.pic_4a * (height + diameter*dh_dd);	// FIXME: Carefully check LAI variation
+		double dmtrunk_dd = (par.eta_c * M_PI * traits.wood_density / 4) * (2*height + diameter*dh_dd)*diameter;
+		double dmbranches_dd = (sqrt(par.c / par.a) * M_PI * traits.wood_density / 12) 
 		double dmroot_dd = (traits.zeta/traits.lma) * dmleaf_dd;
 
 		double dmass_dd = dmleaf_dd + dmstem_dd + dmroot_dd;

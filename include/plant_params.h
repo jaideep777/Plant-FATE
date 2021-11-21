@@ -18,15 +18,11 @@ class PlantParameters{
 	// **
 	// ** Allocation and geometric paramaters  
 	// **
-	double ml, nl; // vertical leaf distribution paramaters 
-	double mc, nc; // crown shape paramaters
-	
+	double m, n; // crown shape paramaters
 	double a;      // height-diameter allometry
 	double c;      // crown area allometry
-	double b;      // bark allometry
 
-	double lai_max;    // maximum crown leaf area index
-	double hv_min;     // minimum huber value
+	//double hv_min;     // minimum huber value
 
 	// **
 	// ** Respiration and turnover 
@@ -45,7 +41,6 @@ class PlantParameters{
 	public:
 	// precompute some quantities for efficiency
 	double eta_c;
-	double eta_l;
 	double pic_4a;
 
 	
@@ -54,14 +49,10 @@ class PlantParameters{
 		io::Initializer I(fname);
 		I.readFile();
 		I.print();
-		ml = I.getScalar("ml");
-		nl = I.getScalar("nl");
-		mc = I.getScalar("mc");
-		nc = I.getScalar("nc");
+		m = I.getScalar("mc");
+		n = I.getScalar("nc");
 		a  = I.getScalar("a");
 		c  = I.getScalar("c");
-		b  = I.getScalar("b");
-		lai_max = I.getScalar("lai_max");
 		rl  = I.getScalar("rl");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");
@@ -80,16 +71,11 @@ class PlantParameters{
 
 	void print(){
 		std::cout << "Params:\n";
-		std:: cout << "   ml = " << ml << "\n";
-		std:: cout << "   nl = " << nl << "\n";
-		std:: cout << "   mc = " << mc << "\n";
-		std:: cout << "   nc = " << nc << "\n";
+		std:: cout << "   m = "  << m << "\n";
+		std:: cout << "   n = "  << c << "\n";
 		std:: cout << "   a  = " << a  << "\n";
-		std:: cout << "   b  = " << b  << "\n";
 		std:: cout << "   c  = " << c  << "\n";
-		std:: cout << "   L  = " << lai_max << "\n";
 		std:: cout << "   eta_c  = " << eta_c << "\n";
-		std:: cout << "   eta_l  = " << eta_l << "\n";
 		std:: cout << "   rl  = " << rl  << "\n";
 		std:: cout << "   rr  = " << rr  << "\n";
 		std:: cout << "   rs  = " << rs  << "\n";
@@ -116,7 +102,8 @@ class PlantTraits{
 	// variable (plastic) traits
 	public:
 	//double vcmax = 40*1e-6*86400*365.2524;	// current vcmax [umol CO2 m-2 s-1]
-	double fl = 1;	// current fraction of max. leaf area
+	double lai_opt;		// optimum crown leaf area index
+	double lai;			// realized crown LAI 	
 	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
 };
 
