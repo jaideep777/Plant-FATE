@@ -41,10 +41,10 @@ class PlantParameters{
 	public:
 	// precompute some quantities for efficiency
 	// Precomputed Geometric parameters
-	double eta_c;
-	double pic_4a;
-	double zm_H;
-	double qm;
+	//double eta_c;
+	//double pic_4a;
+	//double zm_H;
+	//double qm;
 
 	
 	public:
@@ -67,14 +67,14 @@ class PlantParameters{
 
 		//eta_c = 0.33; //tgamma(m+1.0)*tgamma(1.0/n)/(nc*tgamma(m+1.0+1.0/n));
 
-		pic_4a = M_PI*c/(4*a);
+		//pic_4a = M_PI*c/(4*a);
 
-		zm_H = pow((n-1)/(m*n-1), 1/n);
-		qm = m*n * pow((n-1)/(m*n-1), 1-1/n) * pow((m-1)*n/(m*n-1), m-1);
+		//zm_H = pow((n-1)/(m*n-1), 1/n);
+		//qm = m*n * pow((n-1)/(m*n-1), 1-1/n) * pow((m-1)*n/(m*n-1), m-1);
 
-		std::cout << "m = " << m << ", n = " << n << ", zm/H = " << zm_H << ", qm = " << qm << "\n";
+		//std::cout << "m = " << m << ", n = " << n << ", zm/H = " << zm_H << ", qm = " << qm << "\n";
 		
-		eta_c = zm_H - m*m*n/(qm*qm) * beta(2-1/n, 2*m-1) * (incbeta(2-1/n, 2*m-1, (n-1)/(m*n-1)) - (1-fg)); 
+		//eta_c = zm_H - m*m*n/(qm*qm) * beta(2-1/n, 2*m-1) * (incbeta(2-1/n, 2*m-1, (n-1)/(m*n-1)) - (1-fg)); 
 		
 		return 0;
 	}
@@ -85,7 +85,7 @@ class PlantParameters{
 		std:: cout << "   n = "  << n << "\n";
 		std:: cout << "   a  = " << a  << "\n";
 		std:: cout << "   c  = " << c  << "\n";
-		std:: cout << "   eta_c  = " << eta_c << "\n";
+		//std:: cout << "   eta_c  = " << eta_c << "\n";
 		std:: cout << "   rl  = " << rl  << "\n";
 		std:: cout << "   rr  = " << rr  << "\n";
 		std:: cout << "   rs  = " << rs  << "\n";
@@ -111,7 +111,6 @@ class PlantTraits{
 
 	// variable (plastic) traits
 	public:
-	//double vcmax = 40*1e-6*86400*365.2524;	// current vcmax [umol CO2 m-2 s-1]
 	double lai_opt = 1.8;		// optimum crown leaf area index
 	double lai = 1.8;			// realized crown LAI 	
 	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
