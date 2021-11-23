@@ -33,19 +33,23 @@ void RK4(double x, double h, container& y, functor& derivs){
 
 
 class PlantGeometry{
+	
 	public:
 	double height;	// height
 	double diameter;	// basal diameter
 	double crown_area;	// crown area
 	double leaf_area;	// leaf area
 	double sapwood_fraction = 1;	// sapwood fraction
+	double r0;
 
 	//double fl = 1; // current realized fraction of the maximum possible LAI
-	double hvlc = 1;
+	//double hvlc = 1;
 
 	double sap_frac_ode = 1;
 	double heart_mass_ode = 0;
 	double k_sap;
+
+	public:
 
 	//void set_size(double _x, PlantParameters &par, PlantTraits &traits){
 		//height = _x;
@@ -80,6 +84,7 @@ class PlantGeometry{
 		crown_area = par.pic_4a * height * diameter;
 		leaf_area = crown_area * traits.lai;
 		sapwood_fraction = height / (diameter * par.a);	
+		r0 = sqrt(crown_area/M_PI)/par.qm; 
 	}
 
 
@@ -87,10 +92,10 @@ class PlantGeometry{
 		double dh_dd = par.a * exp(-par.a*diameter/traits.hmat);
 		double dmleaf_dd = traits.lma * traits.lai * par.pic_4a * (height + diameter*dh_dd);	// FIXME: Carefully check LAI variation
 		double dmtrunk_dd = (par.eta_c * M_PI * traits.wood_density / 4) * (2*height + diameter*dh_dd)*diameter;
-		double dmbranches_dd = (sqrt(par.c / par.a) * M_PI * traits.wood_density / 12) 
+		double dmbranches_dd = (sqrt(par.c / par.a) * M_PI * traits.wood_density / 12) * (2.5*height + 0.5*diameter*dh_dd) * diameter*sqrt(diameter/height); 
 		double dmroot_dd = (traits.zeta/traits.lma) * dmleaf_dd;
 
-		double dmass_dd = dmleaf_dd + dmstem_dd + dmroot_dd;
+		double dmass_dd = dmleaf_dd + dmtrunk_dd + dmbranches_dd + dmroot_dd;
 		return 1/dmass_dd;
 	}
 
@@ -103,16 +108,22 @@ class PlantGeometry{
 		return leaf_area*traits.zeta;	
 	}
 	
-	double sapwood_mass(PlantParameters &par, PlantTraits &traits){
-		return traits.wood_density*(hvlc/par.c)*crown_area*par.eta_l*height;
-	}
+	//double sapwood_mass(PlantParameters &par, PlantTraits &traits){
+		//return traits.wood_density*(hvlc/par.c)*crown_area*par.eta_l*height;
+	//}
 		
-	double sapwood_mass1(PlantParameters &par, PlantTraits &traits){
+	double sapwood_mass(PlantParameters &par, PlantTraits &traits){
 		return stem_mass(par, traits)*sapwood_fraction;
 	}
 
 	double stem_mass(PlantParameters &par, PlantTraits &traits){
-		return traits.wood_density*(M_PI*diameter*diameter/4)*height*par.eta_l;	
+		double trunk_mass = traits.wood_density*(M_PI*diameter*diameter/4)*height*par.eta_c;
+		double branch_mass = traits.wood_density * (M_PI*diameter*diameter/12)*height * sqrt((par.c/par.a)*(diameter/height));	
+		return trunk_mass + branch_mass;
+	}
+
+	double heartwood_mass(PlantParameters &par, PlantTraits &traits){
+		return stem_mass(par, traits)*(1-sapwood_fraction);
 	}
 
 	double total_mass(PlantParameters &par, PlantTraits &traits){
@@ -120,25 +131,27 @@ class PlantGeometry{
 	}
 
 
-	double q(double z, double H, double n, double m){
-		if (z > H || z < 0) return 0;
-		else if (z == 0){
-			if (n == 1) return m/H;
-			else return 0;
-		}
+	double q(double z, PlantParameters &par){
+		if (z > height || z < 0) return 0;
 		else{
-			double zH_n = pow(z/H, n);
-			return m*n*pow(1-zH_n, m-1)*zH_n/z;
+			double m = par.m, n = par.n;
+			double zHn_1 = pow(z/height, n-1);
+			double zHn   = zHn_1 * z/height;
+			return m*n * pow(1 - zHn, m-1) * zHn_1;
 		}
 	}
 
-	double Q(double z, double H, double n, double m){
-		if (z > H) return 0;
-		else if (z <= 0) return 1;
-		else{
-			return pow(1-pow(z/H, n), m); 
-		}
-	}
+	double zm(PlantParameters &par){
+		return par.zm_H * height;
+	} 
+
+	//double Q(double z, double H, double n, double m){
+		//if (z > H) return 0;
+		//else if (z <= 0) return 1;
+		//else{
+			//return pow(1-pow(z/H, n), m); 
+		//}
+	//}
 
 	
 	// ** 
@@ -154,10 +167,17 @@ class PlantGeometry{
 
 			dSdt[0] = A*leaf_area;	// biomass production rate
 			dSdt[1] = dsize_dmass(par, traits) * A*leaf_area; 
-			dSdt[2] = (hvlc)/(par.a*diameter*diameter)*(diameter*dh_dd - height)*dSdt[1];
-			dSdt[3] = (M_PI/4)*traits.wood_density*par.eta_c*(2*diameter*height + diameter*diameter*dh_dd - (hvlc/par.a)*(height*height + 2*height*diameter*dh_dd))*dSdt[1];	
+			dSdt[2] = 1/(par.a*diameter*diameter)*(diameter*dh_dd - height)*dSdt[1];
 			
-			k_sap = (M_PI/4)*traits.wood_density*par.eta_c*(2*diameter*height + diameter*diameter*dh_dd - (hvlc/par.a)*(height*height + 2*height*diameter*dh_dd))/sapwood_mass(par, traits)*dSdt[1];
+			double dmtrunk_dd = (par.eta_c * M_PI * traits.wood_density / 4) * (2*height + diameter*dh_dd)*diameter;
+			double dmbranches_dd = (sqrt(par.c / par.a) * M_PI * traits.wood_density / 12) * (2.5*height + 0.5*diameter*dh_dd) * diameter*sqrt(diameter/height); 
+			
+			double dsap_trunk_dd = traits.wood_density * M_PI / (4*par.a) * par.eta_c * (2*diameter*dh_dd + height) * height;
+			double dsap_branch_dd = traits.wood_density * M_PI / (8*par.a) * sqrt(par.c/par.a) * (diameter*dh_dd + height) * sqrt(diameter*height);
+
+			dSdt[3] = (dmtrunk_dd + dmbranches_dd - dsap_trunk_dd - dsap_branch_dd) * dSdt[1];
+				
+			k_sap = dSdt[3]/sapwood_mass(par, traits)*dSdt[1];
 		};
 
 		std::vector<double> S = {prod, get_size(), sap_frac_ode, heart_mass_ode};

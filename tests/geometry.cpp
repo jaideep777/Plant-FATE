@@ -13,6 +13,7 @@ int main(){
 	plant::PlantGeometry G;
 
 	par.initFromFile("tests/params/p.ini");
+	par.print();
 
 	ofstream fout("geometric_growth.txt");
 	fout << "i" << "\t"
@@ -49,7 +50,7 @@ int main(){
 		 << "total_prod" << "\n";
 	G.set_size(0.01, par, traits);
 	G.sap_frac_ode = G.sapwood_fraction;
-	G.heart_mass_ode = G.stem_mass(par, traits) - G.sapwood_mass(par, traits);
+	G.heart_mass_ode = G.heartwood_mass(par, traits);
 
 	double dt = 0.1; // mass balance approx holds only for dt = 0.0001
 	double total_prod = G.total_mass(par, traits);

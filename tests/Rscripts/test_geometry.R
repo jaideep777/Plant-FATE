@@ -1,5 +1,5 @@
 # R script to test:
-dat = read.delim("/home/jaideep/codes/plant_fate_ppa/geometric_growth_2.txt")
+dat = read.delim("~/codes/tmodel_cpp/geometric_growth_2.txt")
 dat$heartwood_fraction = 1-dat$sapwood_fraction
 dat$hv = (pi*0.25*dat$diameter^2*dat$sapwood_fraction)/dat$leaf_area
 
