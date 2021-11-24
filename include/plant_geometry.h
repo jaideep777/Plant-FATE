@@ -3,6 +3,7 @@
 
 #include <cmath>
 
+#include "lambertw.h"
 #include "plant_params.h"
 
 namespace plant{
@@ -54,13 +55,15 @@ class PlantGeometry{
 	double diameter;	// basal diameter
 	double crown_area;	// crown area
 	double leaf_area;	// leaf area
-	double sapwood_fraction = 1;	// sapwood fraction
+	double sapwood_fraction = 1;	// fraction of stem that is sapwood
+	double functional_xylem_fraction;	// fraction of funcitonal xylem in sapwood
 	double r0;
 
 	//double fl = 1; // current realized fraction of the maximum possible LAI
 	//double hvlc = 1;
 
 	double sap_frac_ode = 1;
+	double sapwood_mass_ode = 0;
 	double heart_mass_ode = 0;
 	double k_sap;
 
@@ -176,22 +179,25 @@ class PlantGeometry{
 	}
 
 	double leaf_area_above(double z, PlantTraits &traits){
+		double fq = q(z)/geom.qm;
 		if (z >= zm()){
-			return M_PI*r0*r0*q(z)*q(z)*(1-geom.fg) * traits.lai;
+			return crown_area * fq*fq * (1-geom.fg) * traits.lai;
 		} 
 		else{
-			return M_PI*r0*r0*(geom.qm*geom.qm - q(z)*q(z)*geom.fg) * traits.lai;
+			return crown_area * (1 - fq*fq * geom.fg) * traits.lai;
 		}
 	}
 
-	template<class Environment>
-	double calc_optimal_lai(double P0, double E0, Environment &env, PlantParameters &par, PlantTraits &traits){
+
+	double calc_optimal_lai(double P0, double E0, double viscosity_water, PlantParameters &par, PlantTraits &traits){
 		double c1 = par.lambda1;
-		double c2 = par.lambda2 * env.viscosity_water * E0 * geom.c / (traits.K_leaf * traits.sig_p);
+		double c2 = par.lambda2 * viscosity_water * E0 * geom.c / (traits.K_xylem);
+		std::cout << "c2 = " << c2 << "\n";
 
-		double a = (1+c1/c2)*exp(1+par.k_light*P0/c2);
-
-		pn::zero(0, 50, [a](double x){return x*exp(x)-a;}, 1e-6).root;
+		double k = par.k_light;
+		double a = (1+c1/c2)*exp(1+k*P0/c2);
+		
+		return P0/c2 + 1/k - 1/k * lambertw0(a);
 	}
 
 	//double Q(double z, double H, double n, double m){
@@ -224,18 +230,21 @@ class PlantGeometry{
 			double dsap_trunk_dd = traits.wood_density * M_PI / (4*geom.a) * geom.eta_c * (2*diameter*dh_dd + height) * height;
 			double dsap_branch_dd = traits.wood_density * M_PI / (8*geom.a) * sqrt(geom.c/geom.a) * (diameter*dh_dd + height) * sqrt(diameter*height);
 
-			dSdt[3] = (dmtrunk_dd + dmbranches_dd - dsap_trunk_dd - dsap_branch_dd) * dSdt[1];
+			dSdt[3] = (S[3] < sapwood_mass(traits))? (dmtrunk_dd + dmbranches_dd) * dSdt[1] : (dsap_trunk_dd + dsap_branch_dd) * dSdt[1];
+			dSdt[4] = (dmtrunk_dd + dmbranches_dd - dsap_trunk_dd - dsap_branch_dd) * dSdt[1];
 				
 			k_sap = dSdt[3]/sapwood_mass(traits)*dSdt[1];
 		};
 
-		std::vector<double> S = {prod, get_size(), sap_frac_ode, heart_mass_ode};
+		std::vector<double> S = {prod, get_size(), sap_frac_ode, sapwood_mass_ode, heart_mass_ode};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
-		heart_mass_ode = S[3];
+		heart_mass_ode = S[4];
+		sapwood_mass_ode = S[3];
 		sap_frac_ode = S[2];
 		set_size(S[1], traits);
 		prod = S[0];
+		functional_xylem_fraction = S[3]/sapwood_mass(traits);
 	}
 
 

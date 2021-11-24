@@ -1,3 +1,6 @@
+#ifndef MATH_UTILS_INC_BETA_H_
+#define MATH_UTILS_INC_BETA_H_
+
 /*
  * zlib License
  *
@@ -86,4 +89,4 @@ inline double beta(double a, double b) {
 //}
 
 
-
+#endif

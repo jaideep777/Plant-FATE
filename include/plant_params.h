@@ -24,6 +24,10 @@ class PlantParameters{
 	double c;      // crown area allometry
 	double fg;		// upper canopy gap fraction
 
+	// ** LAI optimization
+	double lambda1;	// leaf construction costs
+	double lambda2;	// hydraulic costs
+
 	// **
 	// ** Respiration and turnover 
 	// **
@@ -58,6 +62,8 @@ class PlantParameters{
 		fg = I.getScalar("fg");
 		a  = I.getScalar("a");
 		c  = I.getScalar("c");
+		lambda1  = I.getScalar("lambda1");
+		lambda2  = I.getScalar("lambda2");
 		rl  = I.getScalar("rl");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");
@@ -109,6 +115,7 @@ class PlantTraits{
 	
 	double p50_leaf = -1.5;		// Leaf hydraulic capacity [MPa]
 	double K_leaf = 1e-16;		// Leaf conductivity [m]
+	double K_xylem = 2e-16;		// Leaf conductivity [m]
 	double b_leaf = 1;			// Shape parameter of leaf vulnerabilty curve [-]
 
 	// variable (plastic) traits

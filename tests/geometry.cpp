@@ -45,6 +45,8 @@ int main(){
 		 << "sapwood_fraction_ode" << "\t"
 		 << "sapwood_fraction" << "\t"
 		 << "sapwood_mass" << "\t"
+		 << "sapwood_mass_ode" << "\t"
+		 << "functional_xylem_fraction" << "\t"
 		 << "sapwood_turnover_rate" << "\t"
 		 << "heartwood_mass" << "\t"
 		 << "heartwood_mass_ode" << "\t"
@@ -52,6 +54,7 @@ int main(){
 		 << "total_prod" << "\n";
 	G.set_size(0.01, traits);
 	G.sap_frac_ode = G.sapwood_fraction;
+	G.sapwood_mass_ode = G.sapwood_mass(traits)*0.5;
 	G.heart_mass_ode = G.heartwood_mass(traits);
 
 	double dt = 0.1; // mass balance approx holds only for dt = 0.0001
@@ -74,13 +77,15 @@ int main(){
 			 << G.sap_frac_ode << "\t"	
 			 << G.sapwood_fraction << "\t"	
 			 << G.sapwood_mass(traits) << "\t"	
+			 << G.sapwood_mass_ode << "\t"	
+			 << G.functional_xylem_fraction << "\t"	
 			 << G.k_sap << "\t"	
 			 << G.heartwood_mass(traits) << "\t"	
 			 << G.heart_mass_ode << "\t"	
 			 << G.total_mass(traits) << "\t"
 			 << total_prod << "\n";
 		
-		//total_prod += P*G.leaf_area*dt;
+		cout << "lai_opt = " << G.calc_optimal_lai(1e-6, 0.1, 0.89e-3, par, traits) << "\n";//total_prod += P*G.leaf_area*dt;
 		
 		G.grow_for_dt(t, dt, total_prod, P, traits);
 		//double dhdM = G.dheight_dmass(traits);
