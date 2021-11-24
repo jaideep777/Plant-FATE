@@ -81,6 +81,20 @@ class PlantGeometry{
 		std::cout << "m = " << m << ", n = " << n << ", zm/H = " << geom.zm_H << ", qm = " << geom.qm << ", eta_c = " << geom.eta_c << "\n";
 	}
 
+	double q(double z){
+		if (z > height || z < 0) return 0;
+		else{
+			double m = geom.m, n = geom.n;
+			double zHn_1 = pow(z/height, n-1);
+			double zHn   = zHn_1 * z/height;
+			return m*n * pow(1 - zHn, m-1) * zHn_1;
+		}
+	}
+
+	double zm(){
+		return geom.zm_H * height;
+	} 
+
 
 	//void set_size(double _x, PlantTraits &traits){
 		//height = _x;
@@ -161,20 +175,24 @@ class PlantGeometry{
 		return stem_mass(traits) + leaf_mass(traits) + root_mass(traits);
 	}
 
-
-	double q(double z, PlantParameters &par){
-		if (z > height || z < 0) return 0;
+	double leaf_area_above(double z, PlantTraits &traits){
+		if (z >= zm()){
+			return M_PI*r0*r0*q(z)*q(z)*(1-geom.fg) * traits.lai;
+		} 
 		else{
-			double m = geom.m, n = geom.n;
-			double zHn_1 = pow(z/height, n-1);
-			double zHn   = zHn_1 * z/height;
-			return m*n * pow(1 - zHn, m-1) * zHn_1;
+			return M_PI*r0*r0*(geom.qm*geom.qm - q(z)*q(z)*geom.fg) * traits.lai;
 		}
 	}
 
-	double zm(PlantParameters &par){
-		return geom.zm_H * height;
-	} 
+	template<class Environment>
+	double calc_optimal_lai(double P0, double E0, Environment &env, PlantParameters &par, PlantTraits &traits){
+		double c1 = par.lambda1;
+		double c2 = par.lambda2 * env.viscosity_water * E0 * geom.c / (traits.K_leaf * traits.sig_p);
+
+		double a = (1+c1/c2)*exp(1+par.k_light*P0/c2);
+
+		pn::zero(0, 50, [a](double x){return x*exp(x)-a;}, 1e-6).root;
+	}
 
 	//double Q(double z, double H, double n, double m){
 		//if (z > H) return 0;

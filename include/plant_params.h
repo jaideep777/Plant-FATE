@@ -37,6 +37,7 @@ class PlantParameters{
 	double cbio;
 	double y;
 
+	double k_light;		// light extincttion coefficient
 
 	public:
 	// precompute some quantities for efficiency
@@ -64,6 +65,7 @@ class PlantParameters{
 		lr  = I.getScalar("lr");
 		cbio  = I.getScalar("cbio");
 		y = I.getScalar("y");
+		k_light = I.getScalar("k_light");
 
 		//eta_c = 0.33; //tgamma(m+1.0)*tgamma(1.0/n)/(nc*tgamma(m+1.0+1.0/n));
 
