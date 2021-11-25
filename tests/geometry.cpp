@@ -42,6 +42,8 @@ int main(){
 		 << "diameter" << "\t"	
 		 << "crown_area" << "\t"	
 		 << "leaf_area" << "\t"	
+		 << "leaf_mass" << "\t"	
+		 << "lai" << "\t"
 		 << "sapwood_fraction_ode" << "\t"
 		 << "sapwood_fraction" << "\t"
 		 << "sapwood_mass" << "\t"
@@ -50,8 +52,10 @@ int main(){
 		 << "sapwood_turnover_rate" << "\t"
 		 << "heartwood_mass" << "\t"
 		 << "heartwood_mass_ode" << "\t"
+		 << "root_mass" << "\t"
 		 << "total_mass" << "\t"
-		 << "total_prod" << "\n";
+		 << "total_prod" << "\t"
+		 << "litter_mass" << "\n";
 	G.set_size(0.01, traits);
 	G.sap_frac_ode = G.sapwood_fraction;
 	G.sapwood_mass_ode = G.sapwood_mass(traits)*0.5;
@@ -62,9 +66,9 @@ int main(){
 	for (double t=0; t<=100; t=t+dt){
 
 		//cout << t << " " << G.total_mass(traits) << " " << total_prod << "\n";
-		if (abs(G.total_mass(traits) - total_prod) > 1e-6) return 1;
-		if (abs(G.heartwood_mass(traits) - G.heart_mass_ode) > 1e-6) return 1;
-		if (abs(G.sapwood_fraction - G.sap_frac_ode) > 1e-6) return 1;
+		//if (abs(G.total_mass(traits) - total_prod) > 1e-6) return 1;
+		//if (abs(G.heartwood_mass(traits) - G.heart_mass_ode) > 1e-6) return 1;
+		//if (abs(G.sapwood_fraction - G.sap_frac_ode) > 1e-6) return 1;
 		
 		double P = 1;//*max(sin(M_PI/12.0*t), 0.0); //0.75;	// biomass generation rate - kg/m2/yr
 		
@@ -73,7 +77,9 @@ int main(){
 			 << G.height << "\t"	
 			 << G.diameter << "\t"	
 			 << G.crown_area << "\t"	
-			 << G.leaf_area << "\t"	
+			 << G.leaf_area << "\t"
+			 << G.leaf_mass(traits) << "\t"
+			 << G.lai << "\t" 
 			 << G.sap_frac_ode << "\t"	
 			 << G.sapwood_fraction << "\t"	
 			 << G.sapwood_mass(traits) << "\t"	
@@ -82,10 +88,10 @@ int main(){
 			 << G.k_sap << "\t"	
 			 << G.heartwood_mass(traits) << "\t"	
 			 << G.heart_mass_ode << "\t"	
+			 << G.root_mass(traits) << "\t"	
 			 << G.total_mass(traits) << "\t"
-			 << total_prod << "\n";
-		
-		cout << "lai_opt = " << G.calc_optimal_lai(1e-6, 0.1, 0.89e-3, par, traits) << "\n";//total_prod += P*G.leaf_area*dt;
+			 << total_prod << "\t"
+			 << G.litter_pool << "\n";
 		
 		G.grow_for_dt(t, dt, total_prod, P, traits);
 		//double dhdM = G.dheight_dmass(traits);
@@ -96,8 +102,12 @@ int main(){
 	fout.close();
 
 	cout << "At t = " << 100 << "\n"
-		 << "Total biomass    = " << G.total_mass(traits) << "\n"
-		 << "Total production = " << total_prod << "\n";
+		 << "Total biomass + litter = " << G.total_mass(traits) + G.litter_pool << "\n"
+		 << "Total production       = " << total_prod << "\n";
+
+	if (abs(G.total_mass(traits) - total_prod + G.litter_pool) > 1e-6) return 1;
+	if (abs(G.heartwood_mass(traits) - G.heart_mass_ode) > 1e-6) return 1;
+	if (abs(G.sapwood_fraction - G.sap_frac_ode) > 1e-6) return 1;
 	
 	return 0;
 }

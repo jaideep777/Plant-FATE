@@ -57,10 +57,10 @@ class PlantGeometry{
 	double leaf_area;	// leaf area
 	double sapwood_fraction = 1;	// fraction of stem that is sapwood
 	double functional_xylem_fraction;	// fraction of funcitonal xylem in sapwood
-	double r0;
 
-	//double fl = 1; // current realized fraction of the maximum possible LAI
-	//double hvlc = 1;
+	double lai = 1;
+	
+	double litter_pool = 0;
 
 	double sap_frac_ode = 1;
 	double sapwood_mass_ode = 0;
@@ -98,30 +98,7 @@ class PlantGeometry{
 		return geom.zm_H * height;
 	} 
 
-
-	//void set_size(double _x, PlantTraits &traits){
-		//height = _x;
-		//double lai = geom.lai_max * traits.fl;
-		//double hv_min = 1/(par.lai_max * par.c);
-		//double hv = 1/(lai*par.c);
-		//diameter = -log(1-height/traits.hmat) * traits.hmat/par.a;
-		//crown_area = par.pic_4a * height * diameter;
-		//leaf_area = crown_area*lai;
-		//sapwood_fraction = (hvlc) * height/diameter/par.a;	// FIXME: check LAI variation
-	//}
-
-	//double dsize_dmass(PlantTraits &traits) const {
-		//double lai = par.lai_max * traits.fl;
-		//double dd_dh = 1/(par.a*(1-height/traits.hmat));
-		//double dmleaf_dh = traits.lma*lai*par.pic_4a * (height*dd_dh + diameter);	// FIXME: Carefully check LAI variation
-		//double dmstem_dh = (par.eta_l*M_PI*traits.wood_density/4) * (2*height*dd_dh + diameter)*diameter;
-		//double dmroot_dh = (traits.zeta/traits.lma) * dmleaf_dh;
-
-		//double dmass_dh = dmleaf_dh + dmstem_dh + dmroot_dh;
-		//return 1/dmass_dh;
-	//}
-
-
+	
 	double get_size() const {
 		return diameter;
 	}
@@ -130,15 +107,14 @@ class PlantGeometry{
 		diameter = _x;
 		height = traits.hmat * (1 - exp(-geom.a*diameter/traits.hmat));
 		crown_area = geom.pic_4a * height * diameter;
-		leaf_area = crown_area * traits.lai;
+		leaf_area = crown_area * lai;
 		sapwood_fraction = height / (diameter * geom.a);	
-		r0 = sqrt(crown_area/M_PI)/geom.qm; 
 	}
 
 
 	double dsize_dmass(PlantTraits &traits) const {
 		double dh_dd = geom.a * exp(-geom.a*diameter/traits.hmat);
-		double dmleaf_dd = traits.lma * traits.lai * geom.pic_4a * (height + diameter*dh_dd);	// FIXME: Carefully check LAI variation
+		double dmleaf_dd = traits.lma * lai * geom.pic_4a * (height + diameter*dh_dd);	// LAI variation is accounted for in biomass production rate
 		double dmtrunk_dd = (geom.eta_c * M_PI * traits.wood_density / 4) * (2*height + diameter*dh_dd)*diameter;
 		double dmbranches_dd = (sqrt(geom.c / geom.a) * M_PI * traits.wood_density / 12) * (2.5*height + 0.5*diameter*dh_dd) * diameter*sqrt(diameter/height); 
 		double dmroot_dd = (traits.zeta/traits.lma) * dmleaf_dd;
@@ -164,6 +140,10 @@ class PlantGeometry{
 		return stem_mass(traits)*sapwood_fraction;
 	}
 
+	double sapwood_mass_real(PlantTraits &traits){
+		return sapwood_mass(traits)*functional_xylem_fraction;
+	}
+
 	double stem_mass(PlantTraits &traits){
 		double trunk_mass = traits.wood_density*(M_PI*diameter*diameter/4)*height*geom.eta_c;
 		double branch_mass = traits.wood_density * (M_PI*diameter*diameter/12)*height * sqrt((geom.c/geom.a)*(diameter/height));	
@@ -178,27 +158,30 @@ class PlantGeometry{
 		return stem_mass(traits) + leaf_mass(traits) + root_mass(traits);
 	}
 
-	double leaf_area_above(double z, PlantTraits &traits){
+	double crown_area_projected(double z, PlantTraits &traits){
 		double fq = q(z)/geom.qm;
 		if (z >= zm()){
-			return crown_area * fq*fq * (1-geom.fg) * traits.lai;
+			return crown_area * fq*fq * (1-geom.fg);
 		} 
 		else{
-			return crown_area * (1 - fq*fq * geom.fg) * traits.lai;
+			return crown_area * (1 - fq*fq * geom.fg);
 		}
 	}
 
-
-	double calc_optimal_lai(double P0, double E0, double viscosity_water, PlantParameters &par, PlantTraits &traits){
-		double c1 = par.lambda1;
-		double c2 = par.lambda2 * viscosity_water * E0 * geom.c / (traits.K_xylem);
-		std::cout << "c2 = " << c2 << "\n";
-
-		double k = par.k_light;
-		double a = (1+c1/c2)*exp(1+k*P0/c2);
-		
-		return P0/c2 + 1/k - 1/k * lambertw0(a);
+	double leaf_area_above(double z, PlantTraits &traits){
+		return lai * crown_area_projected(z, traits);
 	}
+
+	//double calc_optimal_lai(double P0, double E0, double viscosity_water, PlantParameters &par, PlantTraits &traits){
+		//double c1 = par.lambda1;
+		//double c2 = par.lambda2 * viscosity_water * E0 * geom.c / (traits.K_xylem);
+		//std::cout << "c2 = " << c2 << "\n";
+
+		//double k = par.k_light;
+		//double a = (1+c1/c2)*exp(1+k*P0/c2);
+		
+		//return P0/c2 + 1/k - 1/k * lambertw0(a);
+	//}
 
 	//double Q(double z, double H, double n, double m){
 		//if (z > H) return 0;
@@ -216,13 +199,22 @@ class PlantGeometry{
 	void grow_for_dt(double t, double dt, double &prod, double A, PlantTraits &traits){
 
 		auto derivs = [A, &traits, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+			lai = S[5];
 			set_size(S[1], traits);
 
 			double dh_dd = geom.a*exp(-geom.a*diameter/traits.hmat);
 
-			dSdt[0] = A*leaf_area;	// biomass production rate
-			dSdt[1] = dsize_dmass(traits) * A*leaf_area; 
-			dSdt[2] = 1/(geom.a*diameter*diameter)*(diameter*dh_dd - height)*dSdt[1];
+			double dL_dt = -0.05*lai; //*lai;
+
+			double dB_dt = A*leaf_area;	// total biomass production rate
+			double dLA_dt = dL_dt*crown_area*(traits.lma + traits.zeta);  // biomass going into leaf area increment
+			double dLit_dt = std::max(-dLA_dt, 0.0);  // biomass going into litter (through leaf loss)
+			double dG_dt = dB_dt - std::max(dLA_dt, 0.0); // biomass going into geometric growth
+			double dD_dt = dsize_dmass(traits) * dG_dt;	// size (diameter) growth rate
+
+			dSdt[0] = dB_dt;	// biomass that goes into allometric increments
+			dSdt[1] = dD_dt; 
+			dSdt[2] = 1/(geom.a*diameter*diameter)*(diameter*dh_dd - height)*dD_dt;
 			
 			double dmtrunk_dd = (geom.eta_c * M_PI * traits.wood_density / 4) * (2*height + diameter*dh_dd)*diameter;
 			double dmbranches_dd = (sqrt(geom.c / geom.a) * M_PI * traits.wood_density / 12) * (2.5*height + 0.5*diameter*dh_dd) * diameter*sqrt(diameter/height); 
@@ -230,18 +222,22 @@ class PlantGeometry{
 			double dsap_trunk_dd = traits.wood_density * M_PI / (4*geom.a) * geom.eta_c * (2*diameter*dh_dd + height) * height;
 			double dsap_branch_dd = traits.wood_density * M_PI / (8*geom.a) * sqrt(geom.c/geom.a) * (diameter*dh_dd + height) * sqrt(diameter*height);
 
-			dSdt[3] = (S[3] < sapwood_mass(traits))? (dmtrunk_dd + dmbranches_dd) * dSdt[1] : (dsap_trunk_dd + dsap_branch_dd) * dSdt[1];
-			dSdt[4] = (dmtrunk_dd + dmbranches_dd - dsap_trunk_dd - dsap_branch_dd) * dSdt[1];
-				
+			dSdt[3] = (S[3] < sapwood_mass(traits))? (dmtrunk_dd + dmbranches_dd) * dD_dt : (dsap_trunk_dd + dsap_branch_dd) * dD_dt;
+			dSdt[4] = (dmtrunk_dd + dmbranches_dd - dsap_trunk_dd - dsap_branch_dd) * dD_dt;
+			dSdt[5] = dL_dt;
+			dSdt[6] = dLit_dt; //(dL_dt < 0)? dLex_dt : 0;
+
 			k_sap = dSdt[3]/sapwood_mass(traits)*dSdt[1];
 		};
 
-		std::vector<double> S = {prod, get_size(), sap_frac_ode, sapwood_mass_ode, heart_mass_ode};
+		std::vector<double> S = {prod, get_size(), sap_frac_ode, sapwood_mass_ode, heart_mass_ode, lai, litter_pool};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
+		litter_pool = S[6];
 		heart_mass_ode = S[4];
 		sapwood_mass_ode = S[3];
 		sap_frac_ode = S[2];
+		lai = S[5];
 		set_size(S[1], traits);
 		prod = S[0];
 		functional_xylem_fraction = S[3]/sapwood_mass(traits);
