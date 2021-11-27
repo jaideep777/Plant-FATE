@@ -15,33 +15,36 @@ int main(){
 	par.initFromFile("tests/params/p.ini");
 	par.print();
 	
-	G.initGeometry(par.a, par.c, par.m, par.n, par.fg);
+	G.initGeometry(0.01, par, traits);
+	G.sap_frac_ode = G.sapwood_fraction;
+	G.sapwood_mass_ode = G.sapwood_mass(traits)*0.5;
+	G.heart_mass_ode = G.heartwood_mass(traits);
 
-	ofstream fout("geometric_growth.txt");
-	fout << "i" << "\t"
-		 << "height" << "\t"	
-		 << "diameter" << "\t"	
-		 << "crown_area" << "\t"	
-		 << "leaf_area" << "\t"	
-		 << "sapwood_fraction" << "\n";	
-	for (int i=1; i<100; ++i){
-		G.set_size((i/1000.0)*traits.hmat, traits);
-		fout << i << "\t"
-			 << G.height << "\t"	
-			 << G.diameter << "\t"	
-			 << G.crown_area << "\t"	
-			 << G.leaf_area << "\t"	
-			 << G.sapwood_fraction << "\n";	
-	}
-	fout.close();
+	//ofstream fout("geometric_growth.txt");
+	//fout << "i" << "\t"
+		 //<< "height" << "\t"	
+		 //<< "diameter" << "\t"	
+		 //<< "crown_area" << "\t"	
+		 //<< "leaf_area" << "\t"	
+		 //<< "sapwood_fraction" << "\n";	
+	//for (int i=1; i<100; ++i){
+		//G.set_size((i/1000.0)*traits.hmat, traits);
+		//fout << i << "\t"
+			 //<< G.height << "\t"	
+			 //<< G.diameter << "\t"	
+			 //<< G.crown_area << "\t"	
+			 //<< G.leaf_area << "\t"	
+			 //<< G.sapwood_fraction << "\n";	
+	//}
+	//fout.close();
 
-	fout.open("geometric_growth_2.txt");
+	ofstream fout("geometric_growth_2.txt");
 	fout << "i" << "\t"
 		 << "assim" << "\t"
 		 << "height" << "\t"	
 		 << "diameter" << "\t"	
 		 << "crown_area" << "\t"	
-		 << "leaf_area" << "\t"	
+		 //<< "leaf_area" << "\t"	
 		 << "leaf_mass" << "\t"	
 		 << "lai" << "\t"
 		 << "sapwood_fraction_ode" << "\t"
@@ -56,10 +59,6 @@ int main(){
 		 << "total_mass" << "\t"
 		 << "total_prod" << "\t"
 		 << "litter_mass" << "\n";
-	G.set_size(0.01, traits);
-	G.sap_frac_ode = G.sapwood_fraction;
-	G.sapwood_mass_ode = G.sapwood_mass(traits)*0.5;
-	G.heart_mass_ode = G.heartwood_mass(traits);
 
 	double dt = 0.1; // mass balance approx holds only for dt = 0.0001
 	double total_prod = G.total_mass(traits);
@@ -77,7 +76,7 @@ int main(){
 			 << G.height << "\t"	
 			 << G.diameter << "\t"	
 			 << G.crown_area << "\t"	
-			 << G.leaf_area << "\t"
+			 //<< G.leaf_area << "\t"
 			 << G.leaf_mass(traits) << "\t"
 			 << G.lai << "\t" 
 			 << G.sap_frac_ode << "\t"	

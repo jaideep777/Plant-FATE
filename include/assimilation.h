@@ -41,11 +41,10 @@ class Assimilator{
 	double plant_assimilation_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
 		double GPP_plant = 0, Rl_plant = 0;
 		
-		double lai = par.lai_max*traits.fl;
-		double fapar = 1-exp(-0.5*lai);
+		double fapar = 1-exp(-0.5*G->lai);
 		
 		auto res = leaf_assimilation_rate(fapar, env.clim, par, traits);
-		double la_layer = G->leaf_area;
+		double la_layer = G->leaf_area_above(0, traits);
 		
 		GPP_plant += (res.a + res.vcmax*par.rl) * la_layer;
 		Rl_plant  += (res.vcmax*par.rl) * la_layer;
@@ -88,19 +87,19 @@ class Assimilator{
 	}
 
 	double root_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
-		return par.rr * G->root_mass(par, traits);
+		return par.rr * G->root_mass(traits);
 	}
 
 	double sapwood_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
-		return par.rs * G->sapwood_mass(par, traits);
+		return par.rs * G->sapwood_mass(traits);
 	}
 
 	double leaf_turnover_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
-		return G->leaf_mass(par, traits) / traits.ll;	
+		return G->leaf_mass(traits) / traits.ll;	
 	}
 	
 	double root_turnover_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
-		return G->root_mass(par, traits) / par.lr;
+		return G->root_mass(traits) / par.lr;
 	}
 
 

@@ -20,7 +20,7 @@ CPPFLAGS = -O3 -g -pg -std=c++11 -Wno-sign-compare -Wno-unused-variable -Wno-unu
 LDFLAGS =  -g -pg
 
 # libs
-LIBS = 	 #-lgsl -lgslcblas 	# additional libs
+LIBS = 	 -lgsl -lgslcblas 	# additional libs
 #LIBS = -lcudart 			# cuda libs 		
 
 # files

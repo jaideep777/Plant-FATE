@@ -27,15 +27,16 @@ class Plant{
 
 
 	int initParamsFromFile(std::string file){
-		return par.initFromFile(file);
+		int i = par.initFromFile(file);
+		geometry->initGeometry(0.01, par, traits);
 	}
 
 	void set_size(double x){
-		geometry->set_size(x, par, traits);
+		geometry->set_size(x, traits);
 	}
 
 	double get_biomass(){
-		return geometry->total_mass(par, traits);
+		return geometry->total_mass(traits);
 	}
 
 	// ** 
@@ -48,19 +49,27 @@ class Plant{
 		auto derivs = [&env, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 			env.updateClimate(t);
 
-			this->geometry->set_size(S[1], par, traits);
+			this->geometry->set_state(S.begin()+1, traits);
 			
 			double dmass_dt = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);
+			
+			double dL_dt = this->geometry->dlai_dt(traits);
+			double dmass_dt_lai = this->geometry->dmass_dt_lai(dL_dt, traits);  // biomass change resulting from LAI change
+			double dmass_dt_geom = dmass_dt - std::max(dmass_dt_lai, 0.0);	 // biomass change due to allometric growth
+			double dlitter_dt = std::max(-dmass_dt_lai, 0.0);	// biomass from leaf loss goes into litter
+			double dsize_dt = this->geometry->dsize_dmass(traits) * dmass_dt_geom; // size growth rate
 
-			dSdt[0] = dmass_dt;	// biomass production rate
-			dSdt[1] = this->geometry->dsize_dmass(par, traits) * dmass_dt; 
+			dSdt[0] = dmass_dt;	   // biomass production rate
+			dSdt[1] = dL_dt;       // lai growth rate
+			dSdt[2] = dsize_dt;    // size (diameter) growth rate
+			dSdt[3] = dlitter_dt;  // litter biomass growth rate
 		};
 
-		std::vector<double> S = {prod, geometry->get_size()};
+		std::vector<double> S = {prod, geometry->lai, geometry->get_size(), geometry->litter_pool};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
-		geometry->set_size(S[1], par, traits);
 		prod = S[0];
+		geometry->set_state(S.begin()+1, traits);
 	}
 
 			

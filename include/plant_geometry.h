@@ -51,16 +51,15 @@ class PlantGeometry{
 
 	public:
 	// current state
-	double height;	// height
+	double lai = 1;     // leaf area index 
 	double diameter;	// basal diameter
+	double litter_pool = 0;
+
+	double height;	// height
 	double crown_area;	// crown area
-	double leaf_area;	// leaf area
+	//double leaf_area;	// leaf area
 	double sapwood_fraction = 1;	// fraction of stem that is sapwood
 	double functional_xylem_fraction;	// fraction of funcitonal xylem in sapwood
-
-	double lai = 1;
-	
-	double litter_pool = 0;
 
 	double sap_frac_ode = 1;
 	double sapwood_mass_ode = 0;
@@ -69,19 +68,22 @@ class PlantGeometry{
 
 	public:
 
-	void initGeometry(double a, double c, double m, double n, double fg){
-		geom.m = m; geom.n = n; 
-		geom.a = a; geom.c = c;
-		geom.fg = fg;
+	void initGeometry(double diameter_0, PlantParameters &par, PlantTraits &traits){
+		geom.m = par.m; geom.n = par.n; 
+		geom.a = par.a; geom.c = par.c;
+		geom.fg = par.fg;
 
 		geom.pic_4a = M_PI*geom.c/(4*geom.a);
 
+		double m = geom.m, n = geom.n;
 		geom.zm_H = pow((n-1)/(m*n-1), 1/n);
 		geom.qm = m*n * pow((n-1)/(m*n-1), 1-1/n) * pow((m-1)*n/(m*n-1), m-1);
 
 		geom.eta_c = geom.zm_H - m*m*n/(geom.qm*geom.qm) * beta(2-1/n, 2*m-1) * (incbeta(2-1/n, 2*m-1, (n-1)/(m*n-1)) - (1-geom.fg)); 
 		
 		std::cout << "m = " << m << ", n = " << n << ", zm/H = " << geom.zm_H << ", qm = " << geom.qm << ", eta_c = " << geom.eta_c << "\n";
+		
+		set_size(diameter_0, traits);
 	}
 
 	double q(double z){
@@ -103,12 +105,22 @@ class PlantGeometry{
 		return diameter;
 	}
 
+	void set_lai(double _l){
+		lai = _l;
+	}
+
 	void set_size(double _x, PlantTraits &traits){
 		diameter = _x;
 		height = traits.hmat * (1 - exp(-geom.a*diameter/traits.hmat));
 		crown_area = geom.pic_4a * height * diameter;
-		leaf_area = crown_area * lai;
+		//leaf_area = crown_area * lai;
 		sapwood_fraction = height / (diameter * geom.a);	
+	}
+
+	double set_state(std::vector<double>::iterator S, PlantTraits &traits){
+		lai = *S++;             // must be set first as it is used bt set_size()
+		set_size(*S++, traits);
+		litter_pool = *S++;
 	}
 
 
@@ -123,13 +135,20 @@ class PlantGeometry{
 		return 1/dmass_dd;
 	}
 
+	double dlai_dt(PlantTraits &traits){
+		return 0.05;
+	}
+
+	double dmass_dt_lai(double dL_dt, PlantTraits &traits){
+		return dL_dt * crown_area * (traits.lma + traits.zeta);
+	}
 
 	double leaf_mass(PlantTraits &traits){
-		return leaf_area*traits.lma;	
+		return crown_area * lai * traits.lma;	
 	}
 
 	double root_mass(PlantTraits &traits){
-		return leaf_area*traits.zeta;	
+		return crown_area * lai * traits.zeta;	
 	}
 	
 	//double sapwood_mass(PlantTraits &traits){
@@ -159,6 +178,8 @@ class PlantGeometry{
 	}
 
 	double crown_area_projected(double z, PlantTraits &traits){
+		if (z == 0) return crown_area;
+
 		double fq = q(z)/geom.qm;
 		if (z >= zm()){
 			return crown_area * fq*fq * (1-geom.fg);
@@ -204,10 +225,11 @@ class PlantGeometry{
 
 			double dh_dd = geom.a*exp(-geom.a*diameter/traits.hmat);
 
-			double dL_dt = -0.05*lai; //*lai;
+			//double dL_dt = -0.05*lai; /[>lai;
 
-			double dB_dt = A*leaf_area;	// total biomass production rate
-			double dLA_dt = dL_dt*crown_area*(traits.lma + traits.zeta);  // biomass going into leaf area increment
+			double dB_dt = A*crown_area*lai;	// total biomass production rate
+			double dL_dt = dlai_dt(traits);
+			double dLA_dt = dmass_dt_lai(dL_dt, traits);  // biomass going into leaf area increment
 			double dLit_dt = std::max(-dLA_dt, 0.0);  // biomass going into litter (through leaf loss)
 			double dG_dt = dB_dt - std::max(dLA_dt, 0.0); // biomass going into geometric growth
 			double dD_dt = dsize_dmass(traits) * dG_dt;	// size (diameter) growth rate

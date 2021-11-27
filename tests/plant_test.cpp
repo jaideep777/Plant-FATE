@@ -1,4 +1,4 @@
-#include <iostream>
+#include <iomanip>
 #include <fstream>
 
 #include "plant_params.h"
@@ -36,13 +36,13 @@ int main(){
 		 << "height" << "\t"	
 		 << "diameter" << "\t"	
 		 << "crown_area" << "\t"	
-		 << "leaf_area" << "\t"	
+		 << "lai" << "\t"	
 		 << "sapwood_fraction" << "\t"
 		 << "total_mass" << "\t"
 		 << "total_prod" << "\n";
-	P.set_size(0.01);
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
+	cout << "Starting biomass = " << total_prod << "\n";
 	for (double t=2000; t<=2100; t=t+dt){
 
 		//cout << t << " " << P.geometry->total_mass(par, traits) << " " << total_prod << "\n";
@@ -60,7 +60,7 @@ int main(){
 			 << P.geometry->height << "\t"	
 			 << P.geometry->diameter << "\t"	
 			 << P.geometry->crown_area << "\t"	
-			 << P.geometry->leaf_area << "\t"	
+			 << P.geometry->lai << "\t"	
 			 << P.geometry->sapwood_fraction << "\t"	
 			 << P.get_biomass() << "\t"
 			 << total_prod << "\n";
@@ -75,9 +75,12 @@ int main(){
 	}
 	fout.close();
 
-	cout << "At t = " << 100 << "\n"
+	cout << "At t = " << 100 << "\n" 
+		 << setprecision(12) 
 		 << "Total biomass    = " << P.get_biomass() << "\n"
 		 << "Total production = " << total_prod << "\n";
+	
+	if (abs(P.get_biomass()/total_prod - 1) > 2e-6) return 1;
 	
 	return 0;
 }
