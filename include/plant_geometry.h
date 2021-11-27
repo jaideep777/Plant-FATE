@@ -177,9 +177,21 @@ class PlantGeometry{
 		return stem_mass(traits) + leaf_mass(traits) + root_mass(traits);
 	}
 
-	double crown_area_projected(double z, PlantTraits &traits){
-		if (z == 0) return crown_area;
-
+	// projected crown area including gaps, for PPA
+	// = r(z)^2 = r0^2 q(z)^2 = Ac/qm^2 q(z)^2 
+	double crown_area_extent_projected(double z, PlantTraits &traits){
+		if (z >= zm()){
+			double fq = q(z)/geom.qm;
+			return crown_area * fq*fq;
+		} 
+		else{
+			return crown_area;
+		}
+	}
+		
+	double crown_area_above(double z, PlantTraits &traits){
+		if (z == 0) return crown_area; // shortcut because z=0 is used often
+	
 		double fq = q(z)/geom.qm;
 		if (z >= zm()){
 			return crown_area * fq*fq * (1-geom.fg);
@@ -189,9 +201,9 @@ class PlantGeometry{
 		}
 	}
 
-	double leaf_area_above(double z, PlantTraits &traits){
-		return lai * crown_area_projected(z, traits);
-	}
+	//double leaf_area_above(double z, PlantTraits &traits){
+		//return crown_area_above(z, traits) * lai;
+	//}
 
 	//double calc_optimal_lai(double P0, double E0, double viscosity_water, PlantParameters &par, PlantTraits &traits){
 		//double c1 = par.lambda1;

@@ -120,8 +120,8 @@ class PlantTraits{
 
 	// variable (plastic) traits
 	public:
-	double lai_opt = 1.8;		// optimum crown leaf area index
-	double lai = 1.8;			// realized crown LAI 	
+	//double lai_opt = 1.8;		// optimum crown leaf area index
+	//double lai = 1.8;			// realized crown LAI 	
 	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
 };
 

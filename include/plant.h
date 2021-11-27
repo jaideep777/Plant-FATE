@@ -50,10 +50,21 @@ class Plant{
 			env.updateClimate(t);
 
 			this->geometry->set_state(S.begin()+1, traits);
+		
+			auto res = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);	
+			double dmass_dt = res.npp;
 			
-			double dmass_dt = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);
+			double lai_back = this->geometry->lai;
+			this->geometry->set_lai(lai_back+1e-4);
+			auto res_plus = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);
+			double dmass_dt_plus = res_plus.npp;
+			this->geometry->set_lai(lai_back);
 			
-			double dL_dt = this->geometry->dlai_dt(traits);
+			double dnpp_dL = (dmass_dt_plus - dmass_dt)/1e-4;
+			double dE_dL = (res_plus.trans - res.trans)/1e-4;
+
+			double response_intensity = 10;
+			double dL_dt = response_intensity*(dnpp_dL - 0.0001*(lai_back*dE_dL + res.trans))/this->geometry->crown_area; //this->geometry->dlai_dt(traits);
 			double dmass_dt_lai = this->geometry->dmass_dt_lai(dL_dt, traits);  // biomass change resulting from LAI change
 			double dmass_dt_geom = dmass_dt - std::max(dmass_dt_lai, 0.0);	 // biomass change due to allometric growth
 			double dlitter_dt = std::max(-dmass_dt_lai, 0.0);	// biomass from leaf loss goes into litter
