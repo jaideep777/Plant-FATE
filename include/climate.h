@@ -13,6 +13,7 @@ namespace env{
 class Clim{
 	public:
 	double tc = 25.5;             // temperature, deg C
+	double ppfd_max = 1000;          // umol/m2/s
 	double ppfd = 377;          // umol/m2/s
 	double vpd  = 540;         // Pa
 	double co2  = 380;          // ppm
@@ -140,6 +141,9 @@ class Climate{
 		std::getline(lineStream, cell, ',');
 		clim_next.ppfd = as<double>(cell);
 
+		std::getline(lineStream, cell, ',');
+		clim_next.ppfd_max = as<double>(cell);
+		
 		std::getline(lineStream, cell, ',');
 		clim_next.swp = as<double>(cell);
 	

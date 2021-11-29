@@ -30,6 +30,7 @@ matplot(y=cbind(dat$assim_gross,
                 dat$assim_net), 
                 x=dat$i, col=c("green3", "green4"), log="", lty=1, type="l",
                 ylab="GPP, NPP", xlab="Year")
+abline(h=0, col="grey")
 
 matplot(y=cbind(dat$rr,
                 dat$rs,
@@ -43,7 +44,6 @@ matplot(y=cbind(dat$tr,
                 ylab="Turnover", xlab="Year",
                 add=T)
 
-
 plot(I(dat$transpiration/dat$crown_area/1000*1000)~dat$i, type="l", col="blue", ylab="Transpitation (mm/yr)")
 plot(dat$dpsi~dat$i, type="l", col="cyan")
 plot(dat$vcmax~dat$i, type="l", col="limegreen")
@@ -54,10 +54,10 @@ plot(dat$vcmax~dat$i, type="l", col="limegreen")
 # }
 # plot(detrend(dat$i, dat$assim_gross)~dat$i, type="l")
 par(mfrow=c(2,1), mar=c(4,4,1,1))
-plot(scale(dat$ppfd)~dat$i, type="l")
-points(scale(dat$lai)~dat$i, type="l", col="red", lwd=3)
+plot(scale(dat$ppfd[-(1:100)])~dat$i[-(1:100)], type="l")
+points(scale(dat$lai[-(1:100)])~dat$i[-(1:100)], type="l", col="red", lwd=3)
 
-plot(scale(dat$ppfd[1:100])~dat$i[1:100], type="l")
-points(scale(dat$lai[1:100])~dat$i[1:100], type="l", col="red", lwd=3)
+plot(scale(dat$ppfd[100:200])~dat$i[100:200], type="l")
+points(scale(dat$lai[100:200])~dat$i[100:200], type="l", col="red", lwd=3)
 
        

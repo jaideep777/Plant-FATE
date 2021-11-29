@@ -52,21 +52,33 @@ class Plant{
 			this->geometry->set_state(S.begin()+1, traits);
 		
 			auto res = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);	
-			double dmass_dt = res.npp;
 			
-			double lai_back = this->geometry->lai;
-			this->geometry->set_lai(lai_back+1e-4);
-			auto res_plus = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);
-			double dmass_dt_plus = res_plus.npp;
-			this->geometry->set_lai(lai_back);
-			
-			double dnpp_dL = (dmass_dt_plus - dmass_dt)/1e-4;
-			double dE_dL = (res_plus.trans - res.trans)/1e-4;
+			double dmass_dt, dL_dt, dmass_dt_lai;
+		   
+			if (res.npp < 0){
+				dmass_dt = dL_dt = dmass_dt_lai = 0;
+			}
+			else{
+				dmass_dt = res.npp;
 
-			double response_intensity = 10;
-			double dL_dt = response_intensity*(dnpp_dL - 0.0001*(lai_back*dE_dL + res.trans))/this->geometry->crown_area; //this->geometry->dlai_dt(traits);
-			double dmass_dt_lai = this->geometry->dmass_dt_lai(dL_dt, traits);  // biomass change resulting from LAI change
-			double dmass_dt_geom = dmass_dt - std::max(dmass_dt_lai, 0.0);	 // biomass change due to allometric growth
+				double dl = 1e-4;
+				double lai_back = this->geometry->lai;
+				this->geometry->set_lai(lai_back+dl);
+				auto res_plus = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);
+				this->geometry->set_lai(lai_back);
+				
+				double dnpp_dL = (res_plus.npp - res.npp)/this->geometry->crown_area/dl;
+				double dE_dL = (res_plus.trans - res.trans)/this->geometry->crown_area/dl;
+
+				double response_intensity = 5;
+				
+				dL_dt = response_intensity*(dnpp_dL - 0.001*dE_dL); //this->geometry->dlai_dt(traits);
+				dmass_dt_lai = std::min(this->geometry->dmass_dt_lai(dL_dt, traits), 0.1*dmass_dt);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
+				
+				dL_dt = this->geometry->dlai_dt(dmass_dt_lai, traits);
+			}
+			
+			double dmass_dt_geom = dmass_dt - dmass_dt_lai;	 // biomass change due to allometric growth
 			double dlitter_dt = std::max(-dmass_dt_lai, 0.0);	// biomass from leaf loss goes into litter
 			double dsize_dt = this->geometry->dsize_dmass(traits) * dmass_dt_geom; // size growth rate
 

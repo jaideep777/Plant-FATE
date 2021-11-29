@@ -135,12 +135,15 @@ class PlantGeometry{
 		return 1/dmass_dd;
 	}
 
-	double dlai_dt(PlantTraits &traits){
-		return 0.05;
-	}
+	//double dlai_dt(PlantTraits &traits){
+		//return 0.05;
+	//}
 
 	double dmass_dt_lai(double dL_dt, PlantTraits &traits){
 		return dL_dt * crown_area * (traits.lma + traits.zeta);
+	}
+	double dlai_dt(double _dmass_dt_lai, PlantTraits &traits){
+		return _dmass_dt_lai / (crown_area * (traits.lma + traits.zeta));
 	}
 
 	double leaf_mass(PlantTraits &traits){
@@ -240,7 +243,7 @@ class PlantGeometry{
 			//double dL_dt = -0.05*lai; /[>lai;
 
 			double dB_dt = A*crown_area*lai;	// total biomass production rate
-			double dL_dt = dlai_dt(traits);
+			double dL_dt = 0.05; //dlai_dt(traits);
 			double dLA_dt = dmass_dt_lai(dL_dt, traits);  // biomass going into leaf area increment
 			double dLit_dt = std::max(-dLA_dt, 0.0);  // biomass going into litter (through leaf loss)
 			double dG_dt = dB_dt - std::max(dLA_dt, 0.0); // biomass going into geometric growth

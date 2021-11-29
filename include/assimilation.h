@@ -65,7 +65,7 @@ class Assimilator{
 		plant_assim.vcmax_avg = 0;
 		
 		// for l in 1:layers{	
-		double I_top = env.clim.ppfd*4; // to be repalced with PPA I0
+		double I_top = env.clim.ppfd_max; // to be repalced with PPA I0
 		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
 		double ca_layer = G->crown_area_above(0, traits);
 		
@@ -77,7 +77,7 @@ class Assimilator{
 		//}
 
 		// calculate yearly averages in mol/yr	
-		double f_light_day = 0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
+		double f_light_day = env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
 		double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
 		double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
 
@@ -108,7 +108,8 @@ class Assimilator{
 		double T = plant_assim.tleaf + plant_assim.troot;
 
 		plant_assim.npp = par.y*(A-R) - T;	// net biomass growth rate (kg yr-1)
-		
+	
+		std::cout << "assim net = " << plant_assim.npp << ", assim_gros	= " << plant_assim.gpp << "\n";
 		return plant_assim;
 	}
 

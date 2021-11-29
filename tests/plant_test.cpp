@@ -46,7 +46,7 @@ int main(){
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
 	cout << "Starting biomass = " << total_prod << "\n";
-	for (double t=2000; t<=2100; t=t+dt){
+	for (double t=2000; t<=2200; t=t+dt){
 
 		//cout << t << " " << P.geometry->total_mass(par, traits) << " " << total_prod << "\n";
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;

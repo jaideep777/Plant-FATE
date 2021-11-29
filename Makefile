@@ -12,7 +12,7 @@ HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./include #-I./CppNumericalSolvers-1.0.0
-INC_PATH += -I/home/jaideep/Documents/codes/phydro_cpp/include -I/home/jaideep/Documents/codes/phydro_cpp/LBFGSpp/include -I/usr/include/eigen3 
+INC_PATH += -I/home/jaideep/codes/phydro_cpp/include -I/home/jaideep/codes/phydro_cpp/LBFGSpp/include -I/usr/include/eigen3 
 LIB_PATH :=  
 
 # flags
