@@ -64,24 +64,34 @@ class Assimilator{
 		plant_assim.dpsi_avg  = 0;
 		plant_assim.vcmax_avg = 0;
 		
-		// for l in 1:layers{	
-		double I_top = env.clim.ppfd_max; // to be repalced with PPA I0
-		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
-		double ca_layer = G->crown_area_above(0, traits);
-		
-		plant_assim.gpp       += (res.a + res.vcmax*par.rl) * ca_layer;
-		plant_assim.trans     += res.e * ca_layer;
-		plant_assim.rleaf     += (res.vcmax*par.rl) * ca_layer;
-		plant_assim.dpsi_avg  += res.dpsi * ca_layer;
-		plant_assim.vcmax_avg += res.vcmax * ca_layer;
-		//}
+		double ca_cumm = 0;
+		std::cout << "--- PPA Assim begin ---" << "\n";
+		for (int ilayer=0; ilayer <= env.n_layers; ++ilayer){ // for l in 1:layers{	
+			double zst = env.z_star[ilayer];
+			double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
+			double ca_layer = G->crown_area_above(zst, traits) - ca_cumm;
+			
+			auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+			
+			plant_assim.gpp       += (res.a + res.vcmax*par.rl) * ca_layer;
+			plant_assim.trans     += res.e * ca_layer;
+			plant_assim.rleaf     += (res.vcmax*par.rl) * ca_layer;
+			plant_assim.dpsi_avg  += res.dpsi * ca_layer;
+			plant_assim.vcmax_avg += res.vcmax * ca_layer;
+
+			ca_cumm += ca_layer;
+			
+			std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", A = " << (res.a + res.vcmax*par.rl) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rl) * ca_layer << "\n"; 
+		}
+		assert(fabs(ca_cumm/G->crown_area - 1) < 1e-6);
+		std::cout << "CA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 		// calculate yearly averages in mol/yr	
 		double f_light_day = env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
 		double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
 		double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
 
-		double ca_total = G->crown_area_above(0, traits);  // total crown area
+		double ca_total = G->crown_area;                   // total crown area
 		plant_assim.gpp   *= (f * 1e-6 * par.cbio);        // umol co2/s ---> umol co2/yr ---> mol co2/yr ---> kg/yr 
 		plant_assim.trans *= (f * 18e-3);                  // mol h2o/s  ---> mol h2o/yr  ---> kg h2o /yr
 		plant_assim.rleaf *= (f * 1e-6 * par.cbio);        // umol co2/s ---> umol co2/yr ---> mol co2/yr ---> kg/yr 

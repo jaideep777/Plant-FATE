@@ -7,16 +7,24 @@
 #include "plant.h"
 
 #include "climate.h"
+#include "light_environment.h"
 
 using namespace std;
 
+class Environment : public env::Climate, public env::LightEnvironment {
+	public:
+	void print(double t){
+		Climate::print(t);
+		LightEnvironment::print();
+	}
+};
 
 int main(){
 
 	plant::Plant P;
 	P.initParamsFromFile("tests/params/p.ini");
 
-	env::Climate C;
+	Environment C;
 	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 	C.init();

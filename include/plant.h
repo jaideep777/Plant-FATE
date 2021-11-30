@@ -92,6 +92,15 @@ class Plant{
 		return {dmass_dt, dL_dt, dsize_dt, dlitter_dt, (1-dmass_growth_dmass)*dmass_dt_geom};
 	}
 
+
+	void print(){
+		std::cout << "Plant:\n";
+		std::cout << "  height = " << geometry->height << "\n";
+		std::cout << "  diameter = " << geometry->diameter << "\n";
+		std::cout << "  crown_area = " << geometry->crown_area << "\n";
+		std::cout << "  lai = " << geometry->lai << "\n";
+	}
+
 	// ** 
 	// ** Simple growth simulator for testing purposes
 	// ** - grows plant over dt with constant assimilation rate A
