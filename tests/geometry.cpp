@@ -1,4 +1,4 @@
-#include <iostream>
+#include <iomanip>
 #include <fstream>
 
 #include "plant_params.h"
@@ -69,8 +69,8 @@ int main(){
 		//if (abs(G.heartwood_mass(traits) - G.heart_mass_ode) > 1e-6) return 1;
 		//if (abs(G.sapwood_fraction - G.sap_frac_ode) > 1e-6) return 1;
 		
-		double P = 1;//*max(sin(M_PI/12.0*t), 0.0); //0.75;	// biomass generation rate - kg/m2/yr
-		
+		double P = max(sin(M_PI/12.0*t)+0.5, 0.0); //0.75;	// biomass generation rate - kg/m2/yr
+	
 		fout << t << "\t"
 			 << P << "\t"
 			 << G.height << "\t"	
@@ -101,6 +101,9 @@ int main(){
 	fout.close();
 
 	cout << "At t = " << 100 << "\n"
+		 << setprecision(12)  
+		 << "Total biomass          = " << G.total_mass(traits) << "\n"
+		 << "Total litter           = " << G.litter_pool << "\n"
 		 << "Total biomass + litter = " << G.total_mass(traits) + G.litter_pool << "\n"
 		 << "Total production       = " << total_prod << "\n";
 

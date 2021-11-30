@@ -86,6 +86,9 @@ class PlantGeometry{
 		set_size(diameter_0, traits);
 	}
 
+	// **
+	// ** Crown geometry
+	// **
 	double q(double z){
 		if (z > height || z < 0) return 0;
 		else{
@@ -100,30 +103,34 @@ class PlantGeometry{
 		return geom.zm_H * height;
 	} 
 
+	// projected crown area including gaps, for PPA
+	// = r(z)^2 = r0^2 q(z)^2 = (Ac/qm^2) q(z)^2 = Ac (q(z)/qm)^2
+	double crown_area_extent_projected(double z, PlantTraits &traits){
+		if (z >= zm()){
+			double fq = q(z)/geom.qm;
+			return crown_area * fq*fq;
+		} 
+		else{
+			return crown_area;
+		}
+	}
+		
+	double crown_area_above(double z, PlantTraits &traits){
+		if (z == 0) return crown_area; // shortcut because z=0 is used often
 	
-	double get_size() const {
-		return diameter;
+		double fq = q(z)/geom.qm;
+		if (z >= zm()){
+			return crown_area * fq*fq * (1-geom.fg);
+		} 
+		else{
+			return crown_area * (1 - fq*fq * geom.fg);
+		}
 	}
 
-	void set_lai(double _l){
-		lai = _l;
-	}
-
-	void set_size(double _x, PlantTraits &traits){
-		diameter = _x;
-		height = traits.hmat * (1 - exp(-geom.a*diameter/traits.hmat));
-		crown_area = geom.pic_4a * height * diameter;
-		//leaf_area = crown_area * lai;
-		sapwood_fraction = height / (diameter * geom.a);	
-	}
-
-	double set_state(std::vector<double>::iterator S, PlantTraits &traits){
-		lai = *S++;             // must be set first as it is used bt set_size()
-		set_size(*S++, traits);
-		litter_pool = *S++;
-	}
-
-
+	
+	// **
+	// ** Biomass partitioning
+	// **
 	double dsize_dmass(PlantTraits &traits) const {
 		double dh_dd = geom.a * exp(-geom.a*diameter/traits.hmat);
 		double dmleaf_dd = traits.lma * lai * geom.pic_4a * (height + diameter*dh_dd);	// LAI variation is accounted for in biomass production rate
@@ -139,13 +146,25 @@ class PlantGeometry{
 		//return 0.05;
 	//}
 
-	double dmass_dt_lai(double dL_dt, PlantTraits &traits){
-		return dL_dt * crown_area * (traits.lma + traits.zeta);
-	}
-	double dlai_dt(double _dmass_dt_lai, PlantTraits &traits){
-		return _dmass_dt_lai / (crown_area * (traits.lma + traits.zeta));
-	}
 
+	// **
+	// ** LAI model
+	// ** 
+	double dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTraits &traits){
+		double l2m = crown_area * (traits.lma + traits.zeta); 
+		double dm_dt_lai = std::min(dL_dt * l2m, dmass_dt_max);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
+		dL_dt = dm_dt_lai / l2m;
+		return dm_dt_lai;
+	}
+	//double dlai_dt(double _dmass_dt_lai, PlantTraits &traits){
+		//return _dmass_dt_lai / (crown_area * (traits.lma + traits.zeta));
+	//}
+
+
+
+	// **
+	// ** Carbon pools
+	// **
 	double leaf_mass(PlantTraits &traits){
 		return crown_area * lai * traits.lma;	
 	}
@@ -180,52 +199,30 @@ class PlantGeometry{
 		return stem_mass(traits) + leaf_mass(traits) + root_mass(traits);
 	}
 
-	// projected crown area including gaps, for PPA
-	// = r(z)^2 = r0^2 q(z)^2 = Ac/qm^2 q(z)^2 
-	double crown_area_extent_projected(double z, PlantTraits &traits){
-		if (z >= zm()){
-			double fq = q(z)/geom.qm;
-			return crown_area * fq*fq;
-		} 
-		else{
-			return crown_area;
-		}
-	}
-		
-	double crown_area_above(double z, PlantTraits &traits){
-		if (z == 0) return crown_area; // shortcut because z=0 is used often
-	
-		double fq = q(z)/geom.qm;
-		if (z >= zm()){
-			return crown_area * fq*fq * (1-geom.fg);
-		} 
-		else{
-			return crown_area * (1 - fq*fq * geom.fg);
-		}
+	// **
+	// ** state manipulations
+	// **	
+	double get_size() const {
+		return diameter;
 	}
 
-	//double leaf_area_above(double z, PlantTraits &traits){
-		//return crown_area_above(z, traits) * lai;
-	//}
+	void set_lai(double _l){
+		lai = _l;
+	}
 
-	//double calc_optimal_lai(double P0, double E0, double viscosity_water, PlantParameters &par, PlantTraits &traits){
-		//double c1 = par.lambda1;
-		//double c2 = par.lambda2 * viscosity_water * E0 * geom.c / (traits.K_xylem);
-		//std::cout << "c2 = " << c2 << "\n";
+	void set_size(double _x, PlantTraits &traits){
+		diameter = _x;
+		height = traits.hmat * (1 - exp(-geom.a*diameter/traits.hmat));
+		crown_area = geom.pic_4a * height * diameter;
+		//leaf_area = crown_area * lai;
+		sapwood_fraction = height / (diameter * geom.a);	
+	}
 
-		//double k = par.k_light;
-		//double a = (1+c1/c2)*exp(1+k*P0/c2);
-		
-		//return P0/c2 + 1/k - 1/k * lambertw0(a);
-	//}
-
-	//double Q(double z, double H, double n, double m){
-		//if (z > H) return 0;
-		//else if (z <= 0) return 1;
-		//else{
-			//return pow(1-pow(z/H, n), m); 
-		//}
-	//}
+	double set_state(std::vector<double>::iterator S, PlantTraits &traits){
+		lai = *S++;             // must be set first as it is used bt set_size()
+		set_size(*S++, traits);
+		litter_pool = *S++;
+	}
 
 	
 	// ** 
@@ -242,9 +239,9 @@ class PlantGeometry{
 
 			//double dL_dt = -0.05*lai; /[>lai;
 
-			double dB_dt = A*crown_area*lai;	// total biomass production rate
-			double dL_dt = 0.05; //dlai_dt(traits);
-			double dLA_dt = dmass_dt_lai(dL_dt, traits);  // biomass going into leaf area increment
+			double dB_dt = A*crown_area;	// total biomass production rate
+			double dL_dt = -0.01; //dlai_dt(traits);
+			double dLA_dt = dmass_dt_lai(dL_dt, dB_dt, traits);  // biomass going into leaf area increment
 			double dLit_dt = std::max(-dLA_dt, 0.0);  // biomass going into litter (through leaf loss)
 			double dG_dt = dB_dt - std::max(dLA_dt, 0.0); // biomass going into geometric growth
 			double dD_dt = dsize_dmass(traits) * dG_dt;	// size (diameter) growth rate

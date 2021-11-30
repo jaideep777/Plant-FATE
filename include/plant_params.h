@@ -25,8 +25,9 @@ class PlantParameters{
 	double fg;		// upper canopy gap fraction
 
 	// ** LAI optimization
-	double lambda1;	// leaf construction costs
-	double lambda2;	// hydraulic costs
+	double response_intensity;	// leaf construction costs
+	double max_alloc_lai;       // max fraction of NPP that can be allocated to LAI increment
+	double dl;	// hydraulic costs
 
 	// **
 	// ** Respiration and turnover 
@@ -62,8 +63,9 @@ class PlantParameters{
 		fg = I.getScalar("fg");
 		a  = I.getScalar("a");
 		c  = I.getScalar("c");
-		lambda1  = I.getScalar("lambda1");
-		lambda2  = I.getScalar("lambda2");
+		response_intensity  = I.getScalar("response_intensity");
+		max_alloc_lai  = I.getScalar("max_alloc_lai");
+		dl  = I.getScalar("lai_deriv_step");
 		rl  = I.getScalar("rl");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");

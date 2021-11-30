@@ -39,6 +39,57 @@ class Plant{
 		return geometry->total_mass(traits);
 	}
 
+	
+	// LAI model
+	template<class Env>
+	double dlai_dt(PlantAssimilationResult& res, Env &env, PlantParameters &par, PlantTraits &traits){
+		double lai_curr = geometry->lai;
+		geometry->set_lai(lai_curr + par.dl);
+		auto res_plus = assimilator->biomass_growth_rate(env, geometry, par, traits);
+		geometry->set_lai(lai_curr);
+		
+		double dnpp_dL = (res_plus.npp - res.npp)/geometry->crown_area/par.dl;
+		double dE_dL = (res_plus.trans - res.trans)/geometry->crown_area/par.dl;
+
+		double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL); //geometry->dlai_dt(traits);
+		
+		return dL_dt;
+	}
+
+
+	// demographics
+	double p_survival_germination(){
+	
+	}
+
+	double mortality_rate(){
+	
+	}
+
+	double fecundity_rate(){
+	
+	}
+
+
+	template<class Env>
+	std::vector<double> growth_rates(Env &env){
+		
+		auto res = assimilator->biomass_growth_rate(env, geometry, par, traits);	
+		
+		double dL_dt = dlai_dt(res, env, par, traits);
+
+		double max_alloc_lai = par.max_alloc_lai*std::max(res.npp, 0.0); // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
+		double dmass_dt_lai = geometry->dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
+			
+		double dmass_dt = std::max(res.npp, 0.0);  // total mass increment (geometric and lai-driven), 0 if npp is negative
+
+		double dmass_dt_geom = dmass_dt - std::max(dmass_dt_lai, 0.0);	 // biomass change due to allometric growth. if LAI is decreasing, no mass increase due to LAI
+		double dlitter_dt = std::max(-dmass_dt_lai, 0.0);	// biomass from leaf loss goes into litter. if LAI is decreasing, leaves lost go into litter
+		double dsize_dt = geometry->dsize_dmass(traits) * dmass_dt_geom; // size growth rate
+	
+		return {dmass_dt, dL_dt, dsize_dt, dlitter_dt};
+	}
+
 	// ** 
 	// ** Simple growth simulator for testing purposes
 	// ** - grows plant over dt with constant assimilation rate A
@@ -47,45 +98,16 @@ class Plant{
 	void grow_for_dt(double t, double dt, Env &env, double &prod){
 
 		auto derivs = [&env, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+			//if (fabs(t - 2050) < 1e-5) 
 			env.updateClimate(t);
 
 			this->geometry->set_state(S.begin()+1, traits);
 		
-			auto res = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);	
-			
-			double dmass_dt, dL_dt, dmass_dt_lai;
-		   
-			if (res.npp < 0){
-				dmass_dt = dL_dt = dmass_dt_lai = 0;
-			}
-			else{
-				dmass_dt = res.npp;
-
-				double dl = 1e-4;
-				double lai_back = this->geometry->lai;
-				this->geometry->set_lai(lai_back+dl);
-				auto res_plus = this->assimilator->biomass_growth_rate(env, this->geometry, this->par, this->traits);
-				this->geometry->set_lai(lai_back);
-				
-				double dnpp_dL = (res_plus.npp - res.npp)/this->geometry->crown_area/dl;
-				double dE_dL = (res_plus.trans - res.trans)/this->geometry->crown_area/dl;
-
-				double response_intensity = 5;
-				
-				dL_dt = response_intensity*(dnpp_dL - 0.001*dE_dL); //this->geometry->dlai_dt(traits);
-				dmass_dt_lai = std::min(this->geometry->dmass_dt_lai(dL_dt, traits), 0.1*dmass_dt);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
-				
-				dL_dt = this->geometry->dlai_dt(dmass_dt_lai, traits);
-			}
-			
-			double dmass_dt_geom = dmass_dt - dmass_dt_lai;	 // biomass change due to allometric growth
-			double dlitter_dt = std::max(-dmass_dt_lai, 0.0);	// biomass from leaf loss goes into litter
-			double dsize_dt = this->geometry->dsize_dmass(traits) * dmass_dt_geom; // size growth rate
-
-			dSdt[0] = dmass_dt;	   // biomass production rate
-			dSdt[1] = dL_dt;       // lai growth rate
-			dSdt[2] = dsize_dt;    // size (diameter) growth rate
-			dSdt[3] = dlitter_dt;  // litter biomass growth rate
+			dSdt = growth_rates(env);
+			//dSdt[0] = dmass_dt;	   // biomass production rate
+			//dSdt[1] = dL_dt;       // lai growth rate
+			//dSdt[2] = dsize_dt;    // size (diameter) growth rate
+			//dSdt[3] = dlitter_dt;  // litter biomass growth rate
 		};
 
 		std::vector<double> S = {prod, geometry->lai, geometry->get_size(), geometry->litter_pool};

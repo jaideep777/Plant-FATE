@@ -42,7 +42,8 @@ int main(){
 		 << "lai" << "\t"	
 		 << "sapwood_fraction" << "\t"
 		 << "total_mass" << "\t"
-		 << "total_prod" << "\n";
+		 << "total_prod" << "\t"
+		 << "litter_mass" << "\n";
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
 	cout << "Starting biomass = " << total_prod << "\n";
@@ -69,7 +70,8 @@ int main(){
 			 << P.geometry->lai << "\t"	
 			 << P.geometry->sapwood_fraction << "\t"	
 			 << P.get_biomass() << "\t"
-			 << total_prod << "\n";
+			 << total_prod << "\t"
+			 << P.geometry->litter_pool << "\n";
 		
 		//total_prod += P*P.geometry->leaf_area*dt;
 		
@@ -84,9 +86,11 @@ int main(){
 	cout << "At t = " << 100 << "\n" 
 		 << setprecision(12) 
 		 << "Total biomass    = " << P.get_biomass() << "\n"
+		 << "Total litter     = " << P.geometry->litter_pool << "\n"
+		 << "Total bio+litter = " << P.get_biomass() + P.geometry->litter_pool << "\n"
 		 << "Total production = " << total_prod << "\n";
 	
-	if (abs(P.get_biomass()/total_prod - 1) > 2e-6) return 1;
+	if (abs((P.get_biomass()+P.geometry->litter_pool)/total_prod - 1) > 2e-5) return 1;
 	
 	return 0;
 }
