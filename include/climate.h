@@ -89,7 +89,7 @@ class Climate{
 		}
 
 		while (t >= t_next){
-			std::cout << "update - " << int(t) << "/" << (t-int(t))*12+1 << " --> " << int(t_next) << "/" << (t_next-int(t_next))*12+1 <<  "\n";
+			std::cout << "update - " << int(t) << "/" << (t-int(t))*12+1 << " --> " << int(t_next) << "/" << (t_next-int(t_next))*12+1 <<  "\n"; std::cout.flush();
 			clim_prev = clim_next;
 			t_prev = t_next;
 			readNextLine_met();
@@ -113,7 +113,7 @@ class Climate{
 		std::string                line, cell;
 		
 		if (fin_met.peek() == EOF){
-			std::cout << "RESET FILE\n";
+			std::cout << "RESET FILE\n"; std::cout.flush();
 			fin_met.clear();
 			fin_met.seekg(0);
 			std::getline(fin_met, line); // skip header

@@ -109,7 +109,7 @@ class Assimilator{
 
 		plant_assim.npp = par.y*(A-R) - T;	// net biomass growth rate (kg yr-1)
 	
-		std::cout << "assim net = " << plant_assim.npp << ", assim_gros	= " << plant_assim.gpp << "\n";
+		std::cout << "assim net = " << plant_assim.npp << ", assim_gros	= " << plant_assim.gpp << "\n"; std::cout.flush();
 		return plant_assim;
 	}
 

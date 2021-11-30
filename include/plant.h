@@ -66,8 +66,8 @@ class Plant{
 	
 	}
 
-	double fecundity_rate(){
-	
+	double fecundity_rate(double mass, PlantTraits &traits){
+		return mass/(4*traits.seed_mass);
 	}
 
 
@@ -85,9 +85,11 @@ class Plant{
 
 		double dmass_dt_geom = dmass_dt - std::max(dmass_dt_lai, 0.0);	 // biomass change due to allometric growth. if LAI is decreasing, no mass increase due to LAI
 		double dlitter_dt = std::max(-dmass_dt_lai, 0.0);	// biomass from leaf loss goes into litter. if LAI is decreasing, leaves lost go into litter
-		double dsize_dt = geometry->dsize_dmass(traits) * dmass_dt_geom; // size growth rate
+		
+		double dmass_growth_dmass = 1-geometry->dreproduction_dmass(par, traits);
+		double dsize_dt = geometry->dsize_dmass(traits) * dmass_growth_dmass * dmass_dt_geom; // size growth rate. NOTE: LAI increment is prioritized (already subtracted from npp above)
 	
-		return {dmass_dt, dL_dt, dsize_dt, dlitter_dt};
+		return {dmass_dt, dL_dt, dsize_dt, dlitter_dt, (1-dmass_growth_dmass)*dmass_dt_geom};
 	}
 
 	// ** 
@@ -95,26 +97,36 @@ class Plant{
 	// ** - grows plant over dt with constant assimilation rate A
 	// ** 
 	template<class Env>
-	void grow_for_dt(double t, double dt, Env &env, double &prod){
+	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &seed_pool, double &germinated){
 
-		auto derivs = [&env, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+		auto derivs = [&env, &prod, &rep, &seed_pool, &germinated, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 			//if (fabs(t - 2050) < 1e-5) 
 			env.updateClimate(t);
 
 			this->geometry->set_state(S.begin()+1, traits);
-		
+			prod = S[0];
+			rep = S[4];
+			seed_pool = S[5];
+			germinated = S[6];
+
 			dSdt = growth_rates(env);
 			//dSdt[0] = dmass_dt;	   // biomass production rate
 			//dSdt[1] = dL_dt;       // lai growth rate
 			//dSdt[2] = dsize_dt;    // size (diameter) growth rate
 			//dSdt[3] = dlitter_dt;  // litter biomass growth rate
+			dSdt[5] = fecundity_rate(dSdt[4], traits) - seed_pool/15;
+			dSdt[6] = seed_pool/15;
 		};
 
-		std::vector<double> S = {prod, geometry->lai, geometry->get_size(), geometry->litter_pool};
+		std::vector<double> S = {prod, geometry->lai, geometry->get_size(), geometry->litter_pool, rep, seed_pool, germinated};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
 		prod = S[0];
 		geometry->set_state(S.begin()+1, traits);
+		rep = S[4];
+		seed_pool = S[5];
+		germinated = S[6];
+
 	}
 
 			

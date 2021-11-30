@@ -44,6 +44,13 @@ class PlantParameters{
 
 	double k_light;		// light extincttion coefficient
 
+	// ** 
+	// ** Demographics
+	// **
+	double a_f1;    // max fractional allocation to reproduction
+	double a_f2;    // rate of increase in reproductive investment
+
+
 	public:
 	// precompute some quantities for efficiency
 	// Precomputed Geometric parameters
@@ -74,6 +81,8 @@ class PlantParameters{
 		cbio  = I.getScalar("cbio");
 		y = I.getScalar("y");
 		k_light = I.getScalar("k_light");
+		a_f1 = I.getScalar("a_f1");
+		a_f2 = I.getScalar("a_f2");
 
 		//eta_c = 0.33; //tgamma(m+1.0)*tgamma(1.0/n)/(nc*tgamma(m+1.0+1.0/n));
 
@@ -112,6 +121,7 @@ class PlantTraits{
 	double lma = 0.09;			// leaf mass per leaf area [kg/m2]
 	double zeta = 0.14;			// root mass per leaf area [kg/m2]
 	double hmat = 20;			// height at maturity [m]
+	double fhmat = 0.8;         // height at reproductive maturity as fraction of hmat
 	double seed_mass = 3.8e-5;	// [kg]
 	double wood_density = 608;	// [kg/m3]
 	

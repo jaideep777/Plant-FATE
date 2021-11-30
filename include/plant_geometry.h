@@ -47,6 +47,9 @@ class PlantGeometry{
 		double pic_4a;
 		double zm_H;
 		double qm;
+
+		// allocation
+		double dmat;   // diameter at reproductive maturity
 	} geom;
 
 	public:
@@ -83,6 +86,8 @@ class PlantGeometry{
 		
 		std::cout << "m = " << m << ", n = " << n << ", zm/H = " << geom.zm_H << ", qm = " << geom.qm << ", eta_c = " << geom.eta_c << "\n";
 		
+		geom.dmat = -(traits.hmat/geom.a) * log(1-traits.fhmat);
+
 		set_size(diameter_0, traits);
 	}
 
@@ -140,6 +145,10 @@ class PlantGeometry{
 
 		double dmass_dd = dmleaf_dd + dmtrunk_dd + dmbranches_dd + dmroot_dd;
 		return 1/dmass_dd;
+	}
+
+	double dreproduction_dmass(PlantParameters &par, PlantTraits &traits){
+		return par.a_f1 / (1.0 + exp(par.a_f2 * (1.0 - diameter / geom.dmat))); 
 	}
 
 	//double dlai_dt(PlantTraits &traits){
