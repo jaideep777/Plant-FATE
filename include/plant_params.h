@@ -49,7 +49,9 @@ class PlantParameters{
 	// **
 	double a_f1;    // max fractional allocation to reproduction
 	double a_f2;    // rate of increase in reproductive investment
-
+	
+	double ll_seed;    // longevity of seeds in the seed pool
+	
 
 	public:
 	// precompute some quantities for efficiency
@@ -83,6 +85,7 @@ class PlantParameters{
 		k_light = I.getScalar("k_light");
 		a_f1 = I.getScalar("a_f1");
 		a_f2 = I.getScalar("a_f2");
+		ll_seed = I.getScalar("ll_seed");
 
 		//eta_c = 0.33; //tgamma(m+1.0)*tgamma(1.0/n)/(nc*tgamma(m+1.0+1.0/n));
 

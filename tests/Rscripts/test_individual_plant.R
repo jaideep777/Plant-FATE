@@ -77,11 +77,12 @@ plot(y=(dat$diameter[2:2000]-dat$diameter[1:1999])/dat$diameter[1:1999], x=dat$i
 #   y-fitted(mod)
 # } 
 # plot(detrend(dat$i, dat$assim_gross)~dat$i, type="l") 
-par(mfrow=c(2,1), mar=c(4,4,1,1))
-plot(scale((dat$assim_net/dat$crown_area)[100:200])~dat$i[100:200], type="l")
-points(scale(dat$lai[100:200])~dat$i[100:200], type="l", col="red", lwd=3)
 
-ccf(dat$lai[201:2000], (dat$assim_net/dat$crown_area)[201:2000], lag.max=100)
-abline(v=0, col="red")
-abline(v=5, col="blue")
+# par(mfrow=c(2,1), mar=c(4,4,1,1))
+# plot(scale((dat$assim_net/dat$crown_area)[100:200])~dat$i[100:200], type="l")
+# points(scale(dat$lai[100:200])~dat$i[100:200], type="l", col="red", lwd=3)
+# 
+# ccf(dat$lai[201:2000], (dat$assim_net/dat$crown_area)[201:2000], lag.max=100)
+# abline(v=0, col="red")
+# abline(v=5, col="blue")
 
