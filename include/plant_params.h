@@ -2,6 +2,7 @@
 #define PLANT_FATE_PLANT_PARAMS_H_
 
 #include "initializer.h"
+#include "incbeta.h"
 #include <cmath>
 
 namespace plant{
@@ -18,15 +19,15 @@ class PlantParameters{
 	// **
 	// ** Allocation and geometric paramaters  
 	// **
-	double ml, nl; // vertical leaf distribution paramaters 
-	double mc, nc; // crown shape paramaters
-	
+	double m, n; // crown shape paramaters
 	double a;      // height-diameter allometry
 	double c;      // crown area allometry
-	double b;      // bark allometry
+	double fg;		// upper canopy gap fraction
 
-	double lai_max;    // maximum crown leaf area index
-	double hv_min;     // minimum huber value
+	// ** LAI optimization
+	double response_intensity;	// leaf construction costs
+	double max_alloc_lai;       // max fraction of NPP that can be allocated to LAI increment
+	double dl;	// hydraulic costs
 
 	// **
 	// ** Respiration and turnover 
@@ -41,12 +42,24 @@ class PlantParameters{
 	double cbio;
 	double y;
 
+	double k_light;		// light extincttion coefficient
+
+	// ** 
+	// ** Demographics
+	// **
+	double a_f1;    // max fractional allocation to reproduction
+	double a_f2;    // rate of increase in reproductive investment
+	
+	double ll_seed;    // longevity of seeds in the seed pool
+	
 
 	public:
 	// precompute some quantities for efficiency
-	double eta_c;
-	double eta_l;
-	double pic_4a;
+	// Precomputed Geometric parameters
+	//double eta_c;
+	//double pic_4a;
+	//double zm_H;
+	//double qm;
 
 	
 	public:
@@ -54,14 +67,14 @@ class PlantParameters{
 		io::Initializer I(fname);
 		I.readFile();
 		I.print();
-		ml = I.getScalar("ml");
-		nl = I.getScalar("nl");
-		mc = I.getScalar("mc");
-		nc = I.getScalar("nc");
+		m = I.getScalar("m");
+		n = I.getScalar("n");
+		fg = I.getScalar("fg");
 		a  = I.getScalar("a");
 		c  = I.getScalar("c");
-		b  = I.getScalar("b");
-		lai_max = I.getScalar("lai_max");
+		response_intensity  = I.getScalar("response_intensity");
+		max_alloc_lai  = I.getScalar("max_alloc_lai");
+		dl  = I.getScalar("lai_deriv_step");
 		rl  = I.getScalar("rl");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");
@@ -69,27 +82,32 @@ class PlantParameters{
 		lr  = I.getScalar("lr");
 		cbio  = I.getScalar("cbio");
 		y = I.getScalar("y");
+		k_light = I.getScalar("k_light");
+		a_f1 = I.getScalar("a_f1");
+		a_f2 = I.getScalar("a_f2");
+		ll_seed = I.getScalar("ll_seed");
 
-		hv_min = 1/(c*lai_max);
-		eta_c = tgamma(mc+1.0)*tgamma(1.0/nc)/(nc*tgamma(mc+1.0+1.0/nc));
-		eta_l = tgamma(ml+1.0)*tgamma(1.0/nl)/(nl*tgamma(ml+1.0+1.0/nl));
-		pic_4a = M_PI*c/4/a;
+		//eta_c = 0.33; //tgamma(m+1.0)*tgamma(1.0/n)/(nc*tgamma(m+1.0+1.0/n));
 
+		//pic_4a = M_PI*c/(4*a);
+
+		//zm_H = pow((n-1)/(m*n-1), 1/n);
+		//qm = m*n * pow((n-1)/(m*n-1), 1-1/n) * pow((m-1)*n/(m*n-1), m-1);
+
+		//std::cout << "m = " << m << ", n = " << n << ", zm/H = " << zm_H << ", qm = " << qm << "\n";
+		
+		//eta_c = zm_H - m*m*n/(qm*qm) * beta(2-1/n, 2*m-1) * (incbeta(2-1/n, 2*m-1, (n-1)/(m*n-1)) - (1-fg)); 
+		
 		return 0;
 	}
 
 	void print(){
 		std::cout << "Params:\n";
-		std:: cout << "   ml = " << ml << "\n";
-		std:: cout << "   nl = " << nl << "\n";
-		std:: cout << "   mc = " << mc << "\n";
-		std:: cout << "   nc = " << nc << "\n";
+		std:: cout << "   m = "  << m << "\n";
+		std:: cout << "   n = "  << n << "\n";
 		std:: cout << "   a  = " << a  << "\n";
-		std:: cout << "   b  = " << b  << "\n";
 		std:: cout << "   c  = " << c  << "\n";
-		std:: cout << "   L  = " << lai_max << "\n";
-		std:: cout << "   eta_c  = " << eta_c << "\n";
-		std:: cout << "   eta_l  = " << eta_l << "\n";
+		//std:: cout << "   eta_c  = " << eta_c << "\n";
 		std:: cout << "   rl  = " << rl  << "\n";
 		std:: cout << "   rr  = " << rr  << "\n";
 		std:: cout << "   rs  = " << rs  << "\n";
@@ -106,17 +124,19 @@ class PlantTraits{
 	double lma = 0.09;			// leaf mass per leaf area [kg/m2]
 	double zeta = 0.14;			// root mass per leaf area [kg/m2]
 	double hmat = 20;			// height at maturity [m]
+	double fhmat = 0.8;         // height at reproductive maturity as fraction of hmat
 	double seed_mass = 3.8e-5;	// [kg]
 	double wood_density = 608;	// [kg/m3]
 	
-	double p50_leaf = -1.5;
-	double K_leaf = 1e-16;
-	double b_leaf = 1;
+	double p50_leaf = -1.5;		// Leaf hydraulic capacity [MPa]
+	double K_leaf = 1e-16;		// Leaf conductivity [m]
+	double K_xylem = 2e-16;		// Leaf conductivity [m]
+	double b_leaf = 1;			// Shape parameter of leaf vulnerabilty curve [-]
 
 	// variable (plastic) traits
 	public:
-	//double vcmax = 40*1e-6*86400*365.2524;	// current vcmax [umol CO2 m-2 s-1]
-	double fl = 1;	// current fraction of max. leaf area
+	//double lai_opt = 1.8;		// optimum crown leaf area index
+	//double lai = 1.8;			// realized crown LAI 	
 	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
 };
 

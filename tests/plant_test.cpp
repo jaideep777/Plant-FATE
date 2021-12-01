@@ -1,4 +1,4 @@
-#include <iostream>
+#include <iomanip>
 #include <fstream>
 
 #include "plant_params.h"
@@ -7,16 +7,24 @@
 #include "plant.h"
 
 #include "climate.h"
+#include "light_environment.h"
 
 using namespace std;
 
+class Environment : public env::Climate, public env::LightEnvironment {
+	public:
+	void print(double t){
+		Climate::print(t);
+		LightEnvironment::print();
+	}
+};
 
 int main(){
 
 	plant::Plant P;
 	P.initParamsFromFile("tests/params/p.ini");
 
-	env::Climate C;
+	Environment C;
 	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 	C.init();
@@ -33,41 +41,58 @@ int main(){
 		 << "rs" << "\t"
 		 << "tl" << "\t"
 		 << "tr" << "\t"
+		 << "dpsi" << "\t"
+		 << "vcmax" << "\t"
+		 << "transpiration" << "\t"
 		 << "height" << "\t"	
 		 << "diameter" << "\t"	
 		 << "crown_area" << "\t"	
-		 << "leaf_area" << "\t"	
+		 << "lai" << "\t"	
 		 << "sapwood_fraction" << "\t"
 		 << "total_mass" << "\t"
-		 << "total_prod" << "\n";
-	P.set_size(0.01);
+		 << "total_rep" << "\t"
+		 << "seed_pool" << "\t"
+		 << "germinated" << "\t"
+		 << "total_prod" << "\t"
+		 << "litter_mass" << "\n";
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
-	for (double t=2000; t<=2100; t=t+dt){
+	double total_rep = 0;
+	double seed_pool = 0;
+	double germinated = 0;
+	cout << "Starting biomass = " << total_prod << "\n";
+	for (double t=2000; t<=2200; t=t+dt){
 
 		//cout << t << " " << P.geometry->total_mass(par, traits) << " " << total_prod << "\n";
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;
 		
 		fout << t << "\t"
 			 << C.clim.ppfd << "\t"
-			 << P.assimilator->Anet << "\t" 
-			 << P.assimilator->A << "\t" 
-			 << P.assimilator->rl << "\t"
-			 << P.assimilator->rr << "\t"
-			 << P.assimilator->rs << "\t"
-			 << P.assimilator->tl << "\t"
-			 << P.assimilator->tr << "\t"
+			 << P.assimilator->plant_assim.npp << "\t" 
+			 << P.assimilator->plant_assim.gpp << "\t" 
+			 << P.assimilator->plant_assim.rleaf << "\t"
+			 << P.assimilator->plant_assim.rroot << "\t"
+			 << P.assimilator->plant_assim.rstem << "\t"
+			 << P.assimilator->plant_assim.tleaf << "\t"
+			 << P.assimilator->plant_assim.troot << "\t"
+			 << P.assimilator->plant_assim.dpsi_avg << "\t" 
+			 << P.assimilator->plant_assim.vcmax_avg << "\t" 
+			 << P.assimilator->plant_assim.trans << "\t" 
 			 << P.geometry->height << "\t"	
 			 << P.geometry->diameter << "\t"	
 			 << P.geometry->crown_area << "\t"	
-			 << P.geometry->leaf_area << "\t"	
+			 << P.geometry->lai << "\t"	
 			 << P.geometry->sapwood_fraction << "\t"	
 			 << P.get_biomass() << "\t"
-			 << total_prod << "\n";
+			 << total_rep << "\t"
+			 << seed_pool << "\t"
+			 << germinated << "\t"
+			 << total_prod << "\t"
+			 << P.geometry->litter_pool << "\n";
 		
 		//total_prod += P*P.geometry->leaf_area*dt;
 		
-		P.grow_for_dt(t, dt, C, total_prod);
+		P.grow_for_dt(t, dt, C, total_prod, total_rep, seed_pool, germinated);
 		//double dhdM = P.geometry->dheight_dmass(par, traits);
 		//double h_new = P.geometry->height + dhdM*P*P.geometry->leaf_area*dt;
 		//P.geometry->set_height(h_new, par, traits);
@@ -75,9 +100,15 @@ int main(){
 	}
 	fout.close();
 
-	cout << "At t = " << 100 << "\n"
+	cout << "At t = " << 100 << "\n" 
+		 << setprecision(12) 
 		 << "Total biomass    = " << P.get_biomass() << "\n"
+		 << "Total litter     = " << P.geometry->litter_pool << "\n"
+		 << "Total reproduc   = " << total_rep << "\n"
+		 << "Total bio+lit+rep = " << P.get_biomass() + P.geometry->litter_pool + total_rep << "\n"
 		 << "Total production = " << total_prod << "\n";
+	
+	if (abs((P.get_biomass()+P.geometry->litter_pool+total_rep)/total_prod - 1) > 2e-5) return 1;
 	
 	return 0;
 }
