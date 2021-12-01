@@ -19,7 +19,7 @@
 	
 	Here is an example parameter file:
 	
-	~~~{.cpp}
+	~~~{.ini}
 	> STRINGS
 	sim_name      mySimution
 	output_file   ~/output/test.txt
@@ -47,17 +47,17 @@ class Initializer{
 	
 	public:
 	
-	Initializer(){}
+	inline Initializer(){}
 
-	Initializer(std::string fname){
+	inline Initializer(std::string fname){
 		init_fname = fname;
 	}
 
-	void setInitFile(std::string fname){
+	inline void setInitFile(std::string fname){
 		init_fname = fname;
 	}
 
-	int readFile(){
+	inline int readFile(){
 		// Reset maps here
 		strings.clear(); 
 		scalars.clear();
@@ -136,7 +136,7 @@ class Initializer{
 	}
 	
 	
-	std::string getString(std::string s){
+	inline std::string getString(std::string s){
 		std::map <std::string, std::string>::iterator it = strings.find(s);
 		if (it != strings.end()) return it->second;
 		else {
@@ -145,7 +145,7 @@ class Initializer{
 		}
 	}
 
-	double getScalar(std::string s){
+	inline double getScalar(std::string s){
 		std::map <std::string, double>::iterator it = scalars.find(s);
 		if (it != scalars.end()) return it->second;
 		else {
@@ -154,7 +154,7 @@ class Initializer{
 		}
 	}
 
-	std::vector <double> getArray(std::string s, int size = -1){
+	inline std::vector <double> getArray(std::string s, int size = -1){
 		std::map <std::string, std::vector<double> >::iterator it = arrays.find(s);
 		if (it == arrays.end()) {	// array not found
 			std::cout << "FATAL ERROR: Could not find required array " << s << " in initializer file.\n";
@@ -172,7 +172,7 @@ class Initializer{
 		else return it->second;
 	}
 
-	void print(){
+	inline void print(){
 		std::cout << "-------:\n";
 		std::cout << "STRINGS:\n";
 		std::cout << "-------:\n";

@@ -30,7 +30,7 @@
  */
 
 
-#include "incbeta.h"
+#include "utils/incbeta.h"
 #include <iostream>
 
 int ltests = 0;
@@ -47,23 +47,23 @@ int lfails = 0;
 
 int main(int argc, char *argv[])
 {
-    printf("incbeta_normalized TEST SUITE\n");
+    printf("incbeta TEST SUITE\n");
 
-    lfequal(incbeta_normalized(10, 10, .1), 0.00000);
-    lfequal(incbeta_normalized(10, 10, .3), 0.03255);
-    lfequal(incbeta_normalized(10, 10, .5), 0.50000);
-    lfequal(incbeta_normalized(10, 10, .7), 0.96744);
-    lfequal(incbeta_normalized(10, 10,  1), 1.00000);
+    lfequal(incbeta(10, 10, .1), 0.00000);
+    lfequal(incbeta(10, 10, .3), 0.03255);
+    lfequal(incbeta(10, 10, .5), 0.50000);
+    lfequal(incbeta(10, 10, .7), 0.96744);
+    lfequal(incbeta(10, 10,  1), 1.00000);
 
-    lfequal(incbeta_normalized(15, 10, .5), 0.15373);
-    lfequal(incbeta_normalized(15, 10, .6), 0.48908);
+    lfequal(incbeta(15, 10, .5), 0.15373);
+    lfequal(incbeta(15, 10, .6), 0.48908);
 
-    lfequal(incbeta_normalized(10, 15, .5), 0.84627);
-    lfequal(incbeta_normalized(10, 15, .6), 0.97834);
+    lfequal(incbeta(10, 15, .5), 0.84627);
+    lfequal(incbeta(10, 15, .6), 0.97834);
 
-    lfequal(incbeta_normalized(20, 20, .4), 0.10206);
-    lfequal(incbeta_normalized(40, 40, .4), 0.03581);
-    lfequal(incbeta_normalized(40, 40, .7), 0.99990);
+    lfequal(incbeta(20, 20, .4), 0.10206);
+    lfequal(incbeta(40, 40, .4), 0.03581);
+    lfequal(incbeta(40, 40, .7), 0.99990);
 
     printf("%d of %d tests passed.\n", ltests - lfails, ltests);
 

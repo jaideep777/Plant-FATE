@@ -1,7 +1,8 @@
-//#include "plant_params.h"
+#include "utils/rk4.h"
+#include "utils/incbeta.h"
 #include "plant_geometry.h"
-#include "initializer.h"
-#include "lambertw.h"
+#include "utils/initializer.h"
+#include "utils/lambertw.h"
 //#include "assimilation.h"
 using namespace std;
 

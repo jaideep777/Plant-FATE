@@ -2,7 +2,6 @@
 #define PLANT_FATE_ENV_LIGHT_ENVIRONMENT_H_
 
 #include <iostream>
-#include <cmath>
 #include <vector>
 
 namespace env{
@@ -20,35 +19,9 @@ class LightEnvironment {
 	
 	
 	public:
-	LightEnvironment(){ 
-		n_layers = 0;
-		z_star = {0};
-		canopy_openness = {1};
-		z_star.reserve(20);
-		canopy_openness.reserve(20);
-	}
+	LightEnvironment();
 
-
-
-	//double LightEnvironment::LA_above_z(double t, double z, Solver *S){
-		//double leaf_area_above_z = 0;
-		//// Loop over resident species --->
-		//for (int k=0; k<S->species_vec.size(); ++k){
-			//auto la_above = [z,k,S](int i, double t){
-				//auto& p = ((Species<PSPM_Plant>*)S->species_vec[k])->getCohort(i);
-				//double a = p.area_leaf_above(z, p.vars.height, p.vars.area_leaf);
-				////cout << "(" << i << "," << p.u << ", " << a << ")" << "\t";
-				//return a;	
-			//};
-			//leaf_area_above_z += S->integrate_wudx_above(la_above, t, z, k);
-			////cout << "\n";
-			////leaf_area_above_z += S->integrate_x(la_above, t, state_vec, i);
-		//}
-		//return leaf_area_above_z;
-	//}
-
-
-
+	//double LightEnvironment::LA_above_z(double t, double z, Solver *S);
 
 	//// This function must do any necessary precomputations to facilitate evalEnv()
 	//// Therefore, this should calculate env for all X when it is a function of X
@@ -63,57 +36,10 @@ class LightEnvironment {
 	//// level attributes from x, which can be reused if required. E.g., in Plant, we can add leaf_area
 	//// as an iAttribute. iAttributes can be mapped to integers, say using enums
 	//// Alternatively, switch to Indiviudual class as a template parameter for solver
-	//void LightEnvironment::computeEnv(double t, Solver * S){
-		////            _xm 
-		//// Calculate / w(z,t)u(z,t)dz
-		////        xb`
-		//if (use_ppa){
-			//z_star.clear();
-			//n_layers = int(LA_above_z(t, 0, S)); // Get total leaf area, = area above height 0.
-			//if (n_layers < 0 || n_layers >= 50) {
-				//std::cout << "nlayers = " << n_layers << "\n";
-				//S->print();
-			//}
-			//assert(n_layers >= 0 && n_layers < 50);
-			//for (int layer = 1; layer <= n_layers; ++layer){
-				//auto LA_l = [t, S, layer, this](double z) -> double {
-					//return LA_above_z(t, z, S)-layer; 
-				//};
-				//auto res = pn::zero(0, S->maxSize(), LA_l, 1e-4);
-				//z_star.push_back(res.root);
-				////cout << "z*(" << layer << ") = " << res.root << ", " << "iter = " << res.nfnct << "\n";
-			//}
-			//z_star.push_back(0);
-			////std::cout << "z*_vec (" << z_star.size() << ") = "; for(auto z: z_star) std::cout << z << " "; cout << "\n"; cout.flush();
-			//assert(z_star.size() == n_layers+1);
-		//}
-		//else{
-		//auto canopy_openness = [S, t, this](double z){
-			//double kI = 0.5;
+	//void LightEnvironment::computeEnv(double t, Solver * S);
 
-			//double leaf_area_above_z = LA_above_z(t,z,S);
-			////cout << "LA(" << z << ") = " << exp(-kI*leaf_area_above_z) << "\n";
-			//return exp(-kI*leaf_area_above_z);
-		//};	
-
-		////cout << S->xb << " " << S->getMaxSize() << endl;	
-		////time = t;
-		////for (int s=0; s<S->n_species(); ++s) S->get_species(s)->u0_save = S->get_u0(t, s);
-		//light_profile.construct(canopy_openness, 0, S->maxSize());
-		//}
-
-	//}
-
-
-
-	void print(){
-		std::cout << "PPA:" << "\n";
-		std::cout << "z* (" << n_layers << ") = "; for (auto z:z_star) std::cout << z << " "; 
-		std::cout << "\ncanopy openness* = "; for (auto z:canopy_openness) std::cout << z << " "; 
-		std::cout << "\n";
-		//std::cout << "Light profile Interpolator:" << "\n";
-		//light_profile.print();
-	}
+	void print();
+	
 };
 
 
