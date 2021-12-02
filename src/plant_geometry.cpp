@@ -171,13 +171,14 @@ double PlantGeometry::set_state(std::vector<double>::iterator S, PlantTraits &tr
 void PlantGeometry::grow_for_dt(double t, double dt, double &prod, double A, PlantTraits &traits){
 
 	auto derivs = [A, &traits, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
-		lai = S[5];
+		set_lai(S[5]);
 		set_size(S[1], traits);
 
 		double dh_dd = geom.a*exp(-geom.a*diameter/traits.hmat);
 
 		//double dL_dt = -0.05*lai; /[>lai;
 
+		// ignoring reproduction in these biomass pools
 		double dB_dt = A*crown_area;	// total biomass production rate
 		double dL_dt = -0.01; //dlai_dt(traits);
 		double dLA_dt = dmass_dt_lai(dL_dt, dB_dt, traits);  // biomass going into leaf area increment
@@ -210,7 +211,7 @@ void PlantGeometry::grow_for_dt(double t, double dt, double &prod, double A, Pla
 	heart_mass_ode = S[4];
 	sapwood_mass_ode = S[3];
 	sap_frac_ode = S[2];
-	lai = S[5];
+	set_lai(S[5]);
 	set_size(S[1], traits);
 	prod = S[0];
 	functional_xylem_fraction = S[3]/sapwood_mass(traits);

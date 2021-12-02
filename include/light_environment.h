@@ -21,7 +21,8 @@ class LightEnvironment {
 	public:
 	LightEnvironment();
 
-	//double LightEnvironment::LA_above_z(double t, double z, Solver *S);
+	template <class Community>
+	double projected_crown_area_above_z(double t, double z, Community *C);
 
 	//// This function must do any necessary precomputations to facilitate evalEnv()
 	//// Therefore, this should calculate env for all X when it is a function of X
@@ -36,13 +37,15 @@ class LightEnvironment {
 	//// level attributes from x, which can be reused if required. E.g., in Plant, we can add leaf_area
 	//// as an iAttribute. iAttributes can be mapped to integers, say using enums
 	//// Alternatively, switch to Indiviudual class as a template parameter for solver
-	//void LightEnvironment::computeEnv(double t, Solver * S);
+	template <class Community>
+	void computeEnv(double t, Community *C);
 
 	void print();
 	
 };
 
-
 } // env
+
+#include "../src/light_environment.tpp"
 
 #endif

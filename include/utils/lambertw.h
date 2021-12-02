@@ -1,5 +1,5 @@
-#ifndef MATH_UTILS_LAMBERT_W_H_
-#define MATH_UTILS_LAMBERT_W_H_
+#ifndef UTILS_MATH_LAMBERT_W_H_
+#define UTILS_MATH_LAMBERT_W_H_
 
 #include <iostream>
 #include <cassert>

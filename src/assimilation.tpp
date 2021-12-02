@@ -8,12 +8,13 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double I0, double fapar
 	phydro::ParCost par_cost(par.alpha, par.gamma);
 	phydro::ParPlant par_plant(traits.K_leaf, traits.p50_leaf, traits.b_leaf);
 	par_plant.gs_method = phydro::GS_APX;
-	auto photo_leaf = phydro::phydro_analytical(clim.tc,       I0,   clim.vpd,  clim.co2,	// FIXME: ppfd*4 here to convert daily average PAR to daily max PAR.
+	auto photo_leaf = phydro::phydro_analytical(clim.tc,       I0,   clim.vpd,  clim.co2,	
 												clim.elv,   fapar,  par.kphio,  clim.swp, 
 												par.rl, par_plant,   par_cost);
 	
 	return photo_leaf;	// umol m-2 s-1 
 }
+
 
 template<class Env>
 void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
@@ -21,8 +22,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	double fapar = 1-exp(-0.5*G->lai);
 
 	plant_assim.gpp       = 0;
-	plant_assim.trans     = 0;
 	plant_assim.rleaf     = 0;
+	plant_assim.trans     = 0;
 	plant_assim.dpsi_avg  = 0;
 	plant_assim.vcmax_avg = 0;
 	
@@ -36,8 +37,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
 		
 		plant_assim.gpp       += (res.a + res.vcmax*par.rl) * ca_layer;
-		plant_assim.trans     += res.e * ca_layer;
 		plant_assim.rleaf     += (res.vcmax*par.rl) * ca_layer;
+		plant_assim.trans     += res.e * ca_layer;
 		plant_assim.dpsi_avg  += res.dpsi * ca_layer;
 		plant_assim.vcmax_avg += res.vcmax * ca_layer;
 
@@ -54,16 +55,17 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
 
 	double ca_total = G->crown_area;                   // total crown area
-	plant_assim.gpp   *= (f * 1e-6 * par.cbio);        // umol co2/s ---> umol co2/yr ---> mol co2/yr ---> kg/yr 
-	plant_assim.trans *= (f * 18e-3);                  // mol h2o/s  ---> mol h2o/yr  ---> kg h2o /yr
-	plant_assim.rleaf *= (f * 1e-6 * par.cbio);        // umol co2/s ---> umol co2/yr ---> mol co2/yr ---> kg/yr 
+	plant_assim.gpp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
+	plant_assim.rleaf *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
+	plant_assim.trans *= (f * 18e-3);                  // mol h2o/s  ----> mol h2o/yr  --> kg h2o /yr
 	plant_assim.dpsi_avg  /= ca_total;                 // MPa
 	plant_assim.vcmax_avg /= ca_total;                 // umol/m2/s
 	
 }
 
+
 template<class Env>
-PlantAssimilationResult Assimilator::biomass_growth_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
 	plant_assim = PlantAssimilationResult(); // reset plant_assim
 
 	calc_plant_assimilation_rate(env, G, par, traits); // update plant_assim

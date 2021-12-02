@@ -11,10 +11,10 @@ class PlantGeometry{
 	private:
 	struct{
 		// geometry traits
-		double m, n;		// crown shape paramaters
-		double a;			// height-diameter allometry
-		double c;			// crown area allometry
-		double fg;			// upper canopy gap fraction
+		double m, n;    // crown shape paramaters
+		double a;       // height-diameter allometry
+		double c;       // crown area allometry
+		double fg;      // upper canopy gap fraction
 		
 		// Precomputed Geometric parameters
 		double eta_c;
@@ -23,21 +23,21 @@ class PlantGeometry{
 		double qm;
 
 		// allocation
-		double dmat;   // diameter at reproductive maturity
+		double dmat;    // diameter at reproductive maturity
 	} geom;
 
 	public:
 	// current state
-	double lai = 1;     // leaf area index 
-	double diameter;	// basal diameter
+	double lai = 1;                      // leaf area index 
+	double diameter;                     // basal diameter
 	double litter_pool = 0;
 
-	double height;	// height
-	double crown_area;	// crown area
-	//double leaf_area;	// leaf area
-	double sapwood_fraction = 1;	// fraction of stem that is sapwood
-	double functional_xylem_fraction;	// fraction of funcitonal xylem in sapwood
+	double height;                       // height
+	double crown_area;                   // crown area
+	double sapwood_fraction = 1;         // fraction of stem that is sapwood
+	double functional_xylem_fraction;    // fraction of funcitonal xylem in sapwood
 
+	// ode-based calculations of sapwood and heartwood (for debug)
 	double sap_frac_ode = 1;
 	double sapwood_mass_ode = 0;
 	double heart_mass_ode = 0;

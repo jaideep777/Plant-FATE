@@ -1,5 +1,5 @@
-#ifndef MATH_UTILS_INC_BETA_H_
-#define MATH_UTILS_INC_BETA_H_
+#ifndef UTILS_MATH_INC_BETA_H_
+#define UTILS_MATH_INC_BETA_H_
 
 /*
  * zlib License

@@ -27,23 +27,6 @@ double Plant::get_biomass(){
 }
 
 
-
-
-// demographics
-double Plant::p_survival_germination(){
-
-}
-
-double Plant::mortality_rate(){
-
-}
-
-double Plant::fecundity_rate(double mass, PlantTraits &traits){
-	return mass/(4*traits.seed_mass);
-}
-
-
-
 void Plant::print(){
 	std::cout << "Plant:\n";
 	std::cout << "  height = " << geometry->height << "\n";
@@ -54,5 +37,7 @@ void Plant::print(){
 
 	
 }	// namespace plant
+
+
 
 
