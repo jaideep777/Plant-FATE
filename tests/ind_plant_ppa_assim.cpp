@@ -23,10 +23,10 @@ int main(){
 
 	plant::Plant P;
 	P.initParamsFromFile("tests/params/p.ini");
-	P.set_size(0.4);
 	P.par.n = 11;
-	P.geometry->lai = 2.5;
-	P.geometry->initGeometry(P.geometry->get_size(), P.par, P.traits); // reinit geometry since params changed
+	P.geometry.lai = 2.5;
+	P.geometry.init(P.par, P.traits); // reinit geometry since params changed
+	P.set_size(0.4);
 		
 	P.par.print();
 	P.print();
@@ -41,7 +41,7 @@ int main(){
 	C.init();
 	C.print(0);
 
-	auto res = P.assimilator->biomass_growth_rate(C, P.geometry, P.par, P.traits);	
+	auto res = P.assimilator.net_production(C, &P.geometry, P.par, P.traits);	
 
 	return 0;
 }
