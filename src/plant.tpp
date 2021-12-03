@@ -3,27 +3,47 @@ namespace plant{
 
 // LAI model
 template<class Env>
-double Plant::dlai_dt(PlantAssimilationResult& res, Env &env){
-	double lai_curr = geometry->lai;
-	geometry->set_lai(lai_curr + par.dl);
-	auto res_plus = assimilator->net_production(env, geometry, par, traits);
-	geometry->set_lai(lai_curr);
+double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env &env){
+	double lai_curr = geometry.lai;
+	geometry.set_lai(lai_curr + par.dl);
+	auto res_plus = assimilator.net_production(env, &geometry, par, traits);
+	geometry.set_lai(lai_curr);
 	
-	double dnpp_dL = (res_plus.npp - res.npp)/geometry->crown_area/par.dl;
-	double dE_dL = (res_plus.trans - res.trans)/geometry->crown_area/par.dl;
+	double dnpp_dL = (res_plus.npp - res.npp)/geometry.crown_area/par.dl;
+	double dE_dL = (res_plus.trans - res.trans)/geometry.crown_area/par.dl;
 
 	double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL);
 	
+	// calculate and constrain rate of LAI change
+	double max_alloc_lai = par.max_alloc_lai * _dmass_dt_tot; // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
+	bp.dmass_dt_lai = geometry.dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
+
 	return dL_dt;
 }
 
 
 
+// seed and sapling survival 
+template<class Env>
+double Plant::p_survival_germination(Env &env){
+	auto res = assimilator.net_production(env, &geometry, par, traits);
+	double P = std::max(res.npp, 0.0)/geometry.crown_area;
+	double P2 = P*P;
+	double P2_half = par.npp_Sghalf * par.npp_Sghalf;
+	return P2 / (P2 + P2_half);
+}
+
+template<class Env>
+double Plant::p_survival_dispersal(Env &env){
+	return par.Sd;
+}
+
 
 // Demographics
 template<class Env>
-double Plant::p_survival_germination(Env &env){
-
+double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
+	double dsize_dt = geometry.dsize_dmass(traits) * _dmass_dt_growth; 
+	return dsize_dt;
 }
 
 
@@ -34,9 +54,33 @@ double Plant::mortality_rate(Env &env){
 
 
 template<class Env>
-double Plant::fecundity_rate(double mass_dt, Env &env){
-	return mass_dt/(4*traits.seed_mass);
+double Plant::fecundity_rate(double _dmass_dt_rep, Env &env){
+	return _dmass_dt_rep/(4*traits.seed_mass);
 }
+
+
+template<class Env>
+void Plant::calc_demographic_rates(Env &env){
+
+	auto res = assimilator.net_production(env, &geometry, par, traits);	
+	bp.dmass_dt_tot = std::max(res.npp, 0.0);  // No biomass growth if npp is negative
+
+	// set rates.dlai_dt and bp.dmass_dt_lai
+	rates.dlai_dt = lai_model(res, bp.dmass_dt_tot, env);   // also sets rates.dmass_dt_lai
+	
+	// set all of bp.dmass_dt_xxx
+	partition_biomass(bp.dmass_dt_tot, bp.dmass_dt_lai, env); 
+
+	// set core rates
+	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
+	rates.dmort_dt  = mortality_rate(env);
+
+	double fec = fecundity_rate(bp.dmass_dt_rep, env);
+	rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
+	rates.dseeds_dt_germ =   state.seed_pool/par.ll_seed;   // seeds that leave seed pool proceed for germincation
+	// need to add seed decay
+}
+
 
 
 // Shorthand is used for biomass partitioning into geometric growth and LAI growth
@@ -57,36 +101,25 @@ double Plant::fecundity_rate(double mass_dt, Env &env){
 
 
 template<class Env>
-void Plant::calc_growth_rates(Env &env){
+void Plant::partition_biomass(double dm_dt_tot, double dm_dt_lai, Env &env){
 	
-	auto res = assimilator->net_production(env, geometry, par, traits);	
-	
-	// calculate and constrain rate of LAI change
-	double max_alloc_lai = par.max_alloc_lai*std::max(res.npp, 0.0); // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
-	rates.dlai_dt = dlai_dt(res, env);
-	rates.dmass_dt_lai = geometry->dmass_dt_lai(rates.dlai_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
-	
-	// total biomass growth rate (geometric + LAI driven)
-	rates.dmass_dt_tot = std::max(res.npp, 0.0);  // 0 if npp is negative
-
-	// if lai is increasing, biomass is partitioned into lai growth and remaining components
+	// NOTE: LAI increment is prioritized (already subtracted from npp above)	// if lai is increasing, biomass is partitioned into lai growth and remaining components
 	// if lai is decreasing, lost biomass goes into litter
-	double dmass_dt_nonlai = rates.dmass_dt_tot - std::max(rates.dmass_dt_lai, 0.0);
-	rates.dmass_dt_lit = std::max(-rates.dmass_dt_lai, 0.0);
+	double dmass_dt_nonlai = dm_dt_tot - std::max(dm_dt_lai, 0.0);
+	bp.dmass_dt_lit = std::max(-dm_dt_lai, 0.0);
 
 	// fraction of biomass going into reproduction and biomass allocation to reproduction
-	double fR = geometry->dreproduction_dmass(par, traits);
-	rates.dmass_dt_rep = fR*dmass_dt_nonlai;
+	double fR = geometry.dreproduction_dmass(par, traits);
+	bp.dmass_dt_rep = fR*dmass_dt_nonlai;
 	
 	//  fraction of biomass going into growth and size growth rate
 	double dmass_growth_dmass = 1-fR;
-	rates.dmass_dt_growth = dmass_growth_dmass * dmass_dt_nonlai;
-	rates.dsize_dt = geometry->dsize_dmass(traits) * rates.dmass_dt_growth; // size growth rate. NOTE: LAI increment is prioritized (already subtracted from npp above)
+	bp.dmass_dt_growth = dmass_growth_dmass * dmass_dt_nonlai;
 
 	// consistency check - see that all biomass allocations add up as expected
-	assert(fabs(rates.dmass_dt_tot - (rates.dmass_dt_lai + rates.dmass_dt_lit + rates.dmass_dt_rep + rates.dmass_dt_growth)) < 1e-6);
+	assert(fabs(bp.dmass_dt_tot - (bp.dmass_dt_lai + bp.dmass_dt_lit + bp.dmass_dt_rep + bp.dmass_dt_growth)) < 1e-6);
 
-//	return {rates.dmass_dt_tot, rates.dlai_dt, rates.dsize_dt, rates.dmass_dt_lit, rates.dmass_dt_rep};
+	//return {rates.dmass_dt_tot, rates.dlai_dt, rates.dsize_dt, rates.dmass_dt_lit, rates.dmass_dt_rep};
 }
 
 

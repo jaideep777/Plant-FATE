@@ -30,11 +30,11 @@ class PlantGeometry{
 	// current state
 	double lai = 1;                      // leaf area index 
 	double diameter;                     // basal diameter
-	double litter_pool = 0;
 
+	// variables calculated from state variables
 	double height;                       // height
 	double crown_area;                   // crown area
-	double sapwood_fraction = 1;         // fraction of stem that is sapwood
+	double sapwood_fraction;             // fraction of stem that is sapwood
 	double functional_xylem_fraction;    // fraction of funcitonal xylem in sapwood
 
 	// ode-based calculations of sapwood and heartwood (for debug)
@@ -45,7 +45,7 @@ class PlantGeometry{
 
 	public:
 
-	void initGeometry(double diameter_0, PlantParameters &par, PlantTraits &traits);
+	void init(PlantParameters &par, PlantTraits &traits);
 
 	// **
 	// ** Crown geometry
@@ -88,13 +88,13 @@ class PlantGeometry{
 	double get_size() const ;
 	void set_lai(double _l);
 	void set_size(double _x, PlantTraits &traits);
-	double set_state(std::vector<double>::iterator S, PlantTraits &traits);
+	std::vector<double>::iterator set_state(std::vector<double>::iterator S, PlantTraits &traits);
 	
 	// ** 
 	// ** Simple growth simulator for testing purposes
 	// ** - simulates growth over dt with constant assimilation rate A
 	// ** 
-	void grow_for_dt(double t, double dt, double &prod, double A, PlantTraits &traits);
+	void grow_for_dt(double t, double dt, double &prod, double &litter_pool, double A, PlantTraits &traits);
 
 };
 

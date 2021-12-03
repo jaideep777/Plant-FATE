@@ -8,7 +8,7 @@
 
 namespace plant{
 
-void PlantGeometry::initGeometry(double diameter_0, PlantParameters &par, PlantTraits &traits){
+void PlantGeometry::init(PlantParameters &par, PlantTraits &traits){
 	geom.m = par.m; geom.n = par.n; 
 	geom.a = par.a; geom.c = par.c;
 	geom.fg = par.fg;
@@ -25,7 +25,7 @@ void PlantGeometry::initGeometry(double diameter_0, PlantParameters &par, PlantT
 	
 	geom.dmat = -(traits.hmat/geom.a) * log(1-traits.fhmat);
 
-	set_size(diameter_0, traits);
+//	set_size(diameter_0, traits);
 }
 
 // **
@@ -157,10 +157,11 @@ void PlantGeometry::set_size(double _x, PlantTraits &traits){
 	sapwood_fraction = height / (diameter * geom.a);	
 }
 
-double PlantGeometry::set_state(std::vector<double>::iterator S, PlantTraits &traits){
-	set_lai(*S++);             // must be set first as it is used bt set_size()
+std::vector<double>::iterator PlantGeometry::set_state(std::vector<double>::iterator S, PlantTraits &traits){
+	set_lai(*S++);             // must be set first as it is used bt set_size() - not required any more
 	set_size(*S++, traits);
-	litter_pool = *S++;
+//	litter_pool = *S++;
+	return S;
 }
 
 
@@ -168,11 +169,12 @@ double PlantGeometry::set_state(std::vector<double>::iterator S, PlantTraits &tr
 // ** Simple growth simulator for testing purposes
 // ** - simulates growth over dt with constant assimilation rate A
 // ** 
-void PlantGeometry::grow_for_dt(double t, double dt, double &prod, double A, PlantTraits &traits){
+void PlantGeometry::grow_for_dt(double t, double dt, double &prod, double &litter_pool, double A, PlantTraits &traits){
 
-	auto derivs = [A, &traits, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+	auto derivs = [A, &traits, &litter_pool, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 		set_lai(S[5]);
 		set_size(S[1], traits);
+		litter_pool = S[6];
 
 		double dh_dd = geom.a*exp(-geom.a*diameter/traits.hmat);
 

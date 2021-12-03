@@ -2,6 +2,7 @@
 #define PLANT_FATE_PLANT_PARAMS_H_
 
 #include "utils/initializer.h"
+#include <cmath>
 
 namespace plant{
 
@@ -14,6 +15,7 @@ class PlantTraits{
 	double fhmat = 0.8;         // height at reproductive maturity as fraction of hmat
 	double seed_mass = 3.8e-5;	// [kg]
 	double wood_density = 608;	// [kg/m3]
+	double p50_xylem = -3;      // Xylem P50 [MPa]
 	
 	double p50_leaf = -1.5;		// Leaf hydraulic capacity [MPa]
 	double K_leaf = 1e-16;		// Leaf conductivity [m]
@@ -22,8 +24,6 @@ class PlantTraits{
 
 	// variable (plastic) traits
 	public:
-	//double lai_opt = 1.8;		// optimum crown leaf area index
-	//double lai = 1.8;			// realized crown LAI 	
 	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
 };
 
@@ -73,7 +73,11 @@ class PlantParameters{
 	
 	double ll_seed;    // longevity of seeds in the seed pool
 	
-
+	// **
+	// ** Dispersal and germination
+	// **
+	double Sd;            // probability of survival during dispersal
+	double npp_Sghalf;    // required productivity for 0.5 probability of survival during germination
 	
 	public:
 	inline int initFromFile(std::string fname){
@@ -100,7 +104,10 @@ class PlantParameters{
 		k_light = I.getScalar("k_light");
 		a_f1 = I.getScalar("a_f1");
 		a_f2 = I.getScalar("a_f2");
-		ll_seed = I.getScalar("ll_seed");
+		ll_seed = I.getScalar("ll_seed")/log(2);
+
+		Sd = I.getScalar("Sd");
+		npp_Sghalf = I.getScalar("npp_Sghalf");
 
 		return 0;
 	}

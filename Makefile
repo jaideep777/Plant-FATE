@@ -12,15 +12,15 @@ HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./include #-I./CppNumericalSolvers-1.0.0
-INC_PATH += -I/home/jaideep/codes/phydro_cpp/include -I/home/jaideep/codes/phydro_cpp/LBFGSpp/include -I/usr/include/eigen3 
-LIB_PATH :=  
+INC_PATH += -I/home/jaideep/codes/phydro_cpp/include -I/home/jaideep/codes/phydro_cpp/LBFGSpp/include -I/usr/include/eigen3 -I/home/jaideep/codes/pspm_package/include
+LIB_PATH := -L/home/jaideep/codes/pspm_package/lib
 
 # flags
 CPPFLAGS = -O3 -g -pg -std=c++11 -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable
 LDFLAGS =  -g -pg
 
 # libs
-LIBS = 	 -lgsl -lgslcblas 	# additional libs
+LIBS = 	 -lgsl -lgslcblas -lpspm	# additional libs
 #LIBS = -lcudart 			# cuda libs 		
 
 # files

@@ -4,7 +4,7 @@ dat$leaf_area = dat$crown_area * dat$lai
 dat$heartwood_fraction = 1-dat$sapwood_fraction
 
 # par(mfrow=c(4,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
-# 
+#     
 # plot(dat$height~dat$diameter)
 # plot(dat$crown_area~I(dat$height*dat$diameter))
 # plot(dat$crown_area~dat$height)
