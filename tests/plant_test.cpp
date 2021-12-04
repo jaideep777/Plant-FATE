@@ -25,6 +25,7 @@ int main(){
 
 	plant::Plant P;
 	P.initParamsFromFile("tests/params/p.ini");
+	P.geometry.set_lai(1);
 	P.set_size(0.01);
 
 	Environment C;

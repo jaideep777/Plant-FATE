@@ -25,6 +25,7 @@ void PlantGeometry::init(PlantParameters &par, PlantTraits &traits){
 	
 	geom.dmat = -(traits.hmat/geom.a) * log(1-traits.fhmat);
 
+//	lai = par.lai0;
 //	set_size(diameter_0, traits);
 }
 

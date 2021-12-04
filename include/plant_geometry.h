@@ -28,7 +28,7 @@ class PlantGeometry{
 
 	public:
 	// current state
-	double lai = 1;                      // leaf area index 
+	double lai;                      // leaf area index 
 	double diameter;                     // basal diameter
 
 	// variables calculated from state variables

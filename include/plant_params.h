@@ -48,7 +48,8 @@ class PlantParameters{
 	// ** LAI optimization
 	double response_intensity;	// leaf construction costs
 	double max_alloc_lai;       // max fraction of NPP that can be allocated to LAI increment
-	double dl;	// hydraulic costs
+	double dl;	                // stepsize for profit derivative
+	double lai0;                // initial lai
 
 	// **
 	// ** Respiration and turnover 
@@ -94,6 +95,7 @@ class PlantParameters{
 		response_intensity  = I.getScalar("response_intensity");
 		max_alloc_lai  = I.getScalar("max_alloc_lai");
 		dl  = I.getScalar("lai_deriv_step");
+		lai0  = I.getScalar("lai0");
 		rl  = I.getScalar("rl");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");

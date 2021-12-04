@@ -61,7 +61,7 @@ double PSPM_Plant::birthRate(double x, double t, void * _env){
 void PSPM_Plant::init_state(double t, void * _env){
 	//set_size(x);	
 	EnvUsed * env = (EnvUsed*)_env;
-	geometry.lai = 1;
+	geometry.lai = par.lai0;
 	state.mortality = -log(p_survival_germination(*env)); ///env->patch_survival(t));    // mortality
 	state.seed_pool = 0; // viable seeds
 	t_birth = t;			// set cohort's birth time to current time
@@ -95,8 +95,8 @@ void PSPM_Plant::print(std::ostream &out){
 	out << "|" << traits.lma << "|\t" 
 	    << geometry.get_size() << "\t" 
 	    << rates.dsize_dt << "\t" 
-	    << state.mortality << "\t" 
 	    << geometry.lai << "\t" 
+	    << state.mortality << "\t" 
 	    << state.seed_pool << "\t" 
 	    ;
 }

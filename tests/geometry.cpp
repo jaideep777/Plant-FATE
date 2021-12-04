@@ -16,6 +16,7 @@ int main(){
 	par.print();
 	
 	G.init(par, traits);
+	G.set_lai(1);
 	G.set_size(0.01, traits);
 	G.sap_frac_ode = G.sapwood_fraction;
 	G.sapwood_mass_ode = G.sapwood_mass(traits)*0.5;
@@ -113,7 +114,17 @@ int main(){
 	if (abs(G.heartwood_mass(traits) - G.heart_mass_ode) > 1e-6) return 1;
 	if (abs(G.sapwood_fraction - G.sap_frac_ode) > 1e-6) return 1;
 	
+	
+	
+	// projection area test
+	fout.open("crown_area.txt");
+	for (double z=G.height; z >=-0.01; z -= 0.01){
+		fout << std::max(z,0.0) << "\t" << G.zm() << "\t" << G.crown_area_extent_projected(std::max(z,0.0), traits) << "\t" << G.crown_area_above(std::max(z,0.0), traits) << "\n";
+	}	
+	fout.close();
+
 	return 0;
+	
 }
 
 //# R script to test:

@@ -28,7 +28,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	plant_assim.vcmax_avg = 0;
 	
 	double ca_cumm = 0;
-	std::cout << "--- PPA Assim begin ---" << "\n";
+//	std::cout << "--- PPA Assim begin ---" << "\n";
 	for (int ilayer=0; ilayer <= env.n_layers; ++ilayer){ // for l in 1:layers{	
 		double zst = env.z_star[ilayer];
 		double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
@@ -44,10 +44,10 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 
 		ca_cumm += ca_layer;
 		
-		std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", A = " << (res.a + res.vcmax*par.rl) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rl) * ca_layer << "\n"; 
+//		std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", A = " << (res.a + res.vcmax*par.rl) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rl) * ca_layer << "\n"; 
 	}
 	assert(fabs(ca_cumm/G->crown_area - 1) < 1e-6);
-	std::cout << "CA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
+//	std::cout << "CA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 	// calculate yearly averages in mol/yr	
 	double f_light_day = env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
@@ -83,7 +83,7 @@ PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, 
 
 	plant_assim.npp = par.y*(A-R) - T;	// net biomass growth rate (kg yr-1)
 
-	std::cout << "assim net = " << plant_assim.npp << ", assim_gros	= " << plant_assim.gpp << "\n"; std::cout.flush();
+//	std::cout << "assim net = " << plant_assim.npp << ", assim_gros	= " << plant_assim.gpp << "\n"; std::cout.flush();
 	return plant_assim;
 }
 
