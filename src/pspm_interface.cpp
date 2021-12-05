@@ -14,7 +14,7 @@ void PSPM_Plant::set_size(double _x){
 
 double PSPM_Plant::init_density(double x, void * _env, double input_seed_rain){
 //	EnvUsed * env = (EnvUsed*)_env;
-////	compute_vars_phys(*env);
+//	compute_vars_phys(*env);
 //	double u0;
 //	if (x == vars.height){
 //		if (input_seed_rain < 0) input_seed_rain = 1;
@@ -26,7 +26,9 @@ double PSPM_Plant::init_density(double x, void * _env, double input_seed_rain){
 //		u0 = 0;
 //	}
 //	return u0;
-	return 1.0001; // dummy initial density of 1, for now. This shouldn't matter because there is spinup.
+//	if (geometry.diameter < 0.02) return 1;
+//	else return 0; // dummy initial density of 1, for now. This shouldn't matter because there is spinup.
+	return 0;
 }
 
 

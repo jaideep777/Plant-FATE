@@ -25,6 +25,7 @@ class Plant{
 		double dmort_dt;
 		double dseeds_dt_pool;
 		double dseeds_dt_germ;
+		double rgr;
 	} rates;	
 		
 	// results of biomass partitioning

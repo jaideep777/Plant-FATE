@@ -89,7 +89,7 @@ class SolverIO{
 
 			}
 			
-			for (int i=0; i<streams[s].size(); ++i) streams[s][i] << "\n";
+			for (int i=0; i<streams[s].size(); ++i) streams[s][i] << endl; //"\n";
 		}
 	}
 };
@@ -109,15 +109,24 @@ int main(){
 	E.use_ppa = true;
 
 	Species<PSPM_Plant> spp(p1);
-	spp.set_bfin_is_u0in(true);
+	spp.set_bfin_is_u0in(false);
 
-	Solver S(SOLVER_CM, "rk45ck");
+	Solver S(SOLVER_IFMU, "rk45ck");
+    S.control.ode_ifmu_stepsize = 0.01;
+	S.control.ifmu_centered_grids = false; //true;
+    S.use_log_densities = true;
 	S.setEnvironment(&E);
-//	S.addSpecies(30, 0.01, 2, true, &spp, 3, 1);
-	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
+
+	S.addSpecies(30, 0.01, 2, true, &spp, 3, -1);
+//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 	//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0
+
 	S.resetState();
 	S.initialize();
+
+	for (auto spp : S.species_vec) spp->setU(0, 1);
+	S.copyCohortsToState();
+
 	S.print();
 	S.current_time = 0;
 //	S.control.update_cohorts = false;
@@ -133,17 +142,18 @@ int main(){
 //	for (auto y : S.state) cout << y << "\t"; cout << "\n";
 
 //	ofstream fout("fmu_PlantFATE.txt");
-	for (double t=0.1; t <= 50; t=t+2) {
-		cout << "t = " << t << "\n";
+	ofstream fzst("z_star.txt");
+	for (double t=0.1; t <= 200; t=t+0.1) {
+		cout << "t = " << t << "\t";
 		S.step_to(t);		
 		
-//		vector<double> seeds = S.newborns_out();
+		vector<double> seeds = S.newborns_out();
 //		for (int s=0; s< S.species_vec.size(); ++s){
 //			double S_D = 0.25;
 //			seeds_out[s].push_back(seeds[s] * env.patch_age_density(t));
 //		}
 //		fseed << t << "\t";
-//		for (int i=0; i<S.n_species(); ++i) fseed << seeds[i] << "\t";
+		for (int i=0; i<S.n_species(); ++i) cout << seeds[i] << "\n";
 //		fseed << "\n";
 
 //		cout << t << " " << S.species_vec[0]->xsize() << " ";
@@ -154,9 +164,9 @@ int main(){
 //		for (auto h : xl) fli << env.LA_above_z(t,h,&S) << "\t";
 //		fli << endl;
 //		
-//		fzst << t << "\t";
-//		for (auto z : env.z_star) fzst << z << "\t";
-//		fzst << "\n";
+		fzst << t << "\t";
+		for (auto z : E.z_star) fzst << z << "\t";
+		fzst << endl;
 			
 		sio.writeState();
 	}

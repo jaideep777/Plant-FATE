@@ -14,6 +14,8 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 
 	double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL);
 	
+	if (lai_curr < 0.05 || res.npp < 0) dL_dt = 0;  // limit to prevent LAI going negative
+	
 	// calculate and constrain rate of LAI change
 	double max_alloc_lai = par.max_alloc_lai * _dmass_dt_tot; // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
 	bp.dmass_dt_lai = geometry.dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
@@ -31,6 +33,7 @@ double Plant::p_survival_germination(Env &env){
 	double P2 = P*P;
 	double P2_half = par.npp_Sghalf * par.npp_Sghalf;
 	return P2 / (P2 + P2_half);
+//	return 1;
 }
 
 template<class Env>
@@ -43,13 +46,19 @@ double Plant::p_survival_dispersal(Env &env){
 template<class Env>
 double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 	double dsize_dt = geometry.dsize_dmass(traits) * _dmass_dt_growth; 
+	rates.rgr = dsize_dt/geometry.get_size();
 	return dsize_dt;
 }
 
 
 template<class Env>
 double Plant::mortality_rate(Env &env){
-	return 0.01;
+	double dI = 0.0;
+	double D = geometry.diameter;
+	double dD1 = exp(-8 - 0.5*log(D) + 0.1*D*D);
+	double dD2 = 0.05*std::max(-log(1e-5 + 0.05*rates.rgr),0.0); //0.1/(1+rates.rgr/0.1);
+//	std::cout << "D = " << D << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
+	return dI + dD1 + dD2;
 }
 
 
@@ -73,7 +82,7 @@ void Plant::calc_demographic_rates(Env &env){
 
 	// set core rates
 	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
-	rates.dmort_dt  = mortality_rate(env);
+	rates.dmort_dt  = mortality_rate(env); 
 
 	double fec = fecundity_rate(bp.dmass_dt_rep, env);
 	rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
