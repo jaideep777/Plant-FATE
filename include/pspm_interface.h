@@ -101,7 +101,7 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 	//// as an iAttribute. iAttributes can be mapped to integers, say using enums
 	//// Alternatively, switch to Indiviudual class as a template parameter for solver
 	void computeEnv(double t, Solver *S){
-		updateClimate(2000+t);
+//		updateClimate(2000+t);
 
 		//            _xm 
 		// Calculate / w(z,t)u(z,t)dz
@@ -112,8 +112,9 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 
 			if (n_layers < 0 || n_layers >= 50) {
 				std::cout << "nlayers = " << n_layers << "\n";
-				S->print();
+				S->print(); std::cout.flush();
 			}
+//			if (n_layers > 5) n_layers = 5;
 			assert(n_layers >= 0 && n_layers < 50);
 
 			for (int layer = 1; layer <= n_layers; ++layer){

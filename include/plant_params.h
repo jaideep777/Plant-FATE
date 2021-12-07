@@ -80,6 +80,12 @@ class PlantParameters{
 	double Sd;            // probability of survival during dispersal
 	double npp_Sghalf;    // required productivity for 0.5 probability of survival during germination
 	
+	// **
+	// ** Mortality
+	// **
+	double mI, mS;
+	
+	
 	public:
 	inline int initFromFile(std::string fname){
 		io::Initializer I(fname);
@@ -110,6 +116,9 @@ class PlantParameters{
 
 		Sd = I.getScalar("Sd");
 		npp_Sghalf = I.getScalar("npp_Sghalf");
+
+		mI = I.getScalar("mI");
+		mS = I.getScalar("mS");
 
 		return 0;
 	}

@@ -32,8 +32,10 @@ double Plant::p_survival_germination(Env &env){
 	double P = std::max(res.npp, 0.0)/geometry.crown_area;
 	double P2 = P*P;
 	double P2_half = par.npp_Sghalf * par.npp_Sghalf;
+//	std::cout << "P_seed = " << P << ", p_germ = " << P2 / (P2 + P2_half) << std::endl;
+
 	return P2 / (P2 + P2_half);
-//	return 1;
+//	return 0.0000000001;
 }
 
 template<class Env>
@@ -53,12 +55,13 @@ double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 
 template<class Env>
 double Plant::mortality_rate(Env &env){
-	double dI = 0.0;
+	double dI = par.mI;
 	double D = geometry.diameter;
-	double dD1 = exp(-8 - 0.5*log(D) + 0.1*D*D);
-	double dD2 = 0.05*std::max(-log(1e-5 + 0.05*rates.rgr),0.0); //0.1/(1+rates.rgr/0.1);
-//	std::cout << "D = " << D << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
-	return dI + dD1 + dD2;
+	double dD1 = 1; //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
+	double dD2 = 1; //(D < 0.02)? std::min(std::max(-log(rates.rgr),0.0), 200.0) : 0.01*std::min(std::max(-log(rates.rgr),0.0), 200.0); //0.1/(1+rates.rgr/0.1);
+	double dD3 = exp(-par.mS*log(D)); //0.1/(1+rates.rgr/0.1);
+//	std::cout << "H = " << geometry.height << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
+	return par.mI*dD2 + par.mI*dD3 + par.mI*dD1;
 }
 
 

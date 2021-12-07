@@ -99,6 +99,7 @@ int main(){
 
 	PSPM_Plant p1;
 	p1.initParamsFromFile("tests/params/p.ini");
+	p1.geometry.set_lai(1);	
 	p1.set_size(0.01);
 
 	PSPM_Dynamic_Environment E;
@@ -117,7 +118,7 @@ int main(){
     S.use_log_densities = true;
 	S.setEnvironment(&E);
 
-	S.addSpecies(30, 0.01, 2, true, &spp, 3, -1);
+	S.addSpecies(50, 0.01, 10, true, &spp, 3, -1);
 //	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 	//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0
 
@@ -143,7 +144,7 @@ int main(){
 
 //	ofstream fout("fmu_PlantFATE.txt");
 	ofstream fzst("z_star.txt");
-	for (double t=0.1; t <= 200; t=t+0.1) {
+	for (double t=0.1; t <= 200; t=t+2) {
 		cout << "t = " << t << "\t";
 		S.step_to(t);		
 		

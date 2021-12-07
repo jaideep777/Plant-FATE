@@ -44,7 +44,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 
 		ca_cumm += ca_layer;
 		
-//		std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", A = " << (res.a + res.vcmax*par.rl) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rl) * ca_layer << "\n"; 
+//		std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << ", A = " << (res.a + res.vcmax*par.rl) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rl) * ca_layer << "\n"; 
 	}
 	assert(fabs(ca_cumm/G->crown_area - 1) < 1e-6);
 //	std::cout << "CA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
