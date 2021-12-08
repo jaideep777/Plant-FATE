@@ -80,12 +80,15 @@ class SolverIO{
 
 			for (int j=0; j<spp->xsize(); ++j){
 				auto& C = spp->getCohort(j);
-				streams[s][0] << C.x << "\t";
-				streams[s][1] << C.u << "\t";
-				streams[s][2] << C.geometry.height << "\t";
-				streams[s][3] << C.geometry.lai << "\t";
-				streams[s][4] << C.state.mortality << "\t";
-				streams[s][5] << C.state.seed_pool << "\t";
+				int is = 0;
+				streams[s][is++] << C.x << "\t";
+				streams[s][is++] << C.u << "\t";
+				streams[s][is++] << C.geometry.height << "\t";
+				streams[s][is++] << C.geometry.lai << "\t";
+				streams[s][is++] << C.state.mortality << "\t";
+				streams[s][is++] << C.state.seed_pool << "\t";
+				streams[s][is++] << C.rates.rgr << "\t";
+				streams[s][is++] << C.res.gpp/C.geometry.crown_area << "\t";
 
 			}
 			
@@ -135,7 +138,7 @@ int main(){
 
 	SolverIO sio;
 	sio.S = &S;
-	sio.openStreams({"height", "lai", "mort", "seeds"});
+	sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"});
 
 	
 //	S.step_to(0.1);
@@ -144,18 +147,42 @@ int main(){
 
 //	ofstream fout("fmu_PlantFATE.txt");
 	ofstream fzst("z_star.txt");
+	ofstream fco("canopy_openness.txt");
+	ofstream fseed("seeds.txt");
+	ofstream fabase("basal_area.txt");
+	ofstream flai("LAI.txt");
 	for (double t=0.1; t <= 200; t=t+2) {
 		cout << "t = " << t << "\t";
-		S.step_to(t);		
+		S.step_to(t);
 		
 		vector<double> seeds = S.newborns_out();
 //		for (int s=0; s< S.species_vec.size(); ++s){
 //			double S_D = 0.25;
 //			seeds_out[s].push_back(seeds[s] * env.patch_age_density(t));
 //		}
-//		fseed << t << "\t";
-		for (int i=0; i<S.n_species(); ++i) cout << seeds[i] << "\n";
-//		fseed << "\n";
+		fseed << t << "\t";
+		for (int i=0; i<S.n_species(); ++i) fseed << seeds[i] << "\t";
+		fseed << "\n";
+		
+		vector<double> basal_area(S.n_species());
+		for (int k=0; k<S.n_species(); ++k)
+			basal_area[k] = S.integrate_x([&S,k](int i, double t){
+			                              double D = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry.diameter;
+			                              return M_PI*D*D/4;
+			                            }, t, 0);
+		
+		fabase << t << "\t";
+		for (int i=0; i<S.n_species(); ++i) fabase << basal_area[i] << "\t";
+		fabase << "\n";
+		
+		double comm_lai = 0;
+		for (int k=0; k<S.n_species(); ++k)
+			comm_lai += S.integrate_x([&S,k](int i, double t){
+			                              auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
+			                              return p.crown_area*p.lai;
+			                            }, t, 0);
+		
+		flai << t << "\t" << comm_lai << "\n";
 
 //		cout << t << " " << S.species_vec[0]->xsize() << " ";
 //		for (int i=0; i<S.n_species(); ++i) cout << seeds[i] << " ";
@@ -168,10 +195,19 @@ int main(){
 		fzst << t << "\t";
 		for (auto z : E.z_star) fzst << z << "\t";
 		fzst << endl;
+		
+		fco << t << "\t";
+		for (auto z : E.canopy_openness) fco << z << "\t";
+		fco << endl;
 			
 		sio.writeState();
 	}
-	
+	fco.close();
+	fseed.close();
+	fzst.close();
+	fabase.close();
+	flai.close();
+
 	E.use_ppa = true;
 	E.computeEnv(200, &S);  
 	E.print(200);

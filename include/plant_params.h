@@ -11,7 +11,7 @@ class PlantTraits{
 	public:
 	double lma = 0.09;			// leaf mass per leaf area [kg/m2]
 	double zeta = 0.14;			// root mass per leaf area [kg/m2]
-	double hmat = 20;			// height at maturity [m]
+	double hmat = 35;			// height at maturity [m]
 	double fhmat = 0.8;         // height at reproductive maturity as fraction of hmat
 	double seed_mass = 3.8e-5;	// [kg]
 	double wood_density = 608;	// [kg/m3]
@@ -83,7 +83,9 @@ class PlantParameters{
 	// **
 	// ** Mortality
 	// **
-	double mI, mS;
+	double mI; // baseline mortality rate
+	double mD, mD_e; // intrinsic diameter-dependent mortality 
+	double mS, mS0; // mortality due to carbon starvation
 	
 	
 	public:
@@ -118,7 +120,10 @@ class PlantParameters{
 		npp_Sghalf = I.getScalar("npp_Sghalf");
 
 		mI = I.getScalar("mI");
+		mD = I.getScalar("mD");
+		mD_e = I.getScalar("mD_e");
 		mS = I.getScalar("mS");
+		mS0 = I.getScalar("mS0");
 
 		return 0;
 	}

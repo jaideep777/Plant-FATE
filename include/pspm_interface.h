@@ -119,7 +119,7 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 
 			for (int layer = 1; layer <= n_layers; ++layer){
 				auto CA_above_zstar_layer = [t, S, layer, this](double z) -> double {
-					return projected_crown_area_above_z(t, z, S)-layer;
+					return projected_crown_area_above_z(t, z, S) - layer*0.9;
 				};
 				auto res = pn::zero(0, 100, CA_above_zstar_layer, 1e-4);
 				z_star.push_back(res.root);

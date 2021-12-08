@@ -37,6 +37,8 @@ class Plant{
 		double dmass_dt_tot;
 	} bp;
 
+	PlantAssimilationResult res;
+
 	public:
 
 	PlantTraits traits;

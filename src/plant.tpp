@@ -33,9 +33,10 @@ double Plant::p_survival_germination(Env &env){
 	double P2 = P*P;
 	double P2_half = par.npp_Sghalf * par.npp_Sghalf;
 //	std::cout << "P_seed = " << P << ", p_germ = " << P2 / (P2 + P2_half) << std::endl;
-
 	return P2 / (P2 + P2_half);
-//	return 0.0000000001;
+	
+	//calc_demographic_rates(env);
+	//return exp(-mortality_rate(env)*0.5);  // mortality during germination realized over half a year
 }
 
 template<class Env>
@@ -55,13 +56,11 @@ double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 
 template<class Env>
 double Plant::mortality_rate(Env &env){
-	double dI = par.mI;
 	double D = geometry.diameter;
-	double dD1 = 1; //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
-	double dD2 = 1; //(D < 0.02)? std::min(std::max(-log(rates.rgr),0.0), 200.0) : 0.01*std::min(std::max(-log(rates.rgr),0.0), 200.0); //0.1/(1+rates.rgr/0.1);
-	double dD3 = exp(-par.mS*log(D)); //0.1/(1+rates.rgr/0.1);
+	double dDs = -log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
+	double dDd = par.mD*exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
 //	std::cout << "H = " << geometry.height << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
-	return par.mI*dD2 + par.mI*dD3 + par.mI*dD1;
+	return par.mI + dDd*dDs;
 }
 
 
@@ -74,7 +73,7 @@ double Plant::fecundity_rate(double _dmass_dt_rep, Env &env){
 template<class Env>
 void Plant::calc_demographic_rates(Env &env){
 
-	auto res = assimilator.net_production(env, &geometry, par, traits);	
+	res = assimilator.net_production(env, &geometry, par, traits);	
 	bp.dmass_dt_tot = std::max(res.npp, 0.0);  // No biomass growth if npp is negative
 
 	// set rates.dlai_dt and bp.dmass_dt_lai
