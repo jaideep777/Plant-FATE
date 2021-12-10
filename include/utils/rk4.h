@@ -1,3 +1,6 @@
+#ifndef UTILS_MATH_RK4_H_
+#define UTILS_MATH_RK4_H_
+
 template <class functor, class container>
 void Euler(double x, double h, container& y, functor& derivs){
 	container fk(y.size());
@@ -22,4 +25,4 @@ void RK4(double x, double h, container& y, functor& derivs){
 	for (int i=0; i<y.size(); i++) y[i] += h/6.0*(k1[i]+2.0*(k2[i]+k3[i])+k4[i]);
 }
 
-
+#endif

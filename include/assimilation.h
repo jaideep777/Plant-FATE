@@ -42,7 +42,7 @@ class Assimilator{
 	void  calc_plant_assimilation_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
 
 	template<class Env>
-	PlantAssimilationResult biomass_growth_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
+	PlantAssimilationResult net_production(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
 
 	// ** 
 	// ** Respiration and turnover

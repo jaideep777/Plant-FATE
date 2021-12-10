@@ -3,17 +3,17 @@ dat = read.delim("~/codes/tmodel_cpp/assim.txt")
 dat$leaf_area = dat$crown_area * dat$lai
 dat$heartwood_fraction = 1-dat$sapwood_fraction
 
-par(mfrow=c(4,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
-
-plot(dat$height~dat$diameter)
-plot(dat$crown_area~I(dat$height*dat$diameter))
-plot(dat$crown_area~dat$height)
-plot(dat$crown_area~dat$diameter)
-plot(dat$leaf_area~dat$crown_area)
-plot(dat$sapwood_fraction~dat$height)
-# plot(sqrt(4*dat$crown_area/pi)~dat$height)
-plot(I(dat$total_rep/dat$total_prod)~dat$height)
-plot(I(dat$total_rep/dat$total_prod)~dat$diameter)
+# par(mfrow=c(4,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
+#     
+# plot(dat$height~dat$diameter)
+# plot(dat$crown_area~I(dat$height*dat$diameter))
+# plot(dat$crown_area~dat$height)
+# plot(dat$crown_area~dat$diameter)
+# plot(dat$leaf_area~dat$crown_area)
+# plot(dat$sapwood_fraction~dat$height)
+# # plot(sqrt(4*dat$crown_area/pi)~dat$height)
+# plot(I(dat$total_rep/dat$total_prod)~dat$height)
+# plot(I(dat$total_rep/dat$total_prod)~dat$diameter)
 
 par(mfrow=c(4,3), mar=c(4,4,1,1), oma=c(1,1,1,1))
 

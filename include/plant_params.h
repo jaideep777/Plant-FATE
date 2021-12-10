@@ -2,29 +2,50 @@
 #define PLANT_FATE_PLANT_PARAMS_H_
 
 #include "utils/initializer.h"
+#include <cmath>
 
 namespace plant{
 
 class PlantTraits{
 	// fixed (genetic) traits
 	public:
-	double lma = 0.09;			// leaf mass per leaf area [kg/m2]
-	double zeta = 0.14;			// root mass per leaf area [kg/m2]
-	double hmat = 20;			// height at maturity [m]
-	double fhmat = 0.8;         // height at reproductive maturity as fraction of hmat
-	double seed_mass = 3.8e-5;	// [kg]
-	double wood_density = 608;	// [kg/m3]
+	double lma;             // leaf mass per leaf area [kg/m2]
+	double zeta;            // root mass per leaf area [kg/m2]
+	double hmat;            // height at maturity [m]
+	double fhmat;           // height at reproductive maturity as fraction of hmat
+	double seed_mass;       // [kg]
+	double wood_density;    // [kg/m3]
+	double p50_xylem;       // Xylem P50 [MPa]
+	double K_leaf;          // Leaf conductivity [m]
+	double K_xylem;         // Leaf conductivity [m]
+	double b_leaf;          // Shape parameter of leaf vulnerabilty curve [-]
+	double b_xylem;         // Shape parameter of leaf vulnerabilty curve [-]
 	
-	double p50_leaf = -1.5;		// Leaf hydraulic capacity [MPa]
-	double K_leaf = 1e-16;		// Leaf conductivity [m]
-	double K_xylem = 2e-16;		// Leaf conductivity [m]
-	double b_leaf = 1;			// Shape parameter of leaf vulnerabilty curve [-]
 
 	// variable (plastic) traits
 	public:
-	//double lai_opt = 1.8;		// optimum crown leaf area index
-	//double lai = 1.8;			// realized crown LAI 	
-	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
+	double ll;	// leaf-longevity (as a function of LMA and environment)
+	double p50_leaf;		// Leaf hydraulic capacity [MPa]
+
+
+	public:
+	inline int initFromFile(std::string fname){
+		io::Initializer I(fname);
+		I.readFile();
+
+		lma = I.getScalar("lma");
+		zeta = I.getScalar("zeta");
+		hmat = I.getScalar("hmat");
+		fhmat = I.getScalar("fhmat");
+		seed_mass = I.getScalar("seed_mass");
+		wood_density = I.getScalar("wood_density");
+		p50_xylem = I.getScalar("p50_xylem");
+		K_leaf = I.getScalar("K_leaf");
+		K_xylem = I.getScalar("K_xylem");
+		b_leaf = I.getScalar("b_leaf");	
+		b_xylem = I.getScalar("b_xylem");	
+	}
+	
 };
 
 
@@ -33,9 +54,9 @@ class PlantParameters{
 	// **
 	// ** Photosynthesis paramaters  
 	// **
-	double kphio = 0.087;
-	double alpha = 0.1;
-	double gamma = 1.96; 
+	double kphio;
+	double alpha;
+	double gamma; 
 
 	// **
 	// ** Allocation and geometric paramaters  
@@ -48,7 +69,8 @@ class PlantParameters{
 	// ** LAI optimization
 	double response_intensity;	// leaf construction costs
 	double max_alloc_lai;       // max fraction of NPP that can be allocated to LAI increment
-	double dl;	// hydraulic costs
+	double dl;	                // stepsize for profit derivative
+	double lai0;                // initial lai
 
 	// **
 	// ** Respiration and turnover 
@@ -73,7 +95,19 @@ class PlantParameters{
 	
 	double ll_seed;    // longevity of seeds in the seed pool
 	
-
+	// **
+	// ** Dispersal and germination
+	// **
+	double Sd;            // probability of survival during dispersal
+	double npp_Sghalf;    // required productivity for 0.5 probability of survival during germination
+	
+	// **
+	// ** Mortality
+	// **
+	double mI; // baseline mortality rate
+	double mD, mD_e; // intrinsic diameter-dependent mortality 
+	double mS, mS0; // mortality due to carbon starvation
+	
 	
 	public:
 	inline int initFromFile(std::string fname){
@@ -82,6 +116,9 @@ class PlantParameters{
 		I.print();
 		
 //		#define GET(x) x = I.getScalar(#_x);
+		kphio = I.getScalar("kphio");
+		alpha = I.getScalar("alpha");
+		gamma = I.getScalar("gamma");
 		m = I.getScalar("m");
 		n = I.getScalar("n");
 		fg = I.getScalar("fg");
@@ -90,6 +127,7 @@ class PlantParameters{
 		response_intensity  = I.getScalar("response_intensity");
 		max_alloc_lai  = I.getScalar("max_alloc_lai");
 		dl  = I.getScalar("lai_deriv_step");
+		lai0  = I.getScalar("lai0");
 		rl  = I.getScalar("rl");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");
@@ -100,7 +138,16 @@ class PlantParameters{
 		k_light = I.getScalar("k_light");
 		a_f1 = I.getScalar("a_f1");
 		a_f2 = I.getScalar("a_f2");
-		ll_seed = I.getScalar("ll_seed");
+		ll_seed = I.getScalar("ll_seed")/log(2);
+
+		Sd = I.getScalar("Sd");
+		npp_Sghalf = I.getScalar("npp_Sghalf");
+
+		mI = I.getScalar("mI");
+		mD = I.getScalar("mD");
+		mD_e = I.getScalar("mD_e");
+		mS = I.getScalar("mS");
+		mS0 = I.getScalar("mS0");
 
 		return 0;
 	}

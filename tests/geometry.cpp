@@ -15,7 +15,9 @@ int main(){
 	par.initFromFile("tests/params/p.ini");
 	par.print();
 	
-	G.initGeometry(0.01, par, traits);
+	G.init(par, traits);
+	G.set_lai(1);
+	G.set_size(0.01, traits);
 	G.sap_frac_ode = G.sapwood_fraction;
 	G.sapwood_mass_ode = G.sapwood_mass(traits)*0.5;
 	G.heart_mass_ode = G.heartwood_mass(traits);
@@ -62,6 +64,7 @@ int main(){
 
 	double dt = 0.1; // mass balance approx holds only for dt = 0.0001
 	double total_prod = G.total_mass(traits);
+	double litter_pool = 0;
 	for (double t=0; t<=100; t=t+dt){
 
 		//cout << t << " " << G.total_mass(traits) << " " << total_prod << "\n";
@@ -90,9 +93,9 @@ int main(){
 			 << G.root_mass(traits) << "\t"	
 			 << G.total_mass(traits) << "\t"
 			 << total_prod << "\t"
-			 << G.litter_pool << "\n";
+			 << litter_pool << "\n";
 		
-		G.grow_for_dt(t, dt, total_prod, P, traits);
+		G.grow_for_dt(t, dt, total_prod, litter_pool, P, traits);
 		//double dhdM = G.dheight_dmass(traits);
 		//double h_new = G.height + dhdM*P*G.leaf_area*dt;
 		//G.set_height(h_new, traits);
@@ -103,15 +106,25 @@ int main(){
 	cout << "At t = " << 100 << "\n"
 		 << setprecision(12)  
 		 << "Total biomass          = " << G.total_mass(traits) << "\n"
-		 << "Total litter           = " << G.litter_pool << "\n"
-		 << "Total biomass + litter = " << G.total_mass(traits) + G.litter_pool << "\n"
+		 << "Total litter           = " << litter_pool << "\n"
+		 << "Total biomass + litter = " << G.total_mass(traits) + litter_pool << "\n"
 		 << "Total production       = " << total_prod << "\n";
 
-	if (abs(G.total_mass(traits) - total_prod + G.litter_pool) > 1e-6) return 1;
+	if (abs(G.total_mass(traits) - total_prod + litter_pool) > 1e-6) return 1;
 	if (abs(G.heartwood_mass(traits) - G.heart_mass_ode) > 1e-6) return 1;
 	if (abs(G.sapwood_fraction - G.sap_frac_ode) > 1e-6) return 1;
 	
+	
+	
+	// projection area test
+	fout.open("crown_area.txt");
+	for (double z=G.height; z >=-0.01; z -= 0.01){
+		fout << std::max(z,0.0) << "\t" << G.zm() << "\t" << G.crown_area_extent_projected(std::max(z,0.0), traits) << "\t" << G.crown_area_above(std::max(z,0.0), traits) << "\n";
+	}	
+	fout.close();
+
 	return 0;
+	
 }
 
 //# R script to test:

@@ -1,5 +1,5 @@
-#ifndef PLANT_FATE_IO_INITIALIZER_H_
-#define PLANT_FATE_IO_INITIALIZER_H_
+#ifndef UTILS_IO_INITIALIZER_H_
+#define UTILS_IO_INITIALIZER_H_
 
 #include <iostream>
 #include <string>
