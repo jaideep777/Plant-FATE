@@ -85,7 +85,7 @@ class SolverIO{
 				streams[s][is++] << C.u << "\t";
 				streams[s][is++] << C.geometry.height << "\t";
 				streams[s][is++] << C.geometry.lai << "\t";
-				streams[s][is++] << C.state.mortality << "\t";
+				streams[s][is++] << C.rates.dmort_dt << "\t";
 				streams[s][is++] << C.state.seed_pool << "\t";
 				streams[s][is++] << C.rates.rgr << "\t";
 				streams[s][is++] << C.res.gpp/C.geometry.crown_area << "\t";
@@ -166,10 +166,10 @@ int main(){
 		
 		vector<double> basal_area(S.n_species());
 		for (int k=0; k<S.n_species(); ++k)
-			basal_area[k] = S.integrate_x([&S,k](int i, double t){
+			basal_area[k] = S.integrate_wudx_above([&S,k](int i, double t){
 			                              double D = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry.diameter;
 			                              return M_PI*D*D/4;
-			                            }, t, 0);
+			                            }, t, 0.1, 0);
 		
 		fabase << t << "\t";
 		for (int i=0; i<S.n_species(); ++i) fabase << basal_area[i] << "\t";

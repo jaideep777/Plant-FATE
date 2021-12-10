@@ -57,10 +57,20 @@ double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 template<class Env>
 double Plant::mortality_rate(Env &env){
 	double D = geometry.diameter;
-	double dDs = -log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
-	double dDd = par.mD*exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
+	double dDs = par.mS0*exp(-rates.rgr*par.mS); //-log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
+	double dDd = exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
 //	std::cout << "H = " << geometry.height << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
-	return par.mI + dDd*dDs;
+	//return par.mI + par.mD*dDd*(1+dDs);
+
+	double wd = (traits.wood_density/1000);
+	double dI = exp(-5);
+	double mu_rgr = exp(-par.mS*rates.rgr);
+	double mu_d   = exp(-0.3*log(D) + 0.1*D - 1.48*wd*wd);
+	return dI*(mu_d + mu_rgr);
+	
+	//double logit = -5 -1*log(D*1000) - 0.004*D*1000 + -0.3*log(rates.rgr);
+	//return 1/(1+exp(-logit));
+	 
 }
 
 

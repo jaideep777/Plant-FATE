@@ -9,22 +9,43 @@ namespace plant{
 class PlantTraits{
 	// fixed (genetic) traits
 	public:
-	double lma = 0.09;			// leaf mass per leaf area [kg/m2]
-	double zeta = 0.14;			// root mass per leaf area [kg/m2]
-	double hmat = 35;			// height at maturity [m]
-	double fhmat = 0.8;         // height at reproductive maturity as fraction of hmat
-	double seed_mass = 3.8e-5;	// [kg]
-	double wood_density = 608;	// [kg/m3]
-	double p50_xylem = -3;      // Xylem P50 [MPa]
+	double lma;             // leaf mass per leaf area [kg/m2]
+	double zeta;            // root mass per leaf area [kg/m2]
+	double hmat;            // height at maturity [m]
+	double fhmat;           // height at reproductive maturity as fraction of hmat
+	double seed_mass;       // [kg]
+	double wood_density;    // [kg/m3]
+	double p50_xylem;       // Xylem P50 [MPa]
+	double K_leaf;          // Leaf conductivity [m]
+	double K_xylem;         // Leaf conductivity [m]
+	double b_leaf;          // Shape parameter of leaf vulnerabilty curve [-]
+	double b_xylem;         // Shape parameter of leaf vulnerabilty curve [-]
 	
-	double p50_leaf = -1.5;		// Leaf hydraulic capacity [MPa]
-	double K_leaf = 1e-16;		// Leaf conductivity [m]
-	double K_xylem = 2e-16;		// Leaf conductivity [m]
-	double b_leaf = 1;			// Shape parameter of leaf vulnerabilty curve [-]
 
 	// variable (plastic) traits
 	public:
-	double ll = 2;	// leaf-longevity (as a function of LMA and environment)
+	double ll;	// leaf-longevity (as a function of LMA and environment)
+	double p50_leaf;		// Leaf hydraulic capacity [MPa]
+
+
+	public:
+	inline int initFromFile(std::string fname){
+		io::Initializer I(fname);
+		I.readFile();
+
+		lma = I.getScalar("lma");
+		zeta = I.getScalar("zeta");
+		hmat = I.getScalar("hmat");
+		fhmat = I.getScalar("fhmat");
+		seed_mass = I.getScalar("seed_mass");
+		wood_density = I.getScalar("wood_density");
+		p50_xylem = I.getScalar("p50_xylem");
+		K_leaf = I.getScalar("K_leaf");
+		K_xylem = I.getScalar("K_xylem");
+		b_leaf = I.getScalar("b_leaf");	
+		b_xylem = I.getScalar("b_xylem");	
+	}
+	
 };
 
 
@@ -33,9 +54,9 @@ class PlantParameters{
 	// **
 	// ** Photosynthesis paramaters  
 	// **
-	double kphio = 0.087;
-	double alpha = 0.1;
-	double gamma = 1.96; 
+	double kphio;
+	double alpha;
+	double gamma; 
 
 	// **
 	// ** Allocation and geometric paramaters  
@@ -95,6 +116,9 @@ class PlantParameters{
 		I.print();
 		
 //		#define GET(x) x = I.getScalar(#_x);
+		kphio = I.getScalar("kphio");
+		alpha = I.getScalar("alpha");
+		gamma = I.getScalar("gamma");
 		m = I.getScalar("m");
 		n = I.getScalar("n");
 		fg = I.getScalar("fg");

@@ -53,6 +53,7 @@ class Plant{
 //	Plant(const Plant &P);  // we need a copy constructor to correctly set geometry and assimilator pointers
 
 	int initParamsFromFile(std::string file);
+	int coordinateTraits();
 	
 	void set_size(double x);
 

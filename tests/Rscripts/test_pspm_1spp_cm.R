@@ -47,11 +47,11 @@ image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e8*pmax(as.matrix(Up[,ids_h]
 matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Z*", add=T)
 
-image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e4*pmax(as.matrix(Gp[,ids_h])/max(as.matrix(Gp[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "Growth rate distribution, Z*", col=scales::viridis_pal()(100))
+image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e4*pmax(as.matrix(Gp[,ids_h])/max(as.matrix(Gp[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "R. Growth rate dist, Z*", col=scales::viridis_pal()(100))
 matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Z*", add=T)
 
-image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e4*pmax(as.matrix(Ap[,ids_h])/max(as.matrix(Ap[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "GPP distribution, Z*", col=scales::viridis_pal()(100))
+image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e4*pmax(as.matrix(Ap[,ids_h])/max(as.matrix(Ap[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "GPP dist, Z*", col=scales::viridis_pal()(100))
 matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Z*", add=T)
 
@@ -63,13 +63,11 @@ matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type=
 #         las=1, xlab="Time (years)", ylab="Diameter (m)")
 
 
-image(x=Dp[,1], y=(as.numeric(Dp[1,ids_x])), z=as.matrix(Mp[,ids_x]), log="y", xlab="Time", ylab = "Mortality distribution", col=scales::viridis_pal()(100))
-# matplot(Mp$V1, Mp[,-1], lty=1, col=cols_t, type="l",
-#         las=1, xlab="Time (years)", ylab="Mortality (yr-1)")
+image(x=Dp[,1], y=(as.numeric(Dp[1,ids_x])), z=log(as.matrix(Mp[,ids_x])), log="y", xlab="Time", ylab = "Mortality rate dist", col=scales::viridis_pal()(100))
 
 
-matplot(Up$V1, (as.matrix(Up[,-1])), lty=1, col=cols_t, type="l",
-        las=1, xlab="Time (years)", ylab="Density (m-2)")
+matplot(Up$V1, (as.matrix(Up[,-1])*1e4/100), lty=1, col=cols_t, type="l",
+        las=1, xlab="Time (years)", ylab="Density (Ind/cm/Ha)")
 
 # matplot(Sp$V1, Sp[,-1]/1e6, lty=1, col=cols_t, type="l",
 #         las=1, xlab="Time (years)", ylab="Seeds in pool (Millions)")
@@ -80,8 +78,8 @@ matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type=
 matplot(COp$V1, COp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Canopy openness")
 
-matplot(BAp$V1, BAp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="Basal area")
+matplot(BAp$V1, BAp[,-1]*1e4, lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Basal area (m2 / Ha)\n")
 
 matplot(LAIp$V1, LAIp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Community LAI")
@@ -91,20 +89,31 @@ matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85),
 
 
 matplot(x=(t(hp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((hp)), start = 0, end = 0.75),0.05), type="l",
-        las=1, xlab = "Height", ylab="Density (Ind/cm/Ha)", log="xy", ylim=c(exp(-5),exp(10)))
+        las=1, xlab = "Height", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-5),exp(10)))
 # Up_mean = colMeans(Up[t>150, ids_h]*1e4/100)
 # points(as.numeric(Up_mean)~as.numeric(hp[1,ids_h]))
 
 matplot(x=(t(Dp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),0.05), type="l",
-        las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)", log="xy", ylim=c(exp(-15), exp(10)))
+        las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
 # Up_mean = colMeans(Up[t>150, ids_x]*1e4/100)
 # points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
 
+matplot(y=t(as.matrix(Mp[c(1,nrow(Mp)),2:50])), x=as.numeric(Dp[1,2:50]), type="l", col=c("red", "black"), log="x", ylab="Mortality rate @(t0, tf)", xlab="Diameter")
 
 # matplot(Lp$V1, Lp[,-1], lty=1, col=cols_t, type="l",
-#         las=1, xlab="Time (years)", ylab="LAI")uu
+#         las=1, xlab="Time (years)", ylab="LAI")
 # image(x=Dp[,1], y=as.numeric(Dp[1,ids_x]), z=as.matrix(Lp[,ids_x]), xlab="Time", ylab = "Diameter", col=scales::viridis_pal()(100))
 
+# library(tidyverse)
+# dat = list(rgr = seq(0.001,0.8, length.out = 100), D = seq(0.01,4, length.out = 100)) %>% cross_df() %>% 
+#   mutate(logit_rgr = 1.51 + 0.64*log(1+100*rgr)) %>% 
+#   mutate(mu_rgr = log(1 +exp(-logit_rgr)) ) %>% 
+#   mutate(mu_d = exp(-5-0.3*log(D) + .3*(D)) ) %>% 
+#   mutate(mu = mu_d + mu_rgr)
+# 
+# plot(dat$mu_rgr~dat$rgr)
+# plot(dat$mu_d~dat$D)
+# ii+# dat %>% ggplot(aes(y=mu, x=rgr, group=D, col=D))+ geom_line()
 
 # matplot(x=(t(hp[nrow(hp),-1])), y=(t(Up[nrow(Up),-1])), log="xy", lty=1, col=scales::alpha(rainbow(n = nrow(hp), start = 0, end = 0.85),0.4), type="l",
 #         las=1, xlab = "Height", ylab="Density")
