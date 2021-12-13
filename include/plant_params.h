@@ -3,10 +3,14 @@
 
 #include "utils/initializer.h"
 #include <cmath>
+#include <string>
 
 namespace plant{
 
 class PlantTraits{
+	public:
+	std::string species_name = "Tectona grandis";
+	
 	// fixed (genetic) traits
 	public:
 	double lma;             // leaf mass per leaf area [kg/m2]

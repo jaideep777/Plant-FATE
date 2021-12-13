@@ -4,6 +4,9 @@
 #include "utils/initializer.h"
 #include "utils/lambertw.h"
 //#include "assimilation.h"
+//
+#include "trait_reader.h"
+
 using namespace std;
 
 int main(){
@@ -28,6 +31,11 @@ int main(){
 		double w = lambertw0(x);
 		if (fabs(w*exp(w) - x) > 1e-8) return 1;
 	}
+
+	// traits file test
+	TraitsReader Tr;
+	Tr.readFromFile("tests/data/Plant_Traits_AmzFACE_for_PlantFATE.csv");
+	Tr.print();
 
 	return 0;
 }
