@@ -94,7 +94,8 @@ vector<double>::iterator PSPM_Plant::get_rates(vector<double>::iterator &it){
 }
 
 void PSPM_Plant::print(std::ostream &out){
-	out << "|" << traits.lma << "|\t" 
+	out << traits.species_name << "\t"
+		<< "|" << traits.lma << "|\t" 
 	    << geometry.get_size() << "\t" 
 	    << rates.dsize_dt << "\t" 
 	    << geometry.lai << "\t" 
