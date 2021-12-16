@@ -165,6 +165,7 @@ int main(){
 	ofstream fseed("seeds.txt");
 	ofstream fabase("basal_area.txt");
 	ofstream flai("LAI.txt");
+	double t_clear = 20;
 	for (double t=0.1; t <= 1000; t=t+2) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
@@ -215,6 +216,14 @@ int main(){
 		fco << endl;
 			
 		sio.writeState();
+	
+		// clear patch after 50 year	
+		if (t >= t_clear){
+			for (auto spp : S.species_vec) 
+				for (int i=1; i<spp->xsize(); ++i) spp->setU(i, 0);
+			S.copyCohortsToState();
+			t_clear = t + 50 + 30*(2*double(rand())/RAND_MAX - 1);
+		}
 	}
 	fco.close();
 	fseed.close();
