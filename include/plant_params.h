@@ -112,6 +112,9 @@ class PlantParameters{
 	double mD, mD_e; // intrinsic diameter-dependent mortality 
 	double mS, mS0; // mortality due to carbon starvation
 	
+	double c0, clnD, cD;  // diameter related mortality params
+	double cWD, cWD0;     // wood density related mortality params
+	double cS, cS0;       // light related mortality params
 	
 	public:
 	inline int initFromFile(std::string fname){
@@ -147,11 +150,19 @@ class PlantParameters{
 		Sd = I.getScalar("Sd");
 		npp_Sghalf = I.getScalar("npp_Sghalf");
 
-		mI = I.getScalar("mI");
-		mD = I.getScalar("mD");
-		mD_e = I.getScalar("mD_e");
-		mS = I.getScalar("mS");
-		mS0 = I.getScalar("mS0");
+//		mI = I.getScalar("mI");
+//		mD = I.getScalar("mD");
+//		mD_e = I.getScalar("mD_e");
+//		mS = I.getScalar("mS");
+//		mS0 = I.getScalar("mS0");
+
+		c0 = I.getScalar("c0");
+		clnD = I.getScalar("clnD");
+		cD = I.getScalar("cD");
+		cWD = I.getScalar("cWD");
+		cWD0 = I.getScalar("cWD0");
+		cS = I.getScalar("cS");
+		cS0 = I.getScalar("cS0");
 
 		return 0;
 	}

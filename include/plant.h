@@ -97,7 +97,7 @@ class Plant{
 
 		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 			//if (fabs(t - 2050) < 1e-5) 
-			env.updateClimate(t);
+			//env.updateClimate(t);
 
 			geometry.set_lai(S[0]);
 			set_size(S[1]);

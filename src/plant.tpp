@@ -62,11 +62,18 @@ double Plant::mortality_rate(Env &env){
 //	std::cout << "H = " << geometry.height << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
 	//return par.mI + par.mD*dDd*(1+dDs);
 
+//	double wd = (traits.wood_density/1000);
+//	double dI = exp(-5);
+//	double mu_rgr = exp(-par.mS*rates.rgr);
+//	double mu_d   = exp(-0.3*log(D) + 0.1*D - 1.48*wd*wd);
+//	return dI*(mu_d + mu_rgr);
+	
 	double wd = (traits.wood_density/1000);
-	double dI = exp(-5);
-	double mu_rgr = exp(-par.mS*rates.rgr);
-	double mu_d   = exp(-0.3*log(D) + 0.1*D - 1.48*wd*wd);
-	return dI*(mu_d + mu_rgr);
+//	double dI = exp(-5);
+//	double mu_rgr = exp(-par.mS*rates.rgr);
+//	double mu_d   = exp(-5 - 0.3*log(D) + 0.2*D - 1.48*(wd*wd-0.690*0.690) + par.mS0*exp(-par.mS*bp.dmass_dt_tot));
+	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
+	return mu_d;
 	
 	//double logit = -5 -1*log(D*1000) - 0.004*D*1000 + -0.3*log(rates.rgr);
 	//return 1/(1+exp(-logit));

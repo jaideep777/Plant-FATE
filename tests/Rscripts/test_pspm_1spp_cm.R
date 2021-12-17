@@ -71,7 +71,7 @@ matplot(Up$V1, (as.matrix(Up[,-1])*1e4/100), lty=1, col=cols_t, type="l",
 
 # matplot(Sp$V1, Sp[,-1]/1e6, lty=1, col=cols_t, type="l",
 #         las=1, xlab="Time (years)", ylab="Seeds in pool (Millions)")
-
+  
 matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Z*")
 
@@ -98,26 +98,26 @@ matplot(x=(t(Dp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow
 # Up_mean = colMeans(Up[t>150, ids_x]*1e4/100)
 # points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
   
-matplot(y=t(as.matrix(Mp[c(1,nrow(Mp)),2:50])), x=as.numeric(Dp[1,2:50]), type="l", col=c("red", "black"), log="x", ylab="Mortality rate @(t0, tf)", xlab="Diameter")
+matplot(y=t(as.matrix(Mp[c(1,nrow(Mp)),2:50])), x=as.numeric(Dp[1,2:50]), type="l", lty=1, col=c("red", "blue"), log="x", ylab="Mortality rate @(t0, tf)", xlab="Diameter")
 
-  
-par(mfrow = c(4,3), mar=c(4,5,1,1), oma=c(1,1,1,1))
-for (i in 0:9){
-  Dp   = read.delim(paste0("species_",i,"_X.txt"), header=F, col.names = paste0("V", 1:n))
-  Up   = read.delim(paste0("species_",i,"_u.txt"), header=F, col.names = paste0("V", 1:n))
-
-  matplot(x=(t(Dp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),0.05), type="l",
-        las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
-  Up_mean = colMeans(Up[t>500, ids_x]*1e4/100)
-  points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
-}
-
-par(mfrow = c(4,3), mar=c(4,5,1,1), oma=c(1,1,1,1))
-for (i in 0:9){
-  hp   = read.delim(paste0("species_",i,"_height.txt"), header=F, col.names = paste0("V", 1:n))
-  Up   = read.delim(paste0("species_",i,"_u.txt"), header=F, col.names = paste0("V", 1:n))
-
-  matplot(x=(t(hp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((hp)), start = 0, end = 0.75),0.05), type="l",
-          las=1, xlab = "Height", ylab="Density (Ind/cm/Ha)\n", log="y", ylim=c(exp(-10),exp(10)))
-}
-
+#   
+# par(mfrow = c(4,3), mar=c(4,5,1,1), oma=c(1,1,1,1))
+# for (i in 0:9){
+#   Dp   = read.delim(paste0("species_",i,"_X.txt"), header=F, col.names = paste0("V", 1:n))
+#   Up   = read.delim(paste0("species_",i,"_u.txt"), header=F, col.names = paste0("V", 1:n))
+# 
+#   matplot(x=(t(Dp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),0.05), type="l",
+#         las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
+#   Up_mean = colMeans(Up[t>500, ids_x]*1e4/100)
+#   points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
+# }
+# 
+# par(mfrow = c(4,3), mar=c(4,5,1,1), oma=c(1,1,1,1))
+# for (i in 0:9){
+#   hp   = read.delim(paste0("species_",i,"_height.txt"), header=F, col.names = paste0("V", 1:n))
+#   Up   = read.delim(paste0("species_",i,"_u.txt"), header=F, col.names = paste0("V", 1:n))
+# 
+#   matplot(x=(t(hp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((hp)), start = 0, end = 0.75),0.05), type="l",
+#           las=1, xlab = "Height", ylab="Density (Ind/cm/Ha)\n", log="y", ylim=c(exp(-10),exp(10)))
+# }
+# 

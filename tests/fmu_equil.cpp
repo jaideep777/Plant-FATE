@@ -152,7 +152,7 @@ int main(){
 	ofstream fabase("basal_area.txt");
 	ofstream flai("LAI.txt");
 	for (double t=0.1; t <= 200; t=t+2) {
-		cout << "t = " << t << "\t";
+		cout << "t = " << t << endl;
 		S.step_to(t);
 		
 		vector<double> seeds = S.newborns_out();
