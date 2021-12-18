@@ -31,7 +31,7 @@ int main(){
 	Environment C;
 	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
-	C.init();
+	//C.init();
 	C.print(0);
 
 

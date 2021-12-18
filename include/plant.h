@@ -39,6 +39,11 @@ class Plant{
 
 	PlantAssimilationResult res;
 
+//	// seed output history
+//	double T_hist = 50; 
+//	std::list<double> seeds_germinating_history;
+//	std::list<double> t_seeds_germinating_history;
+
 	public:
 
 	PlantTraits traits;

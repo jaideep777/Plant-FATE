@@ -33,6 +33,8 @@ int Plant::coordinateTraits(){
 	traits.ll = 1/(0.0286*pow(traits.lma, -1.71));  // Leaf Economics Spectrum (Relationship from Wright et al. 2004)
 	traits.p50_leaf = traits.p50_xylem/3.01;        // P50 = Pg88/3 = P50X/3
 	
+	traits.K_leaf = exp(1.71-8.628*traits.lma)*1e-16;
+	
 	geometry.init(par, traits);
 }
 

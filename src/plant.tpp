@@ -12,7 +12,8 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	double dnpp_dL = (res_plus.npp - res.npp)/geometry.crown_area/par.dl;
 	double dE_dL = (res_plus.trans - res.trans)/geometry.crown_area/par.dl;
 
-	double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL);
+	double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL - 0.0*traits.lma);
+	std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
 	
 	if (lai_curr < 0.05 || res.npp < 0) dL_dt = 0;  // limit to prevent LAI going negative
 	
