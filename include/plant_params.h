@@ -71,7 +71,8 @@ class PlantParameters{
 	double fg;		// upper canopy gap fraction
 
 	// ** LAI optimization
-	double response_intensity;	// leaf construction costs
+	double Cc;                  // leaf construction costs
+	double response_intensity;	// speed of response to environment
 	double max_alloc_lai;       // max fraction of NPP that can be allocated to LAI increment
 	double dl;	                // stepsize for profit derivative
 	double lai0;                // initial lai
@@ -131,6 +132,7 @@ class PlantParameters{
 		fg = I.getScalar("fg");
 		a  = I.getScalar("a");
 		c  = I.getScalar("c");
+		Cc  = I.getScalar("Cc");
 		response_intensity  = I.getScalar("response_intensity");
 		max_alloc_lai  = I.getScalar("max_alloc_lai");
 		dl  = I.getScalar("lai_deriv_step");

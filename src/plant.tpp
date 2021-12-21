@@ -12,8 +12,8 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	double dnpp_dL = (res_plus.npp - res.npp)/geometry.crown_area/par.dl;
 	double dE_dL = (res_plus.trans - res.trans)/geometry.crown_area/par.dl;
 
-	double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL - 0.0*traits.lma);
-	std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
+	double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL - par.Cc*traits.lma);
+	//std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
 	
 	if (lai_curr < 0.05 || res.npp < 0) dL_dt = 0;  // limit to prevent LAI going negative
 	
@@ -69,12 +69,13 @@ double Plant::mortality_rate(Env &env){
 //	double mu_d   = exp(-0.3*log(D) + 0.1*D - 1.48*wd*wd);
 //	return dI*(mu_d + mu_rgr);
 	
-	double wd = (traits.wood_density/1000);
-//	double dI = exp(-5);
-//	double mu_rgr = exp(-par.mS*rates.rgr);
-//	double mu_d   = exp(-5 - 0.3*log(D) + 0.2*D - 1.48*(wd*wd-0.690*0.690) + par.mS0*exp(-par.mS*bp.dmass_dt_tot));
-	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
-	return mu_d;
+//	double wd = (traits.wood_density/1000);
+//	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
+//	return mu_d;
+	
+	double r = par.c0 + par.cWD*log(res.c_open_avg*100) + par.clnD*log(D*1000) + par.cD*(D*1000) + par.cS*log(rates.rgr*D*1000);
+	double mu = 1/(1+exp(-r));
+	return mu;	
 	
 	//double logit = -5 -1*log(D*1000) - 0.004*D*1000 + -0.3*log(rates.rgr);
 	//return 1/(1+exp(-logit));

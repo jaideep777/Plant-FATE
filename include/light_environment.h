@@ -14,6 +14,7 @@ class LightEnvironment {
 
 	// PPA environment	
 	int n_layers;
+	double total_crown_area;
 	std::vector<double> z_star;
 	std::vector<double> fapar_tot;
 	std::vector<double> canopy_openness;

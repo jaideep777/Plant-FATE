@@ -182,7 +182,7 @@ int main(){
 			                              return p.crown_area*p.lai;
 			                            }, t, 0);
 		
-		flai << t << "\t" << comm_lai << "\n";
+		flai << t << "\t" << comm_lai << "\t" << E.total_crown_area << "\n";
 
 //		cout << t << " " << S.species_vec[0]->xsize() << " ";
 //		for (int i=0; i<S.n_species(); ++i) cout << seeds[i] << " ";

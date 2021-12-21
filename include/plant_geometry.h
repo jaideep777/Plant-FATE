@@ -8,7 +8,7 @@
 namespace plant{
 
 class PlantGeometry{
-	private:
+	public:
 	struct{
 		// geometry traits
 		double m, n;    // crown shape paramaters

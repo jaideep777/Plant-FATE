@@ -11,6 +11,7 @@ inst/website
 gprof2dot.py
 
 *~
+.~lock*
 
 inst*
 *.cppx

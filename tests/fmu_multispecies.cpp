@@ -120,7 +120,7 @@ int main(){
 	Tr.readFromFile("tests/data/Plant_Traits_AmzFACE_for_PlantFATE.csv");
 	Tr.print();
 
-	for (int i=0; i<10; ++i){
+	for (int i=0; i<2; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;
@@ -129,6 +129,8 @@ int main(){
 		p1.traits.hmat = Tr.species[i].hmat;
 		p1.coordinateTraits();
 
+		((plant::Plant*)&p1)->print();
+		
 		p1.geometry.set_lai(1);	
 		p1.set_size(0.01);
 		
@@ -154,6 +156,7 @@ int main(){
 	sio.S = &S;
 	sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"});
 
+
 	
 //	S.step_to(0.1);
 //	S.print();
@@ -165,8 +168,8 @@ int main(){
 	ofstream fseed("seeds.txt");
 	ofstream fabase("basal_area.txt");
 	ofstream flai("LAI.txt");
-	double t_clear = 20;
-	for (double t=0.1; t <= 1000; t=t+2) {
+	double t_clear = 20000;
+	for (double t=0.1; t <= 200; t=t+2) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
 		
@@ -230,15 +233,6 @@ int main(){
 	fzst.close();
 	fabase.close();
 	flai.close();
-
-
-	// z* (6) = 13.2565 11.4822 9.83659 8.17456 6.35631 3.9639 0
-//	fout.close();
-
-//	// Expected 44.3530812 
-//	cout << S.newborns_out()[0] << endl; 
-//	//if (abs(S.u0_out()[0] - 1.468232) < 1e-5) return 0;
-//	//else return 1;
 
 	// free memory associated
 	for (auto s : S.species_vec) delete static_cast<Species<PSPM_Plant>*>(s);

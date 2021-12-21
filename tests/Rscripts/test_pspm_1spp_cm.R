@@ -17,7 +17,7 @@ Ap   = read.delim("species_0_gpp.txt", header=F, col.names = paste0("V", 1:n))
 Zp   = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
 COp   = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50))
 BAp   = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:50))
-LAIp   = read.delim("LAI.txt", header=F, col.names = paste0("V", 1:2))
+LAIp   = read.delim("LAI.txt", header=F, col.names = paste0("V", 1:10))
 
 ids_x = 2:51
 ids_h = which(diff(as.numeric(hp[1,ids_x])) > 0)[-1]
@@ -79,13 +79,13 @@ matplot(COp$V1, COp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), typ
         las=1, xlab="Time (years)", ylab="Canopy openness")
 
 matplot(BAp$V1, BAp[,-1]*1e4, lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="Basal area (m2 / Ha)\n", log="y")#, ylim=c(exp(-9), exp(4)))
+        las=1, xlab="Time (years)", ylab="Basal area (m2 / Ha)\n", log="")#, ylim=c(exp(-9), exp(4)))
 
 matplot(LAIp$V1, LAIp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Community LAI")
 
 matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="Species Seed output", log="y")
+        las=1, xlab="Time (years)", ylab="Species Seed output", log="")
 
 
 matplot(x=(t(hp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((hp)), start = 0, end = 0.75),0.05), type="l",
@@ -95,8 +95,8 @@ matplot(x=(t(hp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow
 
 matplot(x=(t(Dp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),0.05), type="l",
         las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
-# Up_mean = colMeans(Up[t>150, ids_x]*1e4/100)
-# points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
+Up_mean = colMeans(Up[t>150, ids_x]*1e4/100)
+points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
   
 matplot(y=t(as.matrix(Mp[c(1,nrow(Mp)),2:50])), x=as.numeric(Dp[1,2:50]), type="l", lty=1, col=c("red", "blue"), log="x", ylab="Mortality rate @(t0, tf)", xlab="Diameter")
 

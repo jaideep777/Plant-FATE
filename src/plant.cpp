@@ -35,7 +35,11 @@ int Plant::coordinateTraits(){
 	
 	traits.K_leaf = exp(1.71-8.628*traits.lma)*1e-16;
 	
+	par.c = 4*par.a*exp(3.957265-0.040063*traits.hmat)/M_PI;
+	
 	geometry.init(par, traits);
+	
+	return 0;
 }
 
 
@@ -53,7 +57,12 @@ void Plant::print(){
 	std::cout << "  height = " << geometry.height << "\n";
 	std::cout << "  diameter = " << geometry.diameter << "\n";
 	std::cout << "  crown_area = " << geometry.crown_area << "\n";
-	std::cout << "  lai = " << geometry.lai << "\n";
+	std::cout << "  a = " << geometry.geom.a << "\n";
+	std::cout << "  c = " << geometry.geom.c << "\n";
+	std::cout << "  lma = " << traits.lma << "\n";
+	std::cout << "  hmat = " << traits.hmat << "\n";
+	std::cout << "  K_leaf = " << traits.K_leaf << "\n";
+
 }
 
 	

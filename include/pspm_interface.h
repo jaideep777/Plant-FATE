@@ -108,7 +108,8 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 		//        xb`
 		if (use_ppa){
 			z_star.clear();
-			n_layers = int(projected_crown_area_above_z(t, 0, S)); // Total crown projection area 
+			total_crown_area = projected_crown_area_above_z(t, 0, S);
+			n_layers = int(total_crown_area/0.9); // Total crown projection area 
 
 			if (n_layers < 0 || n_layers >= 50) {
 				std::cout << "nlayers = " << n_layers << "\n";
@@ -123,7 +124,7 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 				};
 				auto res = pn::zero(0, 100, CA_above_zstar_layer, 1e-4);
 				z_star.push_back(res.root);
-				//cout << "z*(" << layer << ") = " << res.root << ", " << "iter = " << res.nfnct << "\n";
+//				std::cout << "z*(" << layer << ") = " << res.root << ", CA(z*) = " << projected_crown_area_above_z(t, res.root, S) << ", " << "iter = " << res.nfnct << "\n";
 			}
 			z_star.push_back(0);
 			//std::cout << "z*_vec (" << z_star.size() << ") = "; for(auto z: z_star) std::cout << z << " "; cout << "\n"; cout.flush();

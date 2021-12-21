@@ -21,11 +21,12 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	//double GPP_plant = 0, Rl_plant = 0, dpsi_avg = 0;
 	double fapar = 1-exp(-0.5*G->lai);
 
-	plant_assim.gpp       = 0;
-	plant_assim.rleaf     = 0;
-	plant_assim.trans     = 0;
-	plant_assim.dpsi_avg  = 0;
-	plant_assim.vcmax_avg = 0;
+	plant_assim.gpp        = 0;
+	plant_assim.rleaf      = 0;
+	plant_assim.trans      = 0;
+	plant_assim.dpsi_avg   = 0;
+	plant_assim.vcmax_avg  = 0;
+	plant_assim.c_open_avg = 0;
 	
 	double ca_cumm = 0;
 //	std::cout << "--- PPA Assim begin ---" << "\n";
@@ -36,11 +37,12 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		
 		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
 		
-		plant_assim.gpp       += (res.a + res.vcmax*par.rl) * ca_layer;
-		plant_assim.rleaf     += (res.vcmax*par.rl) * ca_layer;
-		plant_assim.trans     += res.e * ca_layer;
-		plant_assim.dpsi_avg  += res.dpsi * ca_layer;
-		plant_assim.vcmax_avg += res.vcmax * ca_layer;
+		plant_assim.gpp        += (res.a + res.vcmax*par.rl) * ca_layer;
+		plant_assim.rleaf      += (res.vcmax*par.rl) * ca_layer;
+		plant_assim.trans      += res.e * ca_layer;
+		plant_assim.dpsi_avg   += res.dpsi * ca_layer;
+		plant_assim.vcmax_avg  += res.vcmax * ca_layer;
+		plant_assim.c_open_avg += env.canopy_openness[ilayer] * ca_layer;
 
 		ca_cumm += ca_layer;
 		
@@ -58,8 +60,9 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	plant_assim.gpp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
 	plant_assim.rleaf *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
 	plant_assim.trans *= (f * 18e-3);                  // mol h2o/s  ----> mol h2o/yr  --> kg h2o /yr
-	plant_assim.dpsi_avg  /= ca_total;                 // MPa
-	plant_assim.vcmax_avg /= ca_total;                 // umol/m2/s
+	plant_assim.dpsi_avg   /= ca_total;                // MPa
+	plant_assim.vcmax_avg  /= ca_total;                // umol/m2/s
+	plant_assim.c_open_avg /= ca_total;                // unitless
 	
 }
 

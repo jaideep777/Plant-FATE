@@ -74,7 +74,7 @@ $(TEST_RUNS): tests/%.run : tests/%.test
 $(TEST_OBJECTS): tests/%.o : tests/%.cpp $(HEADERS) 
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
-$(TEST_TARGETS): tests/%.test : tests/%.o
+$(TEST_TARGETS): tests/%.test : tests/%.o $(HEADERS) 
 	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS) 
 
 testclean: 
