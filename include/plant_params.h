@@ -117,6 +117,12 @@ class PlantParameters{
 	double cWD, cWD0;     // wood density related mortality params
 	double cS, cS0;       // light related mortality params
 	
+	// **
+	// ** Patch structure and successsion
+	// **
+	double T_seed_rain_avg;
+	
+	
 	public:
 	inline int initFromFile(std::string fname){
 		io::Initializer I(fname);
@@ -165,6 +171,8 @@ class PlantParameters{
 		cWD0 = I.getScalar("cWD0");
 		cS = I.getScalar("cS");
 		cS0 = I.getScalar("cS0");
+
+		T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 
 		return 0;
 	}

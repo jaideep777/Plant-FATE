@@ -2,24 +2,25 @@ setwd("/home/jaideep/codes/tmodel_cpp/")
 
 # dat_crown=read.delim("crown_area.txt", header=F)
 # matplot(x= dat_crown[,1], y=dat_crown[,3:4], type="l", lty=1)
+
 # abline(v = dat_crown[1,2], col="grey")
 
 n = 201
-Dp   = read.delim("species_0_X.txt", header=F, col.names = paste0("V", 1:n))
-hp   = read.delim("species_0_height.txt", header=F, col.names = paste0("V", 1:n))
-Up   = read.delim("species_0_u.txt", header=F, col.names = paste0("V", 1:n))
-Lp   = read.delim("species_0_lai.txt", header=F, col.names = paste0("V", 1:n))
-Mp   = read.delim("species_0_mort.txt", header=F, col.names = paste0("V", 1:n))
-Sp   = read.delim("species_0_seeds.txt", header=F, col.names = paste0("V", 1:n))
-Gp   = read.delim("species_0_g.txt", header=F, col.names = paste0("V", 1:n))
-Ap   = read.delim("species_0_gpp.txt", header=F, col.names = paste0("V", 1:n))
+Dp   = read.delim("species_1_X.txt", header=F, col.names = paste0("V", 1:n))
+hp   = read.delim("species_1_height.txt", header=F, col.names = paste0("V", 1:n))
+Up   = read.delim("species_1_u.txt", header=F, col.names = paste0("V", 1:n))
+Lp   = read.delim("species_1_lai.txt", header=F, col.names = paste0("V", 1:n))
+Mp   = read.delim("species_1_mort.txt", header=F, col.names = paste0("V", 1:n))
+Sp   = read.delim("species_1_seeds.txt", header=F, col.names = paste0("V", 1:n))
+Gp   = read.delim("species_1_g.txt", header=F, col.names = paste0("V", 1:n))
+Ap   = read.delim("species_1_gpp.txt", header=F, col.names = paste0("V", 1:n))
 
 Zp   = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
 COp   = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50))
 BAp   = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:50))
 LAIp   = read.delim("LAI.txt", header=F, col.names = paste0("V", 1:10))
 
-ids_x = 2:51
+ids_x = 2:31
 ids_h = which(diff(as.numeric(hp[1,ids_x])) > 0)[-1]
 t = Dp[,1]
 

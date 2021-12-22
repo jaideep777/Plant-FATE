@@ -30,8 +30,9 @@ matplot(y=cbind(dat$total_mass,
 abline(h=0, col="grey")
 
 matplot(y=cbind(dat$seed_pool,
-                dat$germinated), 
-        x=dat$i, col=c("purple2", "magenta"), log="", lty=c(1,1), lwd=c(1,1), type="l",
+                dat$germinated,
+                dat$germinated_avg*50), 
+        x=dat$i, col=c("purple2", "magenta", "pink"), log="", lty=c(1,1,1), lwd=c(1,1,2), type="l",
         ylab="Seed pools", xlab="Year")
 abline(h=0, col="grey")
 

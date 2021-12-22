@@ -15,7 +15,7 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL - par.Cc*traits.lma);
 	//std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
 	
-	if (lai_curr < 0.05 || res.npp < 0) dL_dt = 0;  // limit to prevent LAI going negative
+	if (lai_curr < 0.5 || res.npp < 0) dL_dt = 0;  // limit to prevent LAI going negative
 	
 	// calculate and constrain rate of LAI change
 	double max_alloc_lai = par.max_alloc_lai * _dmass_dt_tot; // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment

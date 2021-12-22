@@ -111,13 +111,13 @@ int main(){
 
 
 	Solver S(SOLVER_IFMU, "rk45ck");
-    S.control.ode_ifmu_stepsize = 0.01;
+    S.control.ode_ifmu_stepsize = 0.0833333;
 	S.control.ifmu_centered_grids = false; //true;
     S.use_log_densities = true;
 	S.setEnvironment(&E);
 	
 	TraitsReader Tr;
-	Tr.readFromFile("tests/data/Plant_Traits_AmzFACE_for_PlantFATE.csv");
+	Tr.readFromFile("tests/data/early_late.csv");
 	Tr.print();
 
 	for (int i=0; i<2; ++i){
@@ -136,7 +136,7 @@ int main(){
 		
 		Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 
-		S.addSpecies(50, 0.01, 10, true, spp, 3, -1);
+		S.addSpecies(30, 0.01, 10, true, spp, 3, -1);
 		
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 		//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0

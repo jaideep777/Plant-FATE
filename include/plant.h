@@ -5,6 +5,7 @@
 #include "plant_geometry.h"
 #include "assimilation.h"
 #include "utils/rk4.h"
+#include "utils/moving_average.h"
 
 namespace plant{
 
@@ -39,10 +40,8 @@ class Plant{
 
 	PlantAssimilationResult res;
 
-//	// seed output history
-//	double T_hist = 50; 
-//	std::list<double> seeds_germinating_history;
-//	std::list<double> t_seeds_germinating_history;
+	// seed output history
+	MovingAverager seeds_hist;
 
 	public:
 
@@ -121,7 +120,7 @@ class Plant{
 			dSdt[3] = bp.dmass_dt_lit;  // litter biomass growth rate
 			dSdt[4] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
 			dSdt[5] = rates.dseeds_dt_pool;
-			dSdt[6] = rates.dseeds_dt_germ;
+			dSdt[6] = seeds_hist.get(); //rates.dseeds_dt_germ;
 		};
 
 		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated};
@@ -135,6 +134,8 @@ class Plant{
 		rep = S[4];
 		state.seed_pool = S[5];
 		germinated = S[6];
+		seeds_hist.push(t+dt, rates.dseeds_dt_germ);
+		//seeds_hist.print();
 
 	}
 

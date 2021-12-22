@@ -23,6 +23,8 @@ int Plant::initParamsFromFile(std::string file){
    	i = par.initFromFile(file);
 	i = traits.initFromFile(file);
 
+	seeds_hist.set_interval(par.T_seed_rain_avg);
+
 	coordinateTraits();
 
 	//geometry.init(par, traits);

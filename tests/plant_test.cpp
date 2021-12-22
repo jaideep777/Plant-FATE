@@ -27,6 +27,7 @@ int main(){
 	P.initParamsFromFile("tests/params/p.ini");
 	P.geometry.set_lai(1);
 	P.set_size(0.01);
+	P.seeds_hist.set_interval(100);
 
 	Environment C;
 	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
@@ -57,6 +58,7 @@ int main(){
 		 << "total_rep" << "\t"
 		 << "seed_pool" << "\t"
 		 << "germinated" << "\t"
+		 << "germinated_avg" << "\t"
 		 << "total_prod" << "\t"
 		 << "litter_mass" << "\n";
 	double dt = 0.1; 
@@ -91,6 +93,7 @@ int main(){
 			 << total_rep << "\t"
 			 << P.state.seed_pool << "\t"
 			 << germinated << "\t"
+			 << P.seeds_hist.get() << "\t"
 			 << total_prod << "\t"
 			 << litter_pool << "\n";
 		

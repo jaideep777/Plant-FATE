@@ -26,6 +26,7 @@ class PSPM_Plant : public plant::Plant {
 	double init_density(double x, void * _env, double input_seed_rain);
 
 	void preCompute(double x, double t, void * _env);
+	void afterStep(double x, double t, void * _env);
 
 	double establishmentProbability(double t, void * _env);
 

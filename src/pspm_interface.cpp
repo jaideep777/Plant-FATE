@@ -40,6 +40,13 @@ void PSPM_Plant::preCompute(double x, double t, void * _env){
 //	viable_seeds_dt = vars.fecundity_dt * p_plant_survival * env->patch_survival(t) / env->patch_survival(t_birth);
 }
 
+void PSPM_Plant::afterStep(double x, double t, void * _env){
+	EnvUsed * env = (EnvUsed*)_env;
+	
+	seeds_hist.push(t, rates.dseeds_dt_germ);
+//	seeds_hist.print_summary();
+}
+
 
 double PSPM_Plant::establishmentProbability(double t, void * _env){
 	EnvUsed * env = (EnvUsed*)_env;
@@ -56,9 +63,12 @@ double PSPM_Plant::mortalityRate(double x, double t, void * _env){
 }
 
 double PSPM_Plant::birthRate(double x, double t, void * _env){
-	return rates.dseeds_dt_germ;
+	if (par.T_seed_rain_avg > 0) 
+		return seeds_hist.get();           // birth rate is moving average of rate of germinating seeds over successional cycles
+	else 
+		return rates.dseeds_dt_germ;       // birth rate is instantaneous rate of germinating seeds 
+	
 }
-
 
 void PSPM_Plant::init_state(double t, void * _env){
 	//set_size(x);	
