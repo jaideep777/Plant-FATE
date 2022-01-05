@@ -27,7 +27,7 @@ int main(){
 	P.initParamsFromFile("tests/params/p.ini");
 	P.geometry.set_lai(1);
 	P.set_size(0.01);
-	P.seeds_hist.set_interval(100);
+	P.seeds_hist.set_interval(P.par.T_seed_rain_avg);
 
 	Environment C;
 	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";

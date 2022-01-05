@@ -44,7 +44,7 @@ void PSPM_Plant::afterStep(double x, double t, void * _env){
 	EnvUsed * env = (EnvUsed*)_env;
 	
 	seeds_hist.push(t, rates.dseeds_dt_germ);
-//	seeds_hist.print_summary();
+	//seeds_hist.print_summary();
 }
 
 

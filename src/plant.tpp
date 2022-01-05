@@ -12,10 +12,11 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	double dnpp_dL = (res_plus.npp - res.npp)/geometry.crown_area/par.dl;
 	double dE_dL = (res_plus.trans - res.trans)/geometry.crown_area/par.dl;
 
-	double dL_dt = par.response_intensity*(dnpp_dL - 0.001*dE_dL - par.Cc*traits.lma);
+	double dL_dt = 0;
+	if (par.optimize_lai) dL_dt = par.response_intensity*(dnpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma);
 	//std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
 	
-	if (lai_curr < 0.5 || res.npp < 0) dL_dt = 0;  // limit to prevent LAI going negative
+	if (lai_curr < 1) dL_dt = 0;  // limit to prevent LAI going negative
 	
 	// calculate and constrain rate of LAI change
 	double max_alloc_lai = par.max_alloc_lai * _dmass_dt_tot; // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
@@ -33,7 +34,7 @@ double Plant::p_survival_germination(Env &env){
 	double P = std::max(res.npp, 0.0)/geometry.crown_area;
 	double P2 = P*P;
 	double P2_half = par.npp_Sghalf * par.npp_Sghalf;
-//	std::cout << "P_seed = " << P << ", p_germ = " << P2 / (P2 + P2_half) << std::endl;
+	//std::cout << "P_seed = " << P << ", p_germ = " << P2 / (P2 + P2_half) << std::endl;
 	return P2 / (P2 + P2_half);
 	
 	//calc_demographic_rates(env);
@@ -73,7 +74,11 @@ double Plant::mortality_rate(Env &env){
 //	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
 //	return mu_d;
 	
-	double r = par.c0 + par.cWD*log(res.c_open_avg*100) + par.clnD*log(D*1000) + par.cD*(D*1000) + par.cS*log(rates.rgr*D*1000);
+	double r = par.c0 + 
+	           par.cL*log(res.c_open_avg*100) + 
+	           par.clnD*log(D*1000) + par.cD*(D*1000) + 
+	           par.cG*log(rates.rgr*D*1000) + 
+	           par.cWD*(traits.wood_density - par.cWD0);
 	double mu = 1/(1+exp(-r));
 	return mu;	
 	

@@ -16,7 +16,7 @@ class Clim{
 	double ppfd_max = 1000;   // umol/m2/s
 	double ppfd = 377;        // umol/m2/s
 	double vpd  = 540;        // Pa
-	double co2  = 380;        // ppm
+	double co2  = 368.9;      // ppm
 	double elv = 0;           // m.a.s.l
 	double swp = -0.04;       // MPa
 

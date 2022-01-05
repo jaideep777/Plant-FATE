@@ -84,7 +84,7 @@ class MovingAverager{
 	}
 
 	inline void print_summary(){
-		std::cout << "MovingAverager:  " << t_hist.front() << " " << t_hist.back() << " (" << t_hist.back() - t_hist.front() << ")\n";
+		std::cout << "MovingAverager:  t = " << t_hist.front() << " " << t_hist.back() << ", x = " << get() << ", (" << t_hist.back() - t_hist.front() << ")\n";
 	}
 
 };

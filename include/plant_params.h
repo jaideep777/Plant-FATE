@@ -72,10 +72,12 @@ class PlantParameters{
 
 	// ** LAI optimization
 	double Cc;                  // leaf construction costs
+	double Chyd;                  // hydraulic costs
 	double response_intensity;	// speed of response to environment
 	double max_alloc_lai;       // max fraction of NPP that can be allocated to LAI increment
 	double dl;	                // stepsize for profit derivative
 	double lai0;                // initial lai
+	bool   optimize_lai;
 
 	// **
 	// ** Respiration and turnover 
@@ -114,6 +116,8 @@ class PlantParameters{
 	double mS, mS0; // mortality due to carbon starvation
 	
 	double c0, clnD, cD;  // diameter related mortality params
+	double cL, cG;        // light and growth related mortality
+	 
 	double cWD, cWD0;     // wood density related mortality params
 	double cS, cS0;       // light related mortality params
 	
@@ -139,10 +143,12 @@ class PlantParameters{
 		a  = I.getScalar("a");
 		c  = I.getScalar("c");
 		Cc  = I.getScalar("Cc");
+		Chyd = I.getScalar("Chyd");
 		response_intensity  = I.getScalar("response_intensity");
 		max_alloc_lai  = I.getScalar("max_alloc_lai");
 		dl  = I.getScalar("lai_deriv_step");
 		lai0  = I.getScalar("lai0");
+		optimize_lai = (I.getScalar("optimize_lai") == 1) ? true:false;
 		rl  = I.getScalar("rl");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");
@@ -167,10 +173,12 @@ class PlantParameters{
 		c0 = I.getScalar("c0");
 		clnD = I.getScalar("clnD");
 		cD = I.getScalar("cD");
+		cL = I.getScalar("cL");
+		cG = I.getScalar("cG");
 		cWD = I.getScalar("cWD");
 		cWD0 = I.getScalar("cWD0");
-		cS = I.getScalar("cS");
-		cS0 = I.getScalar("cS0");
+//		cS = I.getScalar("cS");
+//		cS0 = I.getScalar("cS0");
 
 		T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 

@@ -46,7 +46,7 @@ class SolverIO{
 
 	vector <vector<ofstream>> streams;
 
-	void openStreams(vector<string> varnames){
+	void openStreams(vector<string> varnames, string dir = "."){
 		varnames.insert(varnames.begin(), "u");
 		varnames.insert(varnames.begin(), "X");
 		
@@ -56,7 +56,7 @@ class SolverIO{
 			
 			for (int i=0; i<varnames.size(); ++i){
 				stringstream sout;
-				sout << "species_" << s << "_" << varnames[i] << ".txt";
+				sout << dir << "/species_" << s << "_" << varnames[i] << ".txt";
 				cout << sout.str() << endl;
 				ofstream fout(sout.str().c_str());
 				spp_streams.push_back(std::move(fout));
@@ -109,6 +109,11 @@ int main(){
 	E.print(0);
 	E.use_ppa = true;
 
+	io::Initializer I("tests/params/p.ini");
+	I.readFile();
+	string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
+	string command = "mkdir -p " + out_dir;
+	system(command.c_str());
 
 	Solver S(SOLVER_IFMU, "rk45ck");
     S.control.ode_ifmu_stepsize = 0.0833333;
@@ -131,7 +136,7 @@ int main(){
 
 		((plant::Plant*)&p1)->print();
 		
-		p1.geometry.set_lai(1);	
+		//p1.geometry.set_lai(p1.par.lai0);	
 		p1.set_size(0.01);
 		
 		Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
@@ -154,7 +159,7 @@ int main(){
 
 	SolverIO sio;
 	sio.S = &S;
-	sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"});
+	sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir);
 
 
 	
@@ -163,11 +168,11 @@ int main(){
 //	for (auto y : S.state) cout << y << "\t"; cout << "\n";
 
 //	ofstream fout("fmu_PlantFATE.txt");
-	ofstream fzst("z_star.txt");
-	ofstream fco("canopy_openness.txt");
-	ofstream fseed("seeds.txt");
-	ofstream fabase("basal_area.txt");
-	ofstream flai("LAI.txt");
+	ofstream fzst(string(out_dir + "/z_star.txt").c_str());
+	ofstream fco(string(out_dir + "/canopy_openness.txt").c_str());
+	ofstream fseed(string(out_dir + "/seeds.txt").c_str());
+	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
+	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 	double t_clear = 20000;
 	for (double t=0.1; t <= 200; t=t+2) {
 		cout << "t = " << t << endl; //"\t";
@@ -225,7 +230,7 @@ int main(){
 			for (auto spp : S.species_vec) 
 				for (int i=1; i<spp->xsize(); ++i) spp->setU(i, 0);
 			S.copyCohortsToState();
-			t_clear = t + 50 + 30*(2*double(rand())/RAND_MAX - 1);
+			t_clear = t + 200 + 100*(2*double(rand())/RAND_MAX - 1);
 		}
 	}
 	fco.close();

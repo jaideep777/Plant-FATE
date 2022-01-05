@@ -57,7 +57,7 @@ class TraitsReader{
 
 			std::getline(lineStream, cell, ','); // hmat
 			if (cell != "")	traits.hmat = as<double>(cell);
-			else traits.hmat = 12.42;
+			else traits.hmat = 23.99;
 
 			std::getline(lineStream, cell, ','); // lma
 			if (cell != "")	traits.lma = as<double>(cell)*1e-3;  // convert g/m2 to kg/m2
