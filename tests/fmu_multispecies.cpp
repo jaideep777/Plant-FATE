@@ -174,7 +174,7 @@ int main(){
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 	double t_clear = 20000;
-	for (double t=0.1; t <= 200; t=t+2) {
+	for (double t=0.1; t <= 800; t=t+2) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
 		

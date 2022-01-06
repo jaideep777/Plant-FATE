@@ -10,10 +10,11 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	geometry.set_lai(lai_curr);
 	
 	double dnpp_dL = (res_plus.npp - res.npp)/geometry.crown_area/par.dl;
+	double dgpp_dL = (res_plus.gpp - res.gpp)/geometry.crown_area/par.dl;
 	double dE_dL = (res_plus.trans - res.trans)/geometry.crown_area/par.dl;
 
 	double dL_dt = 0;
-	if (par.optimize_lai) dL_dt = par.response_intensity*(dnpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma);
+	if (par.optimize_lai) dL_dt = par.response_intensity*(dgpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma);
 	//std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
 	
 	if (lai_curr < 1) dL_dt = 0;  // limit to prevent LAI going negative

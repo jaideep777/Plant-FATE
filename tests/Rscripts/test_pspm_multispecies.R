@@ -1,14 +1,16 @@
-setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/early_late")
+setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/amazontraitreduceBA6trait")
 
 n_species = 2
 n = 201
 
+hp   = read.delim(paste0("species_",0,"_height.txt"), header=F, col.names = paste0("V", 1:n))
+Dp   = read.delim(paste0("species_",0,"_X.txt"), header=F, col.names = paste0("V", 1:n))
 Zp   = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
 COp   = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50))
 BAp   = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 LAIp   = read.delim("LAI.txt", header=F, col.names = paste0("V", 1:10))
 seeds = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
-
+  
 ids_x = 2:31
 ids_h = which(diff(as.numeric(hp[1,ids_x])) > 0)[-1]
 t = Dp[,1]
@@ -74,7 +76,7 @@ for (i in 0:(n_species-1)){
 
   image(x=Dp[,1], y=as.numeric(Dp[1,ids_x]), z=log(1+1e8*pmax(as.matrix(Up[,ids_x])/max(as.matrix(Up[,ids_x]),na.rm=T),0)), log="y", xlab="Time", ylab = "Diameter distribution", col=scales::viridis_pal()(100))
 
-  image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=as.matrix(Lp[,ids_h]), zlim=c(0,4), log="", xlab="Time", ylab = "LAI distribution, Z*", col=scales::viridis_pal()(100))
+  image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=as.matrix(Lp[,ids_h]), zlim=c(0,8), log="", xlab="Time", ylab = "LAI distribution, Z*", col=scales::viridis_pal()(100))
   matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
           las=1, xlab="Time (years)", ylab="Z*", add=T)
 
