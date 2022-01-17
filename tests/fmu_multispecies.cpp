@@ -14,6 +14,11 @@ std::vector <double> myseq(double from, double to, int len){
 	return x;
 }
 
+inline double runif(double rmin=0, double rmax=1){
+	double r = double(rand())/RAND_MAX; 
+	return rmin + (rmax-rmin)*r;
+}
+
 vector<double> generateDefaultCohortSchedule(double max_time){
 
 	vector<double> tvec;
@@ -59,6 +64,7 @@ class SolverIO{
 				sout << dir << "/species_" << s << "_" << varnames[i] << ".txt";
 				cout << sout.str() << endl;
 				ofstream fout(sout.str().c_str());
+				assert(fout);
 				spp_streams.push_back(std::move(fout));
 			}
 			streams.push_back(std::move(spp_streams));
@@ -108,6 +114,8 @@ int main(){
 	E.init();
 	E.print(0);
 	E.use_ppa = true;
+	E.update_met = true;
+	E.update_co2 = false;
 
 	io::Initializer I("tests/params/p.ini");
 	I.readFile();
@@ -132,6 +140,7 @@ int main(){
 		p1.traits.lma = Tr.species[i].lma;
 		p1.traits.wood_density = Tr.species[i].wood_density;
 		p1.traits.hmat = Tr.species[i].hmat;
+		p1.traits.p50_xylem = Tr.species[i].p50_xylem; // runif(-3.5,-0.5);
 		p1.coordinateTraits();
 
 		((plant::Plant*)&p1)->print();
@@ -169,11 +178,13 @@ int main(){
 
 //	ofstream fout("fmu_PlantFATE.txt");
 	ofstream fzst(string(out_dir + "/z_star.txt").c_str());
+	assert(fzst);
 	ofstream fco(string(out_dir + "/canopy_openness.txt").c_str());
 	ofstream fseed(string(out_dir + "/seeds.txt").c_str());
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 	double t_clear = 20000;
+	// t is years since 2000-01-01
 	for (double t=0.1; t <= 800; t=t+2) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
@@ -233,6 +244,11 @@ int main(){
 			t_clear = t + 200 + 100*(2*double(rand())/RAND_MAX - 1);
 		}
 	}
+	
+	E.update_co2 = true;
+		
+	
+	
 	fco.close();
 	fseed.close();
 	fzst.close();

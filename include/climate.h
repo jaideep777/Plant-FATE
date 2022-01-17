@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 
 namespace env{
@@ -34,6 +35,9 @@ class Climate{
 	double t_base = 2000.0;
 	double delta = 0;
 
+	std::vector<int>    t_co2;
+	std::vector<double> v_co2;
+
 	public:
 	double t_now;
 	Clim clim;
@@ -41,6 +45,9 @@ class Climate{
 	std::string metFile = "";
 	std::string co2File = "";
 	bool interpolate = false;
+	
+	bool update_met = true;
+	bool update_co2 = true;
 
 	private:
 	std::ifstream fin_met;

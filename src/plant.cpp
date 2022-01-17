@@ -39,6 +39,8 @@ int Plant::coordinateTraits(){
 	
 	par.c = 4*par.a*exp(3.957265-0.040063*traits.hmat)/M_PI;
 	
+	//par.n = 1.1+6*(1-pow(0.5,pow(traits.hmat/25,4)));          // 12*(1-exp(-1*traits.hmat/30));
+	
 	geometry.init(par, traits);
 	
 	return 0;

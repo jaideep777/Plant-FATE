@@ -63,6 +63,10 @@ class TraitsReader{
 			if (cell != "")	traits.lma = as<double>(cell)*1e-3;  // convert g/m2 to kg/m2
 			else traits.lma = 0.119378;
 
+			std::getline(lineStream, cell, ','); // p50
+			if (cell != "")	traits.p50_xylem = as<double>(cell); 
+			else traits.p50_xylem = -2.29;
+
 			// ignore further data (for now)			
 
 			species.push_back(traits);
@@ -74,7 +78,7 @@ class TraitsReader{
 
 	inline void print(){
 		for (auto& s : species){
-			std::cout << s.species_name << ":  " << s.lma << "\t" << s.wood_density << "\t" << s.hmat << "\n";
+			std::cout << s.species_name << ":  " << s.lma << "\t" << s.wood_density << "\t" << s.hmat << "\t" << s.p50_xylem << "\n";
 		}
 
 	}

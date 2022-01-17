@@ -11,15 +11,19 @@ int main(){
 
 	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2001_PlantFATE.csv";
 	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
+	
+	C.update_met = true;
+	C.update_co2 = true;
 
 	C.init();
 	C.print(0);
 
 	ofstream fout("climate.txt");
-	for (double t = 2000; t < 2008; t += 1/120.0){
+	C.t0 = 1950;
+	for (double t = 1950; t < 2025; t += 1/120.0){
 		C.updateClimate(t);
 		C.print(t);
-		fout << t << "\t" << C.clim.tc << "\t" << C.clim.vpd << "\t" << C.clim.ppfd << "\t" << C.clim.swp << "\n";
+		fout << t << "\t" << C.clim.tc << "\t" << C.clim.vpd << "\t" << C.clim.ppfd << "\t" << C.clim.swp << "\t" << C.clim.co2 << "\n";
 	}
 	fout.close();
 
