@@ -155,14 +155,13 @@ int main(){
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 		//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0
 	}
-	S.resetState();
+	S.resetState(1000);
 	S.initialize();
 
 	for (auto spp : S.species_vec) spp->setU(0, 1);
 	S.copyCohortsToState();
 
 	S.print();
-	S.current_time = 0;
 //	S.control.update_cohorts = false;
 
 
@@ -183,9 +182,10 @@ int main(){
 	ofstream fseed(string(out_dir + "/seeds.txt").c_str());
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 	ofstream flai(string(out_dir + "/LAI.txt").c_str());
+	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
 	double t_clear = 20000;
 	// t is years since 2000-01-01
-	for (double t=0.1; t <= 800; t=t+2) {
+	for (double t=1000; t <= 1100; t=t+2) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
 		
@@ -217,6 +217,66 @@ int main(){
 										}, t, k);
 		
 		flai << t << "\t" << comm_lai << "\n";
+
+		// calculate CWM traits
+		fcwmt << t << "\t";
+
+		double comm_gpp = 0;
+		for (int k=0; k<S.n_species(); ++k)
+			comm_gpp += S.integrate_x([&S,k](int i, double t){
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      return p.res.gpp;
+										}, t, k);
+		fcwmt << comm_gpp << "\t"; // in kg/m2/yr
+
+		double n_ind = 0;
+		for (int k=0; k<S.n_species(); ++k)
+			n_ind += S.integrate_x([&S,k](int i, double t){
+										      return 1;
+										}, t, k);
+		fcwmt << n_ind << "\t";
+
+		double biomass = 0;
+		for (int k=0; k<S.n_species(); ++k)
+			biomass += S.integrate_x([&S,k](int i, double t){
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      return p.get_biomass();
+										}, t, k);
+		fcwmt << biomass << "\t";
+
+		double lma_mean = 0;
+		for (int k=0; k<S.n_species(); ++k)
+			lma_mean += S.integrate_x([&S,k](int i, double t){
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      return p.traits.lma;
+										}, t, k);
+		fcwmt << lma_mean/n_ind << "\t";
+
+		double wd_mean = 0;
+		for (int k=0; k<S.n_species(); ++k)
+			wd_mean += S.integrate_x([&S,k](int i, double t){
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      return p.traits.wood_density;
+										}, t, k);
+		fcwmt << wd_mean/n_ind << "\t";
+
+		double p50_mean = 0;
+		for (int k=0; k<S.n_species(); ++k)
+			p50_mean += S.integrate_x([&S,k](int i, double t){
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      return p.traits.p50_xylem;
+										}, t, k);
+		fcwmt << p50_mean/n_ind << "\t";
+
+		fcwmt << "\n";
+
+//		double comm_lma = 0;
+//		for (int k=0; k<S.n_species(); ++k)
+//			comm_lma += S.integrate_x([&S,k](int i, double t){
+//										  auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
+//										  return p.crown_area*p.lai;
+//										}, t, k);
+		
 
 //		cout << t << " " << S.species_vec[0]->xsize() << " ";
 //		for (int i=0; i<S.n_species(); ++i) cout << seeds[i] << " ";
@@ -254,6 +314,7 @@ int main(){
 	fzst.close();
 	fabase.close();
 	flai.close();
+	fcwmt.close();
 
 	// free memory associated
 	for (auto s : S.species_vec) delete static_cast<Species<PSPM_Plant>*>(s);

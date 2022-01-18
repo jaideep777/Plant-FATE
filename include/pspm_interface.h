@@ -102,7 +102,7 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 	//// as an iAttribute. iAttributes can be mapped to integers, say using enums
 	//// Alternatively, switch to Indiviudual class as a template parameter for solver
 	void computeEnv(double t, Solver *S){
-		updateClimate(2000+t);
+		updateClimate(t);
 
 		//            _xm 
 		// Calculate / w(z,t)u(z,t)dz

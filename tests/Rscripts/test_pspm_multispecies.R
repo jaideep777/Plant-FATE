@@ -1,7 +1,7 @@
 setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/amazontraitreduceBA6trait")
 
 n_species = 2
-n = 201
+n = 101
 
 hp   = read.delim(paste0("species_",0,"_height.txt"), header=F, col.names = paste0("V", 1:n))
 Dp   = read.delim(paste0("species_",0,"_X.txt"), header=F, col.names = paste0("V", 1:n))
@@ -10,7 +10,8 @@ COp   = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50
 BAp   = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 LAIp   = read.delim("LAI.txt", header=F, col.names = paste0("V", 1:10))
 seeds = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
-  
+cwmt = read.delim("cwmt.txt", header=F, col.names = paste0("V", 1:20))
+
 ids_x = 2:31
 ids_h = which(diff(as.numeric(hp[1,ids_x])) > 0)[-1]
 t = Dp[,1]
@@ -33,9 +34,28 @@ matplot(BAp$V1, BAp[,-1]*1e4, lty=1, col=rainbow(n = n_species, start = 0, end =
 
 matplot(LAIp$V1, LAIp[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Community LAI")
-
+  
 matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Species Seed output", log="")
+
+par(mfrow=c(3,2), mar=c(4,5,1,.5))
+matplot(cwmt$V1, cwmt$V2, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Comm GPP (kg/m2/yr)", log="")
+
+matplot(cwmt$V1, cwmt$V3, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Number of individuals / m2", log="")
+
+matplot(cwmt$V1, cwmt$V4, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Biomass / m2", log="")
+
+matplot(cwmt$V1, cwmt$V5*1000, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="CWM LMA", log="")
+
+matplot(cwmt$V1, cwmt$V6, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="CWM Wood density", log="")
+
+matplot(cwmt$V1, cwmt$V7, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="CWM Xylem P50", log="")
 
 # 
 # par(mfrow = c(4,3), mar=c(4,5,1,1), oma=c(1,1,1,1))
