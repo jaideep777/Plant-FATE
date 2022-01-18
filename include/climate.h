@@ -32,11 +32,15 @@ class Climate{
 	Clim clim_prev;
 	Clim clim_next;
 	double t0 = 2000.0;
+	double tf = 2001 + 11.0/12;
 	double t_base = 2000.0;
-	double delta = 0;
+	double delta = 1.0/12;
 
 	std::vector<int>    t_co2;
 	std::vector<double> v_co2;
+
+	std::vector<double> t_met;
+	std::vector<Clim>   v_met;
 
 	public:
 	double t_now;
@@ -59,14 +63,16 @@ class Climate{
 	
 	Clim interp(Clim &clim_prev, Clim &clim_next);
 
+	int id(double t);
 	void updateClimate(double t);
 
-	int readNextLine_met();
+	int readNextLine_met(Clim &clim, double &t);
 
 	template<class T> 
 	T as(std::string s);
 
 	void print(double t);
+	void print_all();
 
 };
 

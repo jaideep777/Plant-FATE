@@ -9,18 +9,27 @@ int main(){
 	
 	env::Climate C;
 
-	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2001_PlantFATE.csv";
+	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 	
 	C.update_met = true;
 	C.update_co2 = true;
 
 	C.init();
-	C.print(0);
+	C.print(2000);
+
+	C.print_all();
+
+
+
+//	C.updateClimate(2001.92);
 
 	ofstream fout("climate.txt");
-	C.t0 = 1950;
-	for (double t = 1950; t < 2025; t += 1/120.0){
+	for (double t = 1975; t < 2025; t += 1/120.0){
+		int year = int(t);
+		double month = (t-int(t))*12;
+		int id = C.id(t);
+		//cout << "t = " << t << " id = " << id << " (" << year << "/" << month << ")\n";
 		C.updateClimate(t);
 		C.print(t);
 		fout << t << "\t" << C.clim.tc << "\t" << C.clim.vpd << "\t" << C.clim.ppfd << "\t" << C.clim.swp << "\t" << C.clim.co2 << "\n";
