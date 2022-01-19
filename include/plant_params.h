@@ -131,7 +131,7 @@ class PlantParameters{
 	inline int initFromFile(std::string fname){
 		io::Initializer I(fname);
 		I.readFile();
-		I.print();
+		//I.print();
 		
 //		#define GET(x) x = I.getScalar(#_x);
 		kphio = I.getScalar("kphio");

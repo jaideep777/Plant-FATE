@@ -63,9 +63,11 @@ void Plant::print(){
 	std::cout << "  crown_area = " << geometry.crown_area << "\n";
 	std::cout << "  a = " << geometry.geom.a << "\n";
 	std::cout << "  c = " << geometry.geom.c << "\n";
+	std::cout << "  K_leaf = " << traits.K_leaf << "\n";
 	std::cout << "  lma = " << traits.lma << "\n";
 	std::cout << "  hmat = " << traits.hmat << "\n";
-	std::cout << "  K_leaf = " << traits.K_leaf << "\n";
+	std::cout << "  wd = " << traits.wood_density << "\n";
+	std::cout << "  p50 = " << traits.p50_xylem << "\n";
 
 }
 

@@ -20,8 +20,9 @@ double Assimilator::root_respiration_rate(PlantGeometry *G, PlantParameters &par
 
 double Assimilator::sapwood_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
 	//return par.rs * G->sapwood_mass(traits);
-	double factor = (1000*10*G->height/1e6);
-	double factor1 = (1 + 0*factor*factor); // 3e3 7e3
+//	double dpsi_gravity = (1000*10*G->height/1e6);
+	double factor = traits.p50_xylem;
+	double factor1 = (1 + 0.05*factor*factor); // 3e3 7e3
 	return par.rs * G->sapwood_mass(traits)*factor1;	
 }
 

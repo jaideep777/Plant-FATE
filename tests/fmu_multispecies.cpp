@@ -107,7 +107,6 @@ class SolverIO{
 
 int main(){
 
-
 	PSPM_Dynamic_Environment E;
 	E.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	E.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
@@ -115,7 +114,7 @@ int main(){
 	E.print(0);
 	E.use_ppa = true;
 	E.update_met = true;
-	E.update_co2 = false;
+	E.update_co2 = true;
 
 	io::Initializer I("tests/params/p.ini");
 	I.readFile();
@@ -130,10 +129,10 @@ int main(){
 	S.setEnvironment(&E);
 	
 	TraitsReader Tr;
-	Tr.readFromFile("tests/data/early_late.csv");
+	Tr.readFromFile("tests/data/trait_100_filled.csv");
 	Tr.print();
 
-	for (int i=0; i<2; ++i){
+	for (int i=0; i<100; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;
@@ -141,6 +140,7 @@ int main(){
 		p1.traits.wood_density = Tr.species[i].wood_density;
 		p1.traits.hmat = Tr.species[i].hmat;
 		p1.traits.p50_xylem = Tr.species[i].p50_xylem; // runif(-3.5,-0.5);
+		
 		p1.coordinateTraits();
 
 		((plant::Plant*)&p1)->print();
@@ -164,7 +164,6 @@ int main(){
 	S.print();
 //	S.control.update_cohorts = false;
 
-
 	SolverIO sio;
 	sio.S = &S;
 	sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir);
@@ -185,7 +184,7 @@ int main(){
 	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
 	double t_clear = 20000;
 	// t is years since 2000-01-01
-	for (double t=1000; t <= 1100; t=t+2) {
+	for (double t=1000; t <= 2100; t=t+2) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
 		
@@ -303,12 +302,19 @@ int main(){
 			S.copyCohortsToState();
 			t_clear = t + 200 + 100*(2*double(rand())/RAND_MAX - 1);
 		}
+		
+		fco.flush();
+		fseed.flush();
+		fzst.flush();
+		fabase.flush();
+		flai.flush();
+		fcwmt.flush();
+
 	}
 	
 	E.update_co2 = true;
 		
-	
-	
+
 	fco.close();
 	fseed.close();
 	fzst.close();

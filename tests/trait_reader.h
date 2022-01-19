@@ -52,19 +52,19 @@ class TraitsReader{
 			std::getline(lineStream, cell, ','); // basal area
 			
 			std::getline(lineStream, cell, ','); // wd
-			if (cell != "")	traits.wood_density = as<double>(cell)*1000; // g/cc to kg/m3
+			if (cell != "" && cell != "NA")	traits.wood_density = as<double>(cell)*1000; // g/cc to kg/m3
 			else traits.wood_density = 686.638;
 
 			std::getline(lineStream, cell, ','); // hmat
-			if (cell != "")	traits.hmat = as<double>(cell);
+			if (cell != "" && cell != "NA")	traits.hmat = as<double>(cell);
 			else traits.hmat = 23.99;
 
 			std::getline(lineStream, cell, ','); // lma
-			if (cell != "")	traits.lma = as<double>(cell)*1e-3;  // convert g/m2 to kg/m2
+			if (cell != "" && cell != "NA")	traits.lma = as<double>(cell)*1e-3;  // convert g/m2 to kg/m2
 			else traits.lma = 0.119378;
 
 			std::getline(lineStream, cell, ','); // p50
-			if (cell != "")	traits.p50_xylem = as<double>(cell); 
+			if (cell != "" && cell != "NA")	traits.p50_xylem = as<double>(cell); 
 			else traits.p50_xylem = -2.29;
 
 			// ignore further data (for now)			
