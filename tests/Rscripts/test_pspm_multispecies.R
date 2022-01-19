@@ -30,7 +30,7 @@ matplot(COp$V1, COp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), typ
         las=1, xlab="Time (years)", ylab="Canopy openness")
 
 matplot(BAp$V1, BAp[,-1]*1e4, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="Basal area (m2 / Ha)\n", log="")#, ylim=c(exp(-9), exp(4)))
+        las=1, xlab="Time (years)", ylab="Basal area (m2 / Ha)\n", log="")#, ylim=c(exp(-9), exp(3.5)))
 
 matplot(LAIp$V1, LAIp[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Community LAI")
@@ -121,3 +121,40 @@ matplot(cwmt$V1, cwmt$V7, lty=1, col=rainbow(n = n_species, start = 0, end = 0.8
 # 
 #   
 
+#### TRAIT SPACE ####
+trait = read.csv("../../tests/data/trait_100_filled.csv", header = TRUE)
+
+trait$Leaf.LMA..g.m2.[is.na(trait$Leaf.LMA..g.m2.)] <- 119.37
+trait$meanWoodDensity..g.cm3.[is.na(trait$meanWoodDensity..g.cm3.)] <- 0.68
+trait$Height_Max.m.[is.na(trait$Height_Max.m.)] <- 23.99
+
+dominant = which(BAp[nrow(BAp),-1]*1e4 >= 0.01)
+length(dominant)
+T1 <- trait[dominant,]
+
+BAdominant <- as.numeric(BAp[nrow(BAp),-1])[dominant]*1e4
+BAsimulated <- as.numeric(BAp[nrow(BAp),-1])[1:100]*1e4
+
+t50 <- trait[1:100,]
+p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD")
+p1 <- p + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+
+p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
+p2 <- p + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+
+p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=P50..Mpa., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
+p3 <- p + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+
+q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD") 
+q1 <- q + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+
+q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
+q2 <- q + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+
+q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=P50..Mpa., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("P50")
+q3 <- q + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+
+cowplot::plot_grid(p1, p2, p3, q1, q2, q3, nrow = 2, align = "hv")
+
+plot(T1$BA~BAdominant, log="")
+abline(0,1)

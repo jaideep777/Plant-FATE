@@ -19,7 +19,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double I0, double fapar
 template<class Env>
 void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
 	//double GPP_plant = 0, Rl_plant = 0, dpsi_avg = 0;
-	double fapar = 1-exp(-0.5*G->lai);
+	double fapar = 1-exp(-par.k_light*G->lai);
 
 	plant_assim.gpp        = 0;
 	plant_assim.rleaf      = 0;
@@ -52,7 +52,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 //	std::cout << "CA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 	// calculate yearly averages in mol/yr	
-	double f_light_day = env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
+	double f_light_day = 0.5; // env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
 	double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
 	double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
 
@@ -91,4 +91,7 @@ PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, 
 }
 
 } // namespace plant
+
+
+
 

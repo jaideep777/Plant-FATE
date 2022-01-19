@@ -29,6 +29,15 @@ matplot(y=cbind(dat$total_mass,
         ylab="Biomass pools", xlab="Year")
 abline(h=0, col="grey")
 
+matplot(y=cbind(dat$total_mass,
+                dat$leaf_mass,
+                dat$root_mass,
+                dat$stem_mass), 
+        x=dat$i, col=c("black", "green3", "purple", "brown"), log="", lty=c(1,1,1,1,2), lwd=c(1,1,1,1,1), type="l",
+        ylab="Biomass pools", xlab="Year")
+abline(h=0, col="grey")
+
+
 matplot(y=cbind(dat$seed_pool,
                 dat$germinated,
                 dat$germinated_avg*50), 

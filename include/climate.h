@@ -14,8 +14,8 @@ namespace env{
 class Clim{
 	public:
 	double tc = 25.5;         // temperature, deg C
-	double ppfd_max = 1000;   // umol/m2/s
-	double ppfd = 377;        // umol/m2/s
+	double ppfd_max = 2000;   // umol/m2/s
+	double ppfd = 500;        // umol/m2/s
 	double vpd  = 540;        // Pa
 	double co2  = 368.9;      // ppm
 	double elv = 0;           // m.a.s.l

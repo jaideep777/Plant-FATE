@@ -184,7 +184,7 @@ int main(){
 	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
 	double t_clear = 20000;
 	// t is years since 2000-01-01
-	for (double t=1000; t <= 2100; t=t+2) {
+	for (double t=1000; t <= 2500; t=t+1) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
 		
