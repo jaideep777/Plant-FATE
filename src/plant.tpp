@@ -109,6 +109,7 @@ void Plant::calc_demographic_rates(Env &env){
 
 	// set core rates
 	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
+	rates.dcroot_dt = bp.dmass_dt_croot;
 	rates.dmort_dt  = mortality_rate(env); 
 
 	double fec = fecundity_rate(bp.dmass_dt_rep, env);
@@ -144,16 +145,20 @@ void Plant::partition_biomass(double dm_dt_tot, double dm_dt_lai, Env &env){
 	double dmass_dt_nonlai = dm_dt_tot - std::max(dm_dt_lai, 0.0);
 	bp.dmass_dt_lit = std::max(-dm_dt_lai, 0.0);
 
+	// fraction of biomass allocated to coarse root growth
+	double fcr = geometry.dcoarseroot_dmass(par, traits);
+	bp.dmass_dt_croot = fcr * dmass_dt_nonlai;
+	
 	// fraction of biomass going into reproduction and biomass allocation to reproduction
 	double fR = geometry.dreproduction_dmass(par, traits);
-	bp.dmass_dt_rep = fR*dmass_dt_nonlai;
+	bp.dmass_dt_rep = fR * (1 - fcr) * dmass_dt_nonlai;
 	
 	//  fraction of biomass going into growth and size growth rate
-	double dmass_growth_dmass = 1-fR;
+	double dmass_growth_dmass = (1-fR)*(1-fcr);
 	bp.dmass_dt_growth = dmass_growth_dmass * dmass_dt_nonlai;
 
 	// consistency check - see that all biomass allocations add up as expected
-	assert(fabs(bp.dmass_dt_tot - (bp.dmass_dt_lai + bp.dmass_dt_lit + bp.dmass_dt_rep + bp.dmass_dt_growth)) < 1e-6);
+	assert(fabs(bp.dmass_dt_tot - (bp.dmass_dt_lai + bp.dmass_dt_lit + bp.dmass_dt_croot + bp.dmass_dt_rep + bp.dmass_dt_growth)) < 1e-6);
 
 	//return {rates.dmass_dt_tot, rates.dlai_dt, rates.dsize_dt, rates.dmass_dt_lit, rates.dmass_dt_rep};
 }

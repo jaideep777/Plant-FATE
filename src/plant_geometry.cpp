@@ -89,6 +89,10 @@ double PlantGeometry::dreproduction_dmass(PlantParameters &par, PlantTraits &tra
 	return par.a_f1 / (1.0 + exp(par.a_f2 * (1.0 - diameter / geom.dmat))); 
 }
 
+double PlantGeometry::dcoarseroot_dmass(PlantParameters &par, PlantTraits &traits){
+	return par.frmin + (par.frmax - par.frmin) * exp(-par.frslope * (diameter / geom.dmat)); 
+}
+
 
 // **
 // ** LAI model
@@ -136,7 +140,7 @@ double PlantGeometry::heartwood_mass(PlantTraits &traits){
 }
 
 double PlantGeometry::total_mass(PlantTraits &traits){
-	return stem_mass(traits) + leaf_mass(traits) + root_mass(traits);
+	return stem_mass(traits) + leaf_mass(traits) + root_mass(traits) + crootmass;
 }
 
 // **
@@ -149,6 +153,11 @@ double PlantGeometry::get_size() const {
 void PlantGeometry::set_lai(double _l){
 	lai = _l;
 }
+
+void PlantGeometry::set_crootmass(double _cr){
+	crootmass = _cr;
+}
+
 
 void PlantGeometry::set_size(double _x, PlantTraits &traits){
 	diameter = _x;

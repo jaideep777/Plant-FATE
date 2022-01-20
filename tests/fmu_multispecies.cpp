@@ -105,6 +105,20 @@ class SolverIO{
 };
 
 
+struct CWM{
+	double lma;
+	double p50;
+	double hmat;
+	double height;
+	double wood_density;
+};
+
+struct EmergentProps{
+	double gpp;
+	double npp;
+};
+
+
 int main(){
 
 	PSPM_Dynamic_Environment E;
@@ -145,7 +159,8 @@ int main(){
 
 		((plant::Plant*)&p1)->print();
 		
-		//p1.geometry.set_lai(p1.par.lai0);	
+		//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
+		//p1.geometry.set_crootmass(0);
 		p1.set_size(0.01);
 		
 		Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
@@ -184,7 +199,7 @@ int main(){
 	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
 	double t_clear = 20000;
 	// t is years since 2000-01-01
-	for (double t=1000; t <= 2500; t=t+1) {
+	for (double t=1000; t <= 2100; t=t+1) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
 		

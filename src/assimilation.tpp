@@ -10,7 +10,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double I0, double fapar
 	par_plant.gs_method = phydro::GS_APX;
 	auto photo_leaf = phydro::phydro_analytical(clim.tc,       I0,   clim.vpd,  clim.co2,	
 												clim.elv,   fapar,  par.kphio,  clim.swp, 
-												par.rl, par_plant,   par_cost);
+												par.rd, par_plant,   par_cost);
 	
 	return photo_leaf;	// umol m-2 s-1 
 }
@@ -37,8 +37,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		
 		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
 		
-		plant_assim.gpp        += (res.a + res.vcmax*par.rl) * ca_layer;
-		plant_assim.rleaf      += (res.vcmax*par.rl) * ca_layer;
+		plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
+		plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
 		plant_assim.trans      += res.e * ca_layer;
 		plant_assim.dpsi_avg   += res.dpsi * ca_layer;
 		plant_assim.vcmax_avg  += res.vcmax * ca_layer;
@@ -46,7 +46,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 
 		ca_cumm += ca_layer;
 		
-//		std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << ", A = " << (res.a + res.vcmax*par.rl) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rl) * ca_layer << "\n"; 
+//		std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << ", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << "\n"; 
 	}
 	assert(fabs(ca_cumm/G->crown_area - 1) < 1e-6);
 //	std::cout << "CA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";

@@ -32,8 +32,9 @@ abline(h=0, col="grey")
 matplot(y=cbind(dat$total_mass,
                 dat$leaf_mass,
                 dat$root_mass,
-                dat$stem_mass), 
-        x=dat$i, col=c("black", "green3", "purple", "brown"), log="", lty=c(1,1,1,1,2), lwd=c(1,1,1,1,1), type="l",
+                dat$coarse_root_mass,
+                dat$stem_mass),
+        x=dat$i, col=c("black", "green3", "purple", "purple3", "brown"), log="", lty=c(1,1,1,1,1), lwd=c(1,1,1,1,1), type="l",
         ylab="Biomass pools", xlab="Year")
 abline(h=0, col="grey")
 
@@ -62,14 +63,14 @@ matplot(y=cbind(dat$assim_gross/dat$crown_area,
                 ylab="GPP, NPP", xlab="Year")
 abline(h=0, col="grey")
 
-matplot(y=cbind(dat$rr,
-                dat$rs,
-                dat$rl), 
+matplot(y=cbind(dat$rr/dat$crown_area,
+                dat$rs/dat$crown_area,
+                dat$rl/dat$crown_area), 
                 x=dat$i, col=c("pink2", "pink3", "pink4"), log="", lty=1, type="l",
                 ylab="Respiration", xlab="Year")
 
-matplot(y=cbind(dat$tr,
-                dat$tl), 
+matplot(y=cbind(dat$tr/dat$crown_area,
+                dat$tl/dat$crown_area), 
                 x=dat$i, col=c("orange3", "orange4"), log="", lty=1, type="l",
                 ylab="Turnover", xlab="Year",
                 add=F)
@@ -80,7 +81,8 @@ plot(dat$vcmax~dat$i, type="l", col="limegreen")
 
 plot(I(dat$leaf_area/dat$crown_area)~dat$i, ylab="LAI", xlab="Year", type="l")
 # plot(y=(dat$height[2:2000]-dat$height[1:1999]), x=dat$i[1:1999], ylab="Height growth rate", type="l")
-plot(y=(dat$diameter[2:2000]-dat$diameter[1:1999])/dat$diameter[1:1999], x=dat$i[1:1999], ylab="Diameter RGR", type="l")
+
+# plot(y=(dat$diameter[2:2000]-dat$diameter[1:1999])/dat$diameter[1:1999], x=dat$i[1:1999], ylab="Diameter RGR", type="l")
 
 # detrend = function(x,y){
 #   mod = lm(y~x)

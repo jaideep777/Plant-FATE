@@ -28,14 +28,16 @@ class PlantGeometry{
 
 	public:
 	// current state
-	double lai;                      // leaf area index 
-	double diameter;                     // basal diameter
+	double lai;          // leaf area index 
+	double crootmass;    // coarse root mass
+	double diameter;     // basal diameter
 
 	// variables calculated from state variables
 	double height;                       // height
 	double crown_area;                   // crown area
 	double sapwood_fraction;             // fraction of stem that is sapwood
 	double functional_xylem_fraction;    // fraction of funcitonal xylem in sapwood
+	double rooting_depth;                // rooting depth, calculated from coarse root biomass
 
 	// ode-based calculations of sapwood and heartwood (for debug)
 	double sap_frac_ode = 1;
@@ -63,6 +65,7 @@ class PlantGeometry{
 	double dsize_dmass(PlantTraits &traits) const ;
 
 	double dreproduction_dmass(PlantParameters &par, PlantTraits &traits);
+	double dcoarseroot_dmass(PlantParameters &par, PlantTraits &traits);
 
 
 	// **
@@ -87,6 +90,7 @@ class PlantGeometry{
 	// **	
 	double get_size() const ;
 	void set_lai(double _l);
+	void set_crootmass(double _cr);
 	void set_size(double _x, PlantTraits &traits);
 	std::vector<double>::iterator set_state(std::vector<double>::iterator S, PlantTraits &traits);
 	

@@ -74,6 +74,7 @@ void PSPM_Plant::init_state(double t, void * _env){
 	//set_size(x);	
 	EnvUsed * env = (EnvUsed*)_env;
 	geometry.lai = par.lai0;
+	geometry.crootmass = 0;
 	state.mortality = -log(p_survival_germination(*env)); ///env->patch_survival(t));    // mortality
 	state.seed_pool = 0; // viable seeds
 	t_birth = t;			// set cohort's birth time to current time

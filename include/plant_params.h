@@ -70,6 +70,8 @@ class PlantParameters{
 	double c;      // crown area allometry
 	double fg;		// upper canopy gap fraction
 
+	double frmin, frmax, frslope;  // coarse root allocation parameters
+
 	// ** LAI optimization
 	double Cc;                  // leaf construction costs
 	double Chyd;                  // hydraulic costs
@@ -82,7 +84,7 @@ class PlantParameters{
 	// **
 	// ** Respiration and turnover 
 	// **
-	double rl;     // leaf respiration rate per unit photosynthetic capacity (r_leaf = rl*vcmax*leaf_area) [kg yr-1]
+	double rd;     // leaf dark respiration rate per unit photosynthetic capacity (r_leaf = rl*vcmax*leaf_area) [kg yr-1]
 	double rr;     // fine-root respiration rate [kg yr-1]
 	double rs;     // sapwood respiration rate [kg yr-1]
 
@@ -142,6 +144,11 @@ class PlantParameters{
 		fg = I.getScalar("fg");
 		a  = I.getScalar("a");
 		c  = I.getScalar("c");
+
+		frmin = I.getScalar("frmin");
+		frmax = I.getScalar("frmax");
+		frslope = I.getScalar("frslope");
+
 		Cc  = I.getScalar("Cc");
 		Chyd = I.getScalar("Chyd");
 		response_intensity  = I.getScalar("response_intensity");
@@ -149,7 +156,8 @@ class PlantParameters{
 		dl  = I.getScalar("lai_deriv_step");
 		lai0  = I.getScalar("lai0");
 		optimize_lai = (I.getScalar("optimize_lai") == 1) ? true:false;
-		rl  = I.getScalar("rl");
+
+		rd  = I.getScalar("rd");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");
 		//kl  = I.getScalar("kl");
@@ -192,7 +200,7 @@ class PlantParameters{
 		std:: cout << "   a  = " << a  << "\n";
 		std:: cout << "   c  = " << c  << "\n";
 		//std:: cout << "   eta_c  = " << eta_c << "\n";
-		std:: cout << "   rl  = " << rl  << "\n";
+		std:: cout << "   rd  = " << rd  << "\n";
 		std:: cout << "   rr  = " << rr  << "\n";
 		std:: cout << "   rs  = " << rs  << "\n";
 		//std:: cout << "   ll  = " << kl  << "\n";

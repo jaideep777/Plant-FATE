@@ -26,6 +26,7 @@ int main(){
 	plant::Plant P;
 	P.initParamsFromFile("tests/params/p.ini");
 	P.geometry.set_lai(1);
+	P.geometry.set_crootmass(0);
 	P.set_size(0.01);
 	P.seeds_hist.set_interval(P.par.T_seed_rain_avg);
 
@@ -57,6 +58,7 @@ int main(){
 		 << "leaf_mass" << "\t"
 		 << "root_mass" << "\t"
 		 << "stem_mass" << "\t"
+		 << "coarse_root_mass" << "\t"
 		 << "total_mass" << "\t"
 		 << "total_rep" << "\t"
 		 << "seed_pool" << "\t"
@@ -70,7 +72,7 @@ int main(){
 	double litter_pool = 0;
 	double germinated = 0;
 	cout << "Starting biomass = " << total_prod << "\n";
-	for (double t=2000; t<=2200; t=t+dt){
+	for (double t=2000; t<=2050; t=t+dt){
 
 		//cout << t << " " << P.geometry.total_mass(par, traits) << " " << total_prod << "\n";
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;
@@ -95,6 +97,7 @@ int main(){
 			 << P.geometry.leaf_mass(P.traits) << "\t"	
 			 << P.geometry.root_mass(P.traits) << "\t"	
 			 << P.geometry.stem_mass(P.traits) << "\t"	
+			 << P.geometry.crootmass << "\t"	
 			 << P.get_biomass() << "\t"
 			 << total_rep << "\t"
 			 << P.state.seed_pool << "\t"

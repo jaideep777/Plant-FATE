@@ -22,6 +22,7 @@ class Plant{
 	// ** core rates **
 	struct{
 		double dlai_dt;
+		double dcroot_dt;
 		double dsize_dt;
 		double dmort_dt;
 		double dseeds_dt_pool;
@@ -32,6 +33,7 @@ class Plant{
 	// results of biomass partitioning
 	struct {
 		double dmass_dt_lai;
+		double dmass_dt_croot;
 		double dmass_dt_rep;
 		double dmass_dt_growth;
 		double dmass_dt_lit;
@@ -104,36 +106,39 @@ class Plant{
 			//env.updateClimate(t);
 
 			geometry.set_lai(S[0]);
-			set_size(S[1]);
+			geometry.set_crootmass(S[1]);
+			set_size(S[2]);
 //			this->geometry.set_state(S.begin(), traits);
-			prod = S[2];
-			litter_pool = S[3];
-			rep = S[4];
-			state.seed_pool = S[5];
-			germinated = S[6];
+			prod = S[3];
+			litter_pool = S[4];
+			rep = S[5];
+			state.seed_pool = S[6];
+			germinated = S[7];
 
 			calc_demographic_rates(env);
 			
 			dSdt[0] = rates.dlai_dt;       // lai growth rate
-			dSdt[1] = rates.dsize_dt;    // size (diameter) growth rate
-			dSdt[2] = bp.dmass_dt_tot;	   // biomass production rate
-			dSdt[3] = bp.dmass_dt_lit;  // litter biomass growth rate
-			dSdt[4] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
-			dSdt[5] = rates.dseeds_dt_pool;
-			dSdt[6] = seeds_hist.get(); //rates.dseeds_dt_germ;
+			dSdt[1] = rates.dcroot_dt;    // growth rate of coarse root biomass
+			dSdt[2] = rates.dsize_dt;    // size (diameter) growth rate
+			dSdt[3] = bp.dmass_dt_tot;	   // biomass production rate
+			dSdt[4] = bp.dmass_dt_lit;  // litter biomass growth rate
+			dSdt[5] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
+			dSdt[6] = rates.dseeds_dt_pool;
+			dSdt[7] = seeds_hist.get(); //rates.dseeds_dt_germ;
 		};
 
-		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated};
+		std::vector<double> S = {geometry.lai, geometry.crootmass, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
 		geometry.set_lai(S[0]);
-		set_size(S[1]);
+		geometry.set_crootmass(S[1]);
+		set_size(S[2]);
 //		geometry.set_state(S.begin(), traits);
-		prod = S[2];
-		litter_pool = S[3];
-		rep = S[4];
-		state.seed_pool = S[5];
-		germinated = S[6];
+		prod = S[3];
+		litter_pool = S[4];
+		rep = S[5];
+		state.seed_pool = S[6];
+		germinated = S[7];
 		seeds_hist.push(t+dt, rates.dseeds_dt_germ);
 		//seeds_hist.print();
 

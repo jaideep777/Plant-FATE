@@ -1,4 +1,4 @@
-setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/amazontraitreduceBA6trait")
+setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/trait_100_trial/")
 
 n_species = 100
 n = 101
@@ -41,7 +41,7 @@ matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species, start = 0, end =
 plot(BAp[,1], rowSums(BAp[,-1], na.rm = T)*1e4, lty=1, type="l",
         las=1, xlab="Time (years)", ylab="Total BA", log="")
 
-
+  
 par(mfrow=c(3,2), mar=c(4,5,1,.5))
 matplot(cwmt$V1, cwmt$V2, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Comm GPP (kg/m2/yr)", log="")
@@ -137,24 +137,24 @@ BAsimulated <- as.numeric(BAp[nrow(BAp),-1])[1:100]*1e4
 
 t50 <- trait[1:100,]
 p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD")
-p1 <- p + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+p1 <- p + scale_colour_viridis_c(limits = log(c(0.01, 20)))
 
 p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
-p2 <- p + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+p2 <- p + scale_colour_viridis_c(limits = log(c(0.01, 20)))
 
 p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=P50..Mpa., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
-p3 <- p + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+p3 <- p + scale_colour_viridis_c(limits = log(c(0.01, 20)))
 
 q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD") 
-q1 <- q + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+q1 <- q + scale_colour_viridis_c(limits = log(c(0.01, max(BAsimulated))))
 
 q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
-q2 <- q + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+q2 <- q + scale_colour_viridis_c(limits = log(c(0.01, max(BAsimulated))))
 
 q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=P50..Mpa., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("P50")
-q3 <- q + scale_colour_viridis_c(limits = log(c(0.01, 10)))
+q3 <- q + scale_colour_viridis_c(limits = log(c(0.01, max(BAsimulated))))
 
 cowplot::plot_grid(p1, p2, p3, q1, q2, q3, nrow = 2, align = "hv")
 
-plot(T1$BA~BAdominant, log="")
+plot(T1$BA~BAdominant, log="xy")
 abline(0,1)
