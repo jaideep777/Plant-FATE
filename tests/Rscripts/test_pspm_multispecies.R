@@ -1,4 +1,4 @@
-setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/trait_100_trial/")
+setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/trait_100_trial_1/")
 
 n_species = 100
 n = 101
