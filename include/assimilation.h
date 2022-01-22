@@ -23,6 +23,7 @@ struct PlantAssimilationResult{
 
 	double tleaf = 0; 
 	double troot = 0;
+	
 };
 
 class Assimilator{

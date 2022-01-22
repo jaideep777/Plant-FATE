@@ -28,12 +28,16 @@ int main(){
 	P.geometry.set_lai(1);
 	P.geometry.set_crootmass(0);
 	P.set_size(0.01);
-	P.seeds_hist.set_interval(P.par.T_seed_rain_avg);
+	//P.seeds_hist.set_interval(P.par.T_seed_rain_avg);
 
 	Environment C;
 	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 	//C.init();
+	C.z_star = {7,0};
+	C.canopy_openness = {1,exp(-0.5*3.5)};
+	C.n_layers = C.z_star.size()-1;
+
 	C.print(0);
 
 
@@ -102,7 +106,7 @@ int main(){
 			 << total_rep << "\t"
 			 << P.state.seed_pool << "\t"
 			 << germinated << "\t"
-			 << P.seeds_hist.get() << "\t"
+			 << 0/*P.seeds_hist.get()*/ << "\t"
 			 << total_prod << "\t"
 			 << litter_pool << "\n";
 		

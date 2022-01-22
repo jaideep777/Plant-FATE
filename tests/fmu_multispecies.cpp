@@ -148,7 +148,7 @@ int main(){
 	Tr.readFromFile("tests/data/trait_100_filled.csv");
 	Tr.print();
 
-	for (int i=0; i<100; ++i){
+	for (int i=0; i<5; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;

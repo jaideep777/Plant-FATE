@@ -20,7 +20,8 @@ template<class Env>
 void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
 	//double GPP_plant = 0, Rl_plant = 0, dpsi_avg = 0;
 	double fapar = 1-exp(-par.k_light*G->lai);
-
+	bool by_layer = false;
+	
 	plant_assim.gpp        = 0;
 	plant_assim.rleaf      = 0;
 	plant_assim.trans      = 0;
@@ -29,40 +30,58 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	plant_assim.c_open_avg = 0;
 	
 	double ca_cumm = 0;
-//	std::cout << "--- PPA Assim begin ---" << "\n";
+	//std::cout << "--- PPA Assim begin ---" << "\n";
 	for (int ilayer=0; ilayer <= env.n_layers; ++ilayer){ // for l in 1:layers{	
 		double zst = env.z_star[ilayer];
-		double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
 		double ca_layer = G->crown_area_above(zst, traits) - ca_cumm;
 		
-		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+		if (by_layer == true){
+			double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
+			auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
+			plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
+			plant_assim.trans      += res.e * ca_layer;
+			plant_assim.dpsi_avg   += res.dpsi * ca_layer;
+			plant_assim.vcmax_avg  += res.vcmax * ca_layer;
+			//std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << ", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << ", vcmax = " << res.vcmax << "\n"; 
+		}
 		
-		plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
-		plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
-		plant_assim.trans      += res.e * ca_layer;
-		plant_assim.dpsi_avg   += res.dpsi * ca_layer;
-		plant_assim.vcmax_avg  += res.vcmax * ca_layer;
 		plant_assim.c_open_avg += env.canopy_openness[ilayer] * ca_layer;
-
 		ca_cumm += ca_layer;
 		
-//		std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << ", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << "\n"; 
 	}
 	assert(fabs(ca_cumm/G->crown_area - 1) < 1e-6);
-//	std::cout << "CA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
+	double ca_total = G->crown_area;                   // total crown area
+	plant_assim.c_open_avg /= ca_total;                // unitless
+	if (by_layer == true){
+		plant_assim.dpsi_avg   /= ca_total;                // MPa
+		plant_assim.vcmax_avg  /= ca_total;                // umol/m2/s
+		//std::cout << "--- total (by layer) \n";
+		//std::cout << "h = " << G->height << ", nz* = " << env.n_layers << ", I = " << plant_assim.c_open_avg << ", fapar = " << fapar << ", A = " << plant_assim.gpp/ca_total << " umol/m2/s x " << ca_total << " = " << plant_assim.gpp << ", vcmax_avg = " << plant_assim.vcmax_avg << "\n"; 
+	}
+
+	if (by_layer == false){
+		double I_top = env.clim.ppfd_max * plant_assim.c_open_avg;
+		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * ca_total;
+		plant_assim.rleaf      = (res.vcmax*par.rd) * ca_total;
+		plant_assim.trans      = res.e * ca_total;
+		plant_assim.dpsi_avg   = res.dpsi;
+		plant_assim.vcmax_avg  = res.vcmax;
+
+		//std::cout << "--- total (by avg light)\n";
+		//std::cout << "h = " << G->height << ", nz* = " << env.n_layers << ", I = " << plant_assim.c_open_avg << ", fapar = " << fapar << ", A = " << plant_assim.gpp/ca_total << " umol/m2/s x " << ca_total << " = " << plant_assim.gpp << ", vcmax_avg = " << plant_assim.vcmax_avg << "\n"; 
+	}
+	//std::cout << "---\nCA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 	// calculate yearly averages in mol/yr	
 	double f_light_day = 0.5; // env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
 	double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
 	double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
 
-	double ca_total = G->crown_area;                   // total crown area
 	plant_assim.gpp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
 	plant_assim.rleaf *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
 	plant_assim.trans *= (f * 18e-3);                  // mol h2o/s  ----> mol h2o/yr  --> kg h2o /yr
-	plant_assim.dpsi_avg   /= ca_total;                // MPa
-	plant_assim.vcmax_avg  /= ca_total;                // umol/m2/s
-	plant_assim.c_open_avg /= ca_total;                // unitless
 	
 }
 

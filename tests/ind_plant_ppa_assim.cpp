@@ -23,7 +23,7 @@ int main(){
 
 	plant::Plant P;
 	P.initParamsFromFile("tests/params/p.ini");
-	P.par.n = 11;
+	P.par.n = 1.1;
 	P.geometry.lai = 2.5;
 	P.geometry.init(P.par, P.traits); // reinit geometry since params changed
 	P.set_size(0.4);
