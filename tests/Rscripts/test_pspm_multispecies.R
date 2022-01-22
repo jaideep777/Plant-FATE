@@ -1,4 +1,4 @@
-setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/trait_100_trial_2_debugSeeds/")
+setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/trait_100_trial_3_debugSeeds/")
 
 plot_to_file = F
 n_species = 100
