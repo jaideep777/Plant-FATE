@@ -43,7 +43,7 @@ class Plant{
 	PlantAssimilationResult res;
 
 	// seed output history
-	MovingAverager seeds_hist;
+	//MovingAverager seeds_hist;
 
 	public:
 
@@ -124,7 +124,7 @@ class Plant{
 			dSdt[4] = bp.dmass_dt_lit;  // litter biomass growth rate
 			dSdt[5] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
 			dSdt[6] = rates.dseeds_dt_pool;
-			dSdt[7] = seeds_hist.get(); //rates.dseeds_dt_germ;
+			dSdt[7] = rates.dseeds_dt_germ;
 		};
 
 		std::vector<double> S = {geometry.lai, geometry.crootmass, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated};
@@ -139,7 +139,7 @@ class Plant{
 		rep = S[5];
 		state.seed_pool = S[6];
 		germinated = S[7];
-		seeds_hist.push(t+dt, rates.dseeds_dt_germ);
+		//seeds_hist.push(t+dt, rates.dseeds_dt_germ);
 		//seeds_hist.print();
 
 	}
