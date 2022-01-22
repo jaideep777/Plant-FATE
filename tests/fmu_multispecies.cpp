@@ -148,7 +148,7 @@ int main(){
 	Tr.readFromFile("tests/data/trait_100_filled.csv");
 	Tr.print();
 
-	for (int i=0; i<100; ++i){
+	for (int i=0; i<1; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;
@@ -199,9 +199,9 @@ int main(){
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
-	double t_clear = 20000;
+	double t_clear = 1020;
 	// t is years since 2000-01-01
-	for (double t=1000; t <= 2500; t=t+1) {
+	for (double t=1000; t <= 1050; t=t+1) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t);
 		
@@ -314,10 +314,14 @@ int main(){
 	
 		// clear patch after 50 year	
 		if (t >= t_clear){
-			for (auto spp : S.species_vec) 
-				for (int i=1; i<spp->xsize(); ++i) spp->setU(i, 0);
+			for (auto spp : S.species_vec){
+				for (int i=1; i<spp->xsize(); ++i){
+					double u_new = spp->getU(i) * double(rand())/RAND_MAX;
+					spp->setU(i, u_new);
+				}
+			}
 			S.copyCohortsToState();
-			t_clear = t + 200 + 100*(2*double(rand())/RAND_MAX - 1);
+			t_clear = t + 100 + 50*(2*double(rand())/RAND_MAX - 1);
 		}
 		
 		fco.flush();

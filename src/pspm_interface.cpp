@@ -63,11 +63,12 @@ double PSPM_Plant::mortalityRate(double x, double t, void * _env){
 }
 
 double PSPM_Plant::birthRate(double x, double t, void * _env){
-	if (par.T_seed_rain_avg > 0) 
-		return seeds_hist.get();           // birth rate is moving average of rate of germinating seeds over successional cycles
-	else 
-		return rates.dseeds_dt_germ;       // birth rate is instantaneous rate of germinating seeds 
-	
+	if (par.T_seed_rain_avg > 0){ 
+		return seeds_hist.get(); // birth rate is moving average of rate of germinating seeds over successional cycles
+	}          
+	else{
+		return 0; //rates.dseeds_dt_germ;       // birth rate is instantaneous rate of germinating seeds 
+	}
 }
 
 void PSPM_Plant::init_state(double t, void * _env){

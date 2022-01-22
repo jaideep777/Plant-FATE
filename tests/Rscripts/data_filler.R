@@ -21,3 +21,4 @@ dat %>% select(P50..Mpa., Number.of.individuals) %>% na.omit %>% summarize(meanP
 par(mfrow = c(2,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
 h = hist(dat$X2r.diameter, breaks=20)
 plot(h$counts~h$mids, log="xy")
+  
