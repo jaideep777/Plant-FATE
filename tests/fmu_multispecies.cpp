@@ -148,7 +148,7 @@ int main(){
 	Tr.readFromFile("tests/data/trait_100_filled.csv");
 	Tr.print();
 
-	for (int i=0; i<5; ++i){
+	for (int i=0; i<100; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;
@@ -328,7 +328,7 @@ int main(){
 		if (t >= t_clear){
 			for (auto spp : S.species_vec){
 				for (int i=1; i<spp->xsize(); ++i){
-					double u_new = spp->getU(i) * double(rand())/RAND_MAX;
+					double u_new = 0; //spp->getU(i) * double(rand())/RAND_MAX;
 					spp->setU(i, u_new);
 				}
 			}

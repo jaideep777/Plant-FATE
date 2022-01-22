@@ -59,7 +59,9 @@ double PSPM_Plant::growthRate(double x, double t, void * _env){
 }
 
 double PSPM_Plant::mortalityRate(double x, double t, void * _env){
-	return rates.dmort_dt;
+	double mort = rates.dmort_dt;
+//	double mort_cndd = 
+	return mort;
 }
 
 double PSPM_Plant::birthRate(double x, double t, void * _env){
