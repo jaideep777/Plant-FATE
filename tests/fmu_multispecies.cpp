@@ -148,7 +148,7 @@ int main(){
 	Tr.readFromFile("tests/data/trait_100_filled.csv");
 	Tr.print();
 
-	for (int i=0; i<1; ++i){
+	for (int i=0; i<100; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;
@@ -167,7 +167,7 @@ int main(){
 		
 		Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 
-		S.addSpecies(30, 0.01, 10, true, spp, 3, -1);
+		S.addSpecies(30, 0.01, 10, true, spp, 3, 1e-3);
 		
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 		//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0
@@ -190,6 +190,18 @@ int main(){
 //	S.step_to(0.1);
 //	S.print();
 //	for (auto y : S.state) cout << y << "\t"; cout << "\n";
+	
+	vector<MovingAverager> seeds_hist(S.species_vec.size());
+	for (auto& M : seeds_hist) M.set_interval(300);
+
+	auto after_step = [&S, &seeds_hist](double t){
+		vector<double> seeds = S.newborns_out(t);
+		for (int k=0; k<S.species_vec.size(); ++k){
+			seeds_hist[k].push(t, seeds[k]);
+			//seeds_hist[k].print_summary(); cout.flush();
+			S.species_vec[k]->set_inputBirthFlux(seeds_hist[k].get());
+		}
+	};
 
 //	ofstream fout("fmu_PlantFATE.txt");
 	ofstream fzst(string(out_dir + "/z_star.txt").c_str());
@@ -199,19 +211,19 @@ int main(){
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
-	double t_clear = 1020;
+	double t_clear = 1050;
 	// t is years since 2000-01-01
-	for (double t=1000; t <= 1050; t=t+1) {
+	for (double t=1000; t <= 2500; t=t+1) {
 		cout << "t = " << t << endl; //"\t";
-		S.step_to(t);
+		S.step_to(t, after_step);
 		
-		vector<double> seeds = S.newborns_out();
+//		vector<double> seeds = S.newborns_out(t);
 //		for (int s=0; s< S.species_vec.size(); ++s){
 //			double S_D = 0.25;
 //			seeds_out[s].push_back(seeds[s] * env.patch_age_density(t));
 //		}
 		fseed << t << "\t";
-		for (int i=0; i<S.n_species(); ++i) fseed << seeds[i] << "\t";
+		for (int i=0; i<S.n_species(); ++i) fseed << seeds_hist[i].get() << "\t";
 		fseed << "\n";
 		
 		vector<double> basal_area(S.n_species());

@@ -1,7 +1,7 @@
 setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/trait_100_trial_1_debugSeeds/")
 
 plot_to_file = F
-n_species = 1
+n_species = 100
 n = 101
 
 hp   = read.delim(paste0("species_",0,"_height.txt"), header=F, col.names = paste0("V", 1:n))
@@ -190,4 +190,5 @@ plot(T1$BA~BAdominant, log="xy")
 abline(0,1)
 plot(t50$BA~BAsimulated, log="")
 abline(0,1)
+
 
