@@ -15,6 +15,7 @@ struct PlantAssimilationResult{
 
 	double dpsi_avg = 0;
 	double vcmax_avg = 0;
+	double gs_avg = 0;
 	double c_open_avg = 0;
 
 	double rleaf = 0;

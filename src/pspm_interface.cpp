@@ -85,15 +85,17 @@ void PSPM_Plant::init_state(double t, void * _env){
 }
 
 vector<double>::iterator PSPM_Plant::set_state(vector<double>::iterator &it){
-	geometry.lai    = *it++;
-	state.mortality  = *it++;
-	state.seed_pool  = *it++;
+	geometry.lai       = *it++;
+	geometry.crootmass = *it++;
+	state.mortality    = *it++;
+	state.seed_pool    = *it++;
 	//vars.fecundity = viable_seeds; // only for single plant test run
 	return it;
 }
 
 vector<double>::iterator PSPM_Plant::get_state(vector<double>::iterator &it){
 	*it++ = geometry.lai;
+	*it++ = geometry.crootmass;
 	*it++ = state.mortality;
 	*it++ = state.seed_pool;
 	return it;
@@ -102,6 +104,7 @@ vector<double>::iterator PSPM_Plant::get_state(vector<double>::iterator &it){
 vector<double>::iterator PSPM_Plant::get_rates(vector<double>::iterator &it){
 
 	*it++ = rates.dlai_dt;	// lai
+	*it++ = rates.dcroot_dt;
 	*it++ = rates.dmort_dt; // mortality
 	*it++ = rates.dseeds_dt_pool; // seed pool size
 	return it;
