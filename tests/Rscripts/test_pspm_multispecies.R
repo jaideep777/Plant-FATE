@@ -1,7 +1,7 @@
-setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/trait_100_trial_4_outputTestNew/")
+setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/AmzFACE_ELE_HD/")
 
-plot_to_file = F
-n_species = 5
+plot_to_file = T
+n_species = 100
 n = 101
 
 hp   = read.delim(paste0("species_",0,"_height.txt"), header=F, col.names = paste0("V", 1:n))
@@ -13,8 +13,8 @@ BAp   = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_spec
 seeds = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 #cwmt = read.delim("cwmt.txt", header=F, col.names = paste0("V", 1:20))
 
-amzY = read.delim("AmzFACE_Y.txt", header=T)
-amzD = read.delim("AmzFACE_D.txt", header=T)
+amzY = read.delim("AmzFACE_Y_mean_PFATE_ELE_HD.txt", header=T)
+amzD = read.delim("AmzFACE_D_PFATE_ELE_HD.txt", header=T)
 tD = amzD$YEAR + amzD$DOY/365
 tY = amzY$YEAR
 
@@ -58,12 +58,12 @@ plot(tY, amzY$BA*1e4, lty=1, type="l",
 
 
 matplot(x=(t(Dp[,-1])), y=(t(Up_all[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),10/length(t)), type="l",
-        las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-10), exp(10)))
+        las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
 Up_mean = colMeans(Up_all[t>1000, ids_x]*1e4/100)
 points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
 
 matplot(x=(t(hp[,-1])), y=(t(Up_all[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),10/length(t)), type="l",
-        las=1, xlab = "Height", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-10), exp(10)))
+        las=1, xlab = "Height", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
 Up_mean = colMeans(Up_all[t>1000, ids_h]*1e4/100)
 points(as.numeric(Up_mean)~as.numeric(hp[1,ids_h]))
 
@@ -88,8 +88,8 @@ matplot(tY, amzY$DE*1e4, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85
 matplot(tY, amzY$TB, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Biomass (kg / m2)", log="")
 
-matplot(tY, amzY$SLA*1000, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="CWM LMA", log="")
+matplot(tY, amzY$SLA, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="CWM SLA", log="")
 
 matplot(tY, amzY$WD, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="CWM Wood density", log="")
@@ -125,41 +125,41 @@ if (plot_to_file) dev.off()
 # }
 # 
 # 
-par(mfrow = c(5,6), mar=c(4,5,.5,.5), oma=c(1,1,1,1))
-for (i in 0:(n_species-1)){
-  hp   = read.delim(paste0("species_",i,"_height.txt"), header=F, col.names = paste0("V", 1:n))
-  Dp   = read.delim(paste0("species_",i,"_X.txt"), header=F, col.names = paste0("V", 1:n))
-  Up   = read.delim(paste0("species_",i,"_u.txt"), header=F, col.names = paste0("V", 1:n))
-  Lp   = read.delim(paste0("species_",i,"_lai.txt"), header=F, col.names = paste0("V", 1:n))
-  Gp   = read.delim(paste0("species_",i,"_g.txt"), header=F, col.names = paste0("V", 1:n))
-  Ap   = read.delim(paste0("species_",i,"_gpp.txt"), header=F, col.names = paste0("V", 1:n))
-  ids_x = 2:31
-  ids_h = which(diff(as.numeric(hp[1,ids_x])) > 0)[-1]
-
-  image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e8*pmax(as.matrix(Up[,ids_h])/max(as.matrix(Up[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "Height distribution, Z*", col=scales::viridis_pal()(100))
-  matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
-          las=1, xlab="Time (years)", ylab="Z*", add=T)
-
-  image(x=Dp[,1], y=as.numeric(Dp[1,ids_x]), z=log(1+1e8*pmax(as.matrix(Up[,ids_x])/max(as.matrix(Up[,ids_x]),na.rm=T),0)), log="y", xlab="Time", ylab = "Diameter distribution", col=scales::viridis_pal()(100))
-
-  image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=as.matrix(Lp[,ids_h]), zlim=c(0,8), log="", xlab="Time", ylab = "LAI distribution, Z*", col=scales::viridis_pal()(100))
-  matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
-          las=1, xlab="Time (years)", ylab="Z*", add=T)
-
-  image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e4*pmax(as.matrix(Gp[,ids_h])/max(as.matrix(Gp[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "R. Growth rate dist, Z*", col=scales::viridis_pal()(100))
-  matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
-          las=1, xlab="Time (years)", ylab="Z*", add=T)
-
-  image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e4*pmax(as.matrix(Ap[,ids_h])/max(as.matrix(Ap[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "GPP dist, Z*", col=scales::viridis_pal()(100))
-  matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
-          las=1, xlab="Time (years)", ylab="Z*", add=T)
-
-  matplot(x=(t(Dp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),0.05), type="l",
-        las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
-  Up_mean = colMeans(Up[t>100, ids_x]*1e4/100)
-  points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
-
-}
+# par(mfrow = c(5,6), mar=c(4,5,.5,.5), oma=c(1,1,1,1))
+# for (i in 0:(n_species-1)){
+#   hp   = read.delim(paste0("species_",i,"_height.txt"), header=F, col.names = paste0("V", 1:n))
+#   Dp   = read.delim(paste0("species_",i,"_X.txt"), header=F, col.names = paste0("V", 1:n))
+#   Up   = read.delim(paste0("species_",i,"_u.txt"), header=F, col.names = paste0("V", 1:n))
+#   Lp   = read.delim(paste0("species_",i,"_lai.txt"), header=F, col.names = paste0("V", 1:n))
+#   Gp   = read.delim(paste0("species_",i,"_g.txt"), header=F, col.names = paste0("V", 1:n))
+#   Ap   = read.delim(paste0("species_",i,"_gpp.txt"), header=F, col.names = paste0("V", 1:n))
+#   ids_x = 2:31
+#   ids_h = which(diff(as.numeric(hp[1,ids_x])) > 0)[-1]
+# 
+#   image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e8*pmax(as.matrix(Up[,ids_h])/max(as.matrix(Up[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "Height distribution, Z*", col=scales::viridis_pal()(100))
+#   matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
+#           las=1, xlab="Time (years)", ylab="Z*", add=T)
+# 
+#   image(x=Dp[,1], y=as.numeric(Dp[1,ids_x]), z=log(1+1e8*pmax(as.matrix(Up[,ids_x])/max(as.matrix(Up[,ids_x]),na.rm=T),0)), log="y", xlab="Time", ylab = "Diameter distribution", col=scales::viridis_pal()(100))
+# 
+#   image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=as.matrix(Lp[,ids_h]), zlim=c(0,8), log="", xlab="Time", ylab = "LAI distribution, Z*", col=scales::viridis_pal()(100))
+#   matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
+#           las=1, xlab="Time (years)", ylab="Z*", add=T)
+# 
+#   image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e4*pmax(as.matrix(Gp[,ids_h])/max(as.matrix(Gp[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "R. Growth rate dist, Z*", col=scales::viridis_pal()(100))
+#   matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
+#           las=1, xlab="Time (years)", ylab="Z*", add=T)
+# 
+#   image(x=hp[,1], y=as.numeric(hp[1,ids_h]), z=log(1+1e4*pmax(as.matrix(Ap[,ids_h])/max(as.matrix(Ap[,ids_h]),na.rm=T),0)), log="", xlab="Time", ylab = "GPP dist, Z*", col=scales::viridis_pal()(100))
+#   matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
+#           las=1, xlab="Time (years)", ylab="Z*", add=T)
+# 
+#   matplot(x=(t(Dp[,-1])), y=(t(Up[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),0.05), type="l",
+#         las=1, xlab = "Diameter", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
+#   Up_mean = colMeans(Up[t>100, ids_x]*1e4/100)
+#   points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
+# 
+# }
 
 
 
@@ -190,7 +190,7 @@ p3 <- p + scale_colour_viridis_c(limits = log(c(0.01, max(t50$BA))))
 
 q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD") 
 q1 <- q + scale_colour_viridis_c(limits = log(c(0.01, max(BAsimulated))))
-
+  
 q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
 q2 <- q + scale_colour_viridis_c(limits = log(c(0.01, max(BAsimulated))))
 

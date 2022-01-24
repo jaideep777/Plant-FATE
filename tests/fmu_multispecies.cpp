@@ -414,16 +414,16 @@ int main(){
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 //	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 //	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
-	ofstream foutd(string(out_dir + "/AmzFACE_D.txt").c_str());
-	ofstream fouty(string(out_dir + "/AmzFACE_Y_mean.txt").c_str());
-	ofstream fouty_spp(string(out_dir + "/AmzFACE_Y.txt").c_str());
+	ofstream foutd(string(out_dir + "/AmzFACE_D_PFATE_AMB_HD.txt").c_str());
+	ofstream fouty(string(out_dir + "/AmzFACE_Y_mean_PFATE_AMB_HD.txt").c_str());
+	ofstream fouty_spp(string(out_dir + "/AmzFACE_Y_PFATE_AMB_HD.txt").c_str());
 	
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	double t_clear = 1050;
 	// t is years since 2000-01-01
-	for (double t=1000; t <= 2500; t=t+1) {
+	for (double t=1000; t <= 3000; t=t+1) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t, after_step);
 		
@@ -599,8 +599,8 @@ int main(){
 				}
 			}
 			S.copyCohortsToState();
-			double t_int = -log(double(rand())/RAND_MAX) * 135;
-			t_clear = t + fmin(t_int, 500);
+			double t_int = -log(double(rand())/RAND_MAX) * 200;
+			t_clear = t + fmin(t_int, 1000);
 		}
 		
 		fco.flush();
