@@ -107,6 +107,7 @@ class SolverIO{
 };
 
 
+
 class CWM{
 	public:
 	double n_ind;
@@ -125,6 +126,11 @@ class CWM{
 	vector<double> ba_vec;
 	vector<double> canopy_area_vec;
 	vector<double> height_vec;
+
+	vector<double> lma_vec;
+	vector<double> p50_vec;
+	vector<double> hmat_vec;
+	vector<double> wd_vec;
 	
 	void update(double t, Solver &S){
 		n_ind_vec.clear();
@@ -181,6 +187,8 @@ class CWM{
 										      return p.traits.hmat;
 										}, t, k);
 		hmat /= n_ind;
+		hmat_vec.resize(S.n_species());
+		for (int k=0; k<S.n_species(); ++k) hmat_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.hmat;
 
 
 		lma = 0;
@@ -190,6 +198,8 @@ class CWM{
 										      return p.traits.lma;
 										}, t, k);
 		lma /= n_ind;
+		lma_vec.resize(S.n_species());
+		for (int k=0; k<S.n_species(); ++k) lma_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.lma;
 
 		wd = 0;
 		for (int k=0; k<S.n_species(); ++k)
@@ -198,6 +208,8 @@ class CWM{
 										      return p.traits.wood_density;
 										}, t, k);
 		wd /= n_ind;
+		wd_vec.resize(S.n_species());
+		for (int k=0; k<S.n_species(); ++k) wd_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.wood_density;
 
 		p50 = 0;
 		for (int k=0; k<S.n_species(); ++k)
@@ -206,6 +218,8 @@ class CWM{
 										      return p.traits.p50_xylem;
 										}, t, k);
 		p50 /= n_ind;
+		p50_vec.resize(S.n_species());
+		for (int k=0; k<S.n_species(); ++k) p50_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.p50_xylem;
 
 		gs = 0;
 		for (int k=0; k<S.n_species(); ++k)
@@ -293,7 +307,7 @@ class EmergentProps{
 		for (int k=0; k<S.n_species(); ++k)
 			croot_mass += S.integrate_x([&S,k](int i, double t){
 										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-										      return p.geometry.crootmass;
+										      return p.geometry.coarse_root_mass(p.traits);
 										}, t, k);
 
 		// fine root mass
@@ -306,6 +320,7 @@ class EmergentProps{
 
 	}
 };
+
 
 
 int main(){
@@ -334,10 +349,10 @@ int main(){
 	S.setEnvironment(&E);
 	
 	TraitsReader Tr;
-	Tr.readFromFile("tests/data/trait_100_filled.csv");
+	Tr.readFromFile("tests/data/Amz_trait_filled_HD.csv");
 	Tr.print();
 
-	for (int i=0; i<5; ++i){
+	for (int i=0; i<100; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;
@@ -351,12 +366,11 @@ int main(){
 		((plant::Plant*)&p1)->print();
 		
 		//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
-		//p1.geometry.set_crootmass(0);
 		p1.set_size(0.01);
 		
 		Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 
-		S.addSpecies(30, 0.01, 10, true, spp, 4, 1e-3);
+		S.addSpecies(30, 0.01, 10, true, spp, 3, 1e-3);
 		
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 		//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0
@@ -401,13 +415,15 @@ int main(){
 //	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 //	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
 	ofstream foutd(string(out_dir + "/AmzFACE_D.txt").c_str());
-	ofstream fouty(string(out_dir + "/AmzFACE_Y.txt").c_str());
+	ofstream fouty(string(out_dir + "/AmzFACE_Y_mean.txt").c_str());
+	ofstream fouty_spp(string(out_dir + "/AmzFACE_Y.txt").c_str());
 	
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
+	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	double t_clear = 1050;
 	// t is years since 2000-01-01
-	for (double t=1000; t <= 1200; t=t+1) {
+	for (double t=1000; t <= 2500; t=t+1) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t, after_step);
 		
@@ -444,6 +460,24 @@ int main(){
 		      << -9999  << "\t"
 		      << 1/cwm.lma  << "\t"
 		      << cwm.p50  << "\n";
+		
+		for (int k=0; k<S.species_vec.size(); ++k){
+			fouty_spp 
+			      << int(t) << "\t"
+				  << k  << "\t"
+				  << cwm.n_ind_vec[k] << "\t"
+				  << -9999  << "\t"
+				  << cwm.height_vec[k]  << "\t"
+				  << cwm.hmat_vec[k]  << "\t"
+				  << cwm.canopy_area_vec[k]  << "\t"   // m2/m2
+				  << cwm.ba_vec[k]  << "\t"            // m2/m2
+				  << cwm.biomass_vec[k]  << "\t"       // kg/m2
+				  << cwm.wd_vec[k]  << "\t"
+				  << -9999  << "\t"
+				  << 1/cwm.lma_vec[k]  << "\t"
+				  << cwm.p50_vec[k]  << "\n";
+		}
+	
 		      
 		//fouty << t << -9999 << cwm.n_ind << -9999 << 
 		
@@ -557,16 +591,16 @@ int main(){
 		// clear patch after 50 year	
 		if (t >= t_clear){
 			for (auto spp : S.species_vec){
-				for (int i=1; i<spp->xsize(); ++i){
+				for (int i=0; i<spp->xsize(); ++i){
 					auto& p = (static_cast<Species<PSPM_Plant>*>(spp))->getCohort(i);
-					p.geometry.crootmass = 0;
 					p.geometry.lai = p.par.lai0;
 					double u_new = 0; //spp->getU(i) * double(rand())/RAND_MAX;
 					spp->setU(i, u_new);
 				}
 			}
 			S.copyCohortsToState();
-			t_clear = t + 100 + 50*(2*double(rand())/RAND_MAX - 1);
+			double t_int = -log(double(rand())/RAND_MAX) * 135;
+			t_clear = t + fmin(t_int, 500);
 		}
 		
 		fco.flush();

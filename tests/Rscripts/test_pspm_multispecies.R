@@ -99,6 +99,10 @@ matplot(tY, amzY$P50, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), 
 
 
 if (plot_to_file) dev.off()
+
+# library(tidyverse)
+# dat1 = read.delim("/home/jaideep/codes/tmodel_cpp/pspm_output/trait_100_trial_5_speciesOut/AmzFACE_Y.txt")
+# with(dat1 %>% filter(PID == 1), plot(I(BA*1e4)~YEAR))
 # 
 # par(mfrow = c(4,3), mar=c(4,5,1,1), oma=c(1,1,1,1))
 # for (i in 0:9){
