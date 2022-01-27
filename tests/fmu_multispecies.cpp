@@ -349,10 +349,10 @@ int main(){
 	S.setEnvironment(&E);
 	
 	TraitsReader Tr;
-	Tr.readFromFile("tests/data/Amz_trait_filled_HD.csv");
+	Tr.readFromFile("tests/data/Amz_trait_filled_LD.csv");
 	Tr.print();
 
-	for (int i=0; i<100; ++i){
+	for (int i=0; i<5; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;
@@ -414,9 +414,9 @@ int main(){
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 //	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 //	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
-	ofstream foutd(string(out_dir + "/AmzFACE_D_PFATE_AMB_HD.txt").c_str());
-	ofstream fouty(string(out_dir + "/AmzFACE_Y_mean_PFATE_AMB_HD.txt").c_str());
-	ofstream fouty_spp(string(out_dir + "/AmzFACE_Y_PFATE_AMB_HD.txt").c_str());
+	ofstream foutd(string(out_dir + "/AmzFACE_D_PFATE_AMB_LD.txt").c_str());
+	ofstream fouty(string(out_dir + "/AmzFACE_Y_mean_PFATE_AMB_LD.txt").c_str());
+	ofstream fouty_spp(string(out_dir + "/AmzFACE_Y_PFATE_AMB_LD.txt").c_str());
 	
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
@@ -445,7 +445,7 @@ int main(){
 			  << (props.croot_mass+props.froot_mass)*1000*0.5 << "\t" // gC/m2
 			  << cwm.gs << "\t"
 			  << props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
-			  << props.lai << "\n";
+			  << props.lai << endl;
 		
 		fouty << int(t) << "\t"
 		      << -9999  << "\t"
@@ -459,7 +459,7 @@ int main(){
 		      << cwm.wd  << "\t"
 		      << -9999  << "\t"
 		      << 1/cwm.lma  << "\t"
-		      << cwm.p50  << "\n";
+		      << cwm.p50  << endl;
 		
 		for (int k=0; k<S.species_vec.size(); ++k){
 			fouty_spp 

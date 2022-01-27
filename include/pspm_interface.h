@@ -108,9 +108,10 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 		// Calculate / w(z,t)u(z,t)dz
 		//        xb`
 		if (use_ppa){
+			double fG = 0.99;
 			z_star.clear();
 			total_crown_area = projected_crown_area_above_z(t, 0, S);
-			n_layers = int(total_crown_area/0.9); // Total crown projection area 
+			n_layers = int(total_crown_area/fG); // Total crown projection area 
 
 			if (n_layers < 0 || n_layers >= 50) {
 				std::cout << "nlayers = " << n_layers << "\n";
@@ -120,8 +121,8 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 			assert(n_layers >= 0 && n_layers < 50);
 
 			for (int layer = 1; layer <= n_layers; ++layer){
-				auto CA_above_zstar_layer = [t, S, layer, this](double z) -> double {
-					return projected_crown_area_above_z(t, z, S) - layer*0.9;
+				auto CA_above_zstar_layer = [t, S, layer, fG, this](double z) -> double {
+					return projected_crown_area_above_z(t, z, S) - layer*fG;
 				};
 				auto res = pn::zero(0, 100, CA_above_zstar_layer, 1e-4);
 				z_star.push_back(res.root);

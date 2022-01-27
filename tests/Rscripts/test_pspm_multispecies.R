@@ -1,7 +1,8 @@
-setwd("/home/jaideep/codes/tmodel_cpp/pspm_output/AmzFACE_ELE_HD/")
+code = "AMB_LD"
+setwd(paste0("/home/jaideep/codes/tmodel_cpp/pspm_output/AmzFACE_Final_",code,"_1/"))
 
 plot_to_file = T
-n_species = 100
+n_species = 5
 n = 101
 
 hp   = read.delim(paste0("species_",0,"_height.txt"), header=F, col.names = paste0("V", 1:n))
@@ -13,8 +14,8 @@ BAp   = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_spec
 seeds = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 #cwmt = read.delim("cwmt.txt", header=F, col.names = paste0("V", 1:20))
 
-amzY = read.delim("AmzFACE_Y_mean_PFATE_ELE_HD.txt", header=T)
-amzD = read.delim("AmzFACE_D_PFATE_ELE_HD.txt", header=T)
+amzY = read.delim(paste0("AmzFACE_Y_mean_PFATE_",code,".txt"), header=T)
+amzD = read.delim(paste0("AmzFACE_D_PFATE_",code,".txt"), header=T)
 tD = amzD$YEAR + amzD$DOY/365
 tY = amzY$YEAR
 
@@ -44,17 +45,23 @@ matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type=
 matplot(COp$V1, COp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Canopy openness")
 
-matplot(BAp$V1, BAp[,-1]*1e4, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="Basal area (m2 / Ha)\n", log="")#, ylim=c(exp(-9), exp(3.5)))
+matplot(tD, cbind(amzD$GPP, amzD$NPP, amzD$RAU)*1e-3*365, lty=1, col=c("green4", "green3", "brown"), type="l",
+        las=1, xlab="Time (years)", ylab="GPP, NPP, Auto.Resp (kgC/m2/yr)", log="")
 
 matplot(tD, amzD$LAI, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Community LAI")
-  
-matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="Species Seed output", log="")
 
 plot(tY, amzY$BA*1e4, lty=1, type="l",
      las=1, xlab="Time (years)", ylab="Total BA", log="")
+matplot(BAp$V1, BAp[,-1]*1e4, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Basal area (m2 / Ha)\n", log="", add=T)#, ylim=c(exp(-9), exp(3.5)))
+
+matplot(tD, cbind(amzD$CL+amzD$CW)*1e-3, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Biomass (kgC / m2)", log="")
+
+matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Species Seed output", log="")
+
 
 
 matplot(x=(t(Dp[,-1])), y=(t(Up_all[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),10/length(t)), type="l",
@@ -62,10 +69,10 @@ matplot(x=(t(Dp[,-1])), y=(t(Up_all[,-1]))*1e4/100, lty=1, col=scales::alpha(rai
 Up_mean = colMeans(Up_all[t>1000, ids_x]*1e4/100)
 points(as.numeric(Up_mean)~as.numeric(Dp[1,ids_x]))
 
-matplot(x=(t(hp[,-1])), y=(t(Up_all[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),10/length(t)), type="l",
-        las=1, xlab = "Height", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
-Up_mean = colMeans(Up_all[t>1000, ids_h]*1e4/100)
-points(as.numeric(Up_mean)~as.numeric(hp[1,ids_h]))
+# matplot(x=(t(hp[,-1])), y=(t(Up_all[,-1]))*1e4/100, lty=1, col=scales::alpha(rainbow(n = nrow((Dp)), start = 0, end = 0.75),10/length(t)), type="l",
+#         las=1, xlab = "Height", ylab="Density (Ind/cm/Ha)\n", log="xy", ylim=c(exp(-15), exp(10)))
+# Up_mean = colMeans(Up_all[t>1000, ids_h]*1e4/100)
+# points(as.numeric(Up_mean)~as.numeric(hp[1,ids_h]))
 
 if (plot_to_file) dev.off()
 
@@ -85,7 +92,7 @@ matplot(tD, cbind(amzD$CL, amzD$CW, amzD$CCR, amzD$CFR), lty=1, col=c("green4", 
 matplot(tY, amzY$DE*1e4, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Number of individuals / Ha", log="")
 
-matplot(tY, amzY$TB, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+matplot(tY, cbind(amzD$CL+amzD$CW)*1e-3, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Biomass (kg / m2)", log="")
 
 matplot(tY, amzY$SLA, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
@@ -165,6 +172,7 @@ if (plot_to_file) dev.off()
 
 
 #### TRAIT SPACE ####
+library(tidyverse)
 trait = read.csv("../../tests/data/trait_100_filled.csv", header = TRUE)
 
 trait$Leaf.LMA..g.m2.[is.na(trait$Leaf.LMA..g.m2.)] <- 119.37
@@ -179,22 +187,22 @@ BAdominant <- as.numeric(BAp[nrow(BAp),-1])[dominant]*1e4
 BAsimulated <- as.numeric(BAp[nrow(BAp),-1])[1:100]*1e4
 
 t50 <- trait[1:100,]
-p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD")
+p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BA))) + geom_point(alpha=0.5) + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD")
 p1 <- p + scale_colour_viridis_c(limits = log(c(0.01, max(t50$BA))))
 
-p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
+p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BA))) + geom_point(alpha=0.5) + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
 p2 <- p + scale_colour_viridis_c(limits = log(c(0.01, max(t50$BA))))
 
-p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=P50..Mpa., colour = log(BA))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
+p <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=P50..Mpa., colour = log(BA))) + geom_point(alpha=0.5) + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
 p3 <- p + scale_colour_viridis_c(limits = log(c(0.01, max(t50$BA))))
 
-q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD") 
+q <- T1 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=meanWoodDensity..g.cm3., colour = log(BAdominant))) + geom_point(alpha=0.5) + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("WD") 
 q1 <- q + scale_colour_viridis_c(limits = log(c(0.01, max(BAsimulated))))
   
-q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
+q <- T1 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=Height_Max.m., colour = log(BAdominant))) + geom_point(alpha=0.5) + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("HT")
 q2 <- q + scale_colour_viridis_c(limits = log(c(0.01, max(BAsimulated))))
 
-q <- t50 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=P50..Mpa., colour = log(BAsimulated))) + geom_point() + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("P50")
+q <- T1 %>% ggplot(aes(x=Leaf.LMA..g.m2., y=P50..Mpa., colour = log(BAdominant))) + geom_point(alpha=0.5) + theme(text = element_text(size=20),axis.text.x = element_text(angle=90, hjust=1)) + geom_point(size = 3) + xlab("LMA") + ylab("P50")
 q3 <- q + scale_colour_viridis_c(limits = log(c(0.01, max(BAsimulated))))
 
 if (plot_to_file) png("trait_space.png", height=500*3, width=1450*3, res=300)
