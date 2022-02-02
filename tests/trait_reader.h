@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <cmath>
+#include <stdexcept>
 
 #include "plant_params.h"
 
@@ -26,8 +27,7 @@ class TraitsReader{
 
 		std::ifstream fin(fname.c_str());
 		if (!fin){
-			std::cerr << "Error: Could not open file " << fname << "\n";
-			return 1;
+			throw std::runtime_error("Could not open file " + fname + "\n");
 		}
 
 		//std::vector<std::string>   result;
@@ -72,7 +72,6 @@ class TraitsReader{
 			species.push_back(traits);
 		}
 		
-			
 		return 0;
 	}
 

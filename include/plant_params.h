@@ -34,7 +34,7 @@ class PlantTraits{
 
 
 	public:
-	inline int initFromFile(std::string fname){
+	inline void initFromFile(std::string fname){
 		io::Initializer I(fname);
 		I.readFile();
 
@@ -130,7 +130,7 @@ class PlantParameters{
 	
 	
 	public:
-	inline int initFromFile(std::string fname){
+	inline void initFromFile(std::string fname){
 		io::Initializer I(fname);
 		I.readFile();
 		//I.print();
@@ -186,7 +186,6 @@ class PlantParameters{
 
 		T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 
-		return 0;
 	}
 
 	inline void print(){

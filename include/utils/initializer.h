@@ -7,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <stdexcept>
 /** \ingroup utils */
 
 /**
@@ -57,7 +58,7 @@ class Initializer{
 		init_fname = fname;
 	}
 
-	inline int readFile(){
+	inline void readFile(){
 		// Reset maps here
 		strings.clear(); 
 		scalars.clear();
@@ -65,8 +66,7 @@ class Initializer{
 
 		fin.open(init_fname.c_str());
 		if (!fin) {
-			std::cerr << "FATAL ERROR: Cannot open initializer file " << init_fname << '\n';
-			return 1;
+			throw std::runtime_error("Cannot open initializer file " + init_fname); 
 		}
 		
 		std::string attr_begin = ">";
@@ -80,8 +80,7 @@ class Initializer{
 
 		fin >> s; 
 		if (s != "STRINGS") {
-			std::cout << "FATAL ERROR: STRINGS section missing in Initializer file. Format must be:\n" << init_format << '\n'; 
-			return 1;
+			throw std::runtime_error("STRINGS section missing in Initializer file " + init_fname + ". Format must be:\n" + init_format); 
 		}
 		while (fin >> s && s != attr_begin){
 			if (s == "") continue;	// skip empty lines
@@ -92,8 +91,7 @@ class Initializer{
 
 		fin >> s;
 		if (s != "SCALARS") {
-			std::cout << "FATAL ERROR: SCALARS section missing in Initializer file. Format must be:\n" << init_format << '\n'; 
-			return 1;
+			throw std::runtime_error("SCALARS section missing in Initializer file " + init_fname + ". Format must be:\n" + init_format); 
 		}
 		while (fin >> s && s != attr_begin){
 			if (s == "") continue;	// skip empty lines
@@ -104,8 +102,7 @@ class Initializer{
 
 		fin >> s;
 		if (s != "ARRAYS") {
-			std::cout << "FATAL ERROR: ARRAYS section missing in Initializer file. Format must be:\n" << init_format << '\n'; 
-			return 1;
+			throw std::runtime_error("ARRAYS section missing in Initializer file " + init_fname + ". Format must be:\n" + init_format);
 		}
 		while (fin >> s && s != attr_begin){
 			if (s == "") continue;	// skip empty lines
@@ -118,6 +115,8 @@ class Initializer{
 		fin.close();
 	}
 
+	// Currently, this searches only in strings
+	// FIXME: in generic initializer class, sections can be arbitrary (except arrays) 
 	template<class T>
 	T get(std::string s){
 		std::map <std::string, std::string>::iterator it = strings.find(s);
@@ -129,8 +128,7 @@ class Initializer{
 			return val;	
 		}
 		else {
-			std::cout << "FATAL ERROR: Could not find required variable " << s << " in initializer file.\n";
-			return T();
+			throw std::runtime_error("Could not find required variable " + s + " in initializer file " + init_fname);
 		}
 		
 	}
@@ -140,8 +138,7 @@ class Initializer{
 		std::map <std::string, std::string>::iterator it = strings.find(s);
 		if (it != strings.end()) return it->second;
 		else {
-			std::cout << "FATAL ERROR: Could not find required variable " << s << " in initializer file.\n";
-			return "";
+			throw std::runtime_error("Could not find required string " + s + " in initializer file " + init_fname + "");
 		}
 	}
 
@@ -149,27 +146,25 @@ class Initializer{
 		std::map <std::string, double>::iterator it = scalars.find(s);
 		if (it != scalars.end()) return it->second;
 		else {
-			std::cout << "FATAL ERROR: Could not find required variable " << s << " in initializer file.\n";
-			return 1;
+			throw std::runtime_error("Could not find required scalar " + s + " in initializer file " + init_fname + "");
 		}
 	}
 
 	inline std::vector <double> getArray(std::string s, int size = -1){
 		std::map <std::string, std::vector<double> >::iterator it = arrays.find(s);
 		if (it == arrays.end()) {	// array not found
-			std::cout << "FATAL ERROR: Could not find required array " << s << " in initializer file.\n";
-			return {};
+			throw std::runtime_error("Could not find required array " + s + " in initializer file " + init_fname + "");
 		}
 		if (it->second.size() == 0){
-			std::cout << "FATAL ERROR: Required array " << s << " is empty!\n"; 
-			return {};
+			throw std::runtime_error("Required array " + s + " is empty.");
 		}
-		if (size == -1) return it->second;
-		else if (size != it->second.size()) {
-			std::cout << "FATAL ERROR: Incorrect size of array " << s << ". Required " << size << ", found " << it->second.size() << '\n'; 
-			return {};
+		
+		if (size == -1 || size == it->second.size()) return it->second;
+		else {
+			std::stringstream sout;
+			sout << "FATAL ERROR: Incorrect size of array " << s << ". Required " << size << ", found " << it->second.size() << '\n'; 
+			throw std::runtime_error(sout.str());
 		}
-		else return it->second;
 	}
 
 	inline void print(){

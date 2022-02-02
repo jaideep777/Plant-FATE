@@ -10,7 +10,7 @@
 using namespace std;
 
 int main(){
-
+	
 	plant::PlantParameters par;
 
 	par.initFromFile("tests/params/p.ini");
@@ -21,8 +21,8 @@ int main(){
 	io::Initializer I("tests/params/p.ini");
 	I.readFile();
 	I.print();
-	double a = I.get<double>("testVal"); 
-	cout << "number in string testVal = " << a << "\n";
+	double a = I.get<double>("outDir"); 
+	cout << "number in string outDir = " << a << "\n";
 
 	// lambert W test
 	for (int i=0; i<21; ++i){
@@ -34,7 +34,7 @@ int main(){
 
 	// traits file test
 	TraitsReader Tr;
-	Tr.readFromFile("tests/data/Plant_Traits_AmzFACE_for_PlantFATE.csv");
+	Tr.readFromFile("tests/data/trait1.csv");
 	Tr.print();
 
 	return 0;
