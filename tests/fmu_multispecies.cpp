@@ -325,22 +325,24 @@ class EmergentProps{
 
 int main(){
 
+	string paramsFile = "tests/params/p.ini";
+	io::Initializer I(paramsFile);
+	I.readFile();
+	string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
+	string command = "mkdir -p " + out_dir;
+	string command2 = "cp tests/params/p.ini " + out_dir;
+	int sysresult;
+	sysresult = system(command.c_str());
+	sysresult = system(command2.c_str());
+
 	PSPM_Dynamic_Environment E;
-	E.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
-	E.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
+	E.metFile = I.get<string>("metFile");
+	E.co2File = I.get<string>("co2File");
 	E.init();
 	E.print(0);
 	E.use_ppa = true;
 	E.update_met = true;
 	E.update_co2 = true;
-
-	io::Initializer I("tests/params/p.ini");
-	I.readFile();
-	string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
-	string command = "mkdir -p " + out_dir;
-	string command2 = "cp tests/params/p.ini " + out_dir;
-	system(command.c_str());
-	system(command2.c_str());
 
 	Solver S(SOLVER_IFMU, "rk45ck");
     S.control.ode_ifmu_stepsize = 0.0833333;
@@ -349,10 +351,11 @@ int main(){
 	S.setEnvironment(&E);
 	
 	TraitsReader Tr;
-	Tr.readFromFile("tests/data/Amz_trait_filled_LD.csv");
+	Tr.readFromFile(I.get<string>("traitsFile"));
 	Tr.print();
 
-	for (int i=0; i<5; ++i){
+	int nspp = I.getScalar("nSpecies");
+	for (int i=0; i<nspp; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
 		p1.traits.species_name = Tr.species[i].species_name;
@@ -375,7 +378,7 @@ int main(){
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 		//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0
 	}
-	S.resetState(1000);
+	S.resetState(I.getScalar("year0"));
 	S.initialize();
 
 	for (auto spp : S.species_vec) spp->setU(0, 1);
@@ -394,8 +397,9 @@ int main(){
 //	S.print();
 //	for (auto y : S.state) cout << y << "\t"; cout << "\n";
 	
+	double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 	vector<MovingAverager> seeds_hist(S.species_vec.size());
-	for (auto& M : seeds_hist) M.set_interval(300);
+	for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg);
 
 	auto after_step = [&S, &seeds_hist](double t){
 		vector<double> seeds = S.newborns_out(t);
@@ -414,16 +418,19 @@ int main(){
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 //	ofstream flai(string(out_dir + "/LAI.txt").c_str());
 //	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
-	ofstream foutd(string(out_dir + "/AmzFACE_D_PFATE_AMB_LD.txt").c_str());
-	ofstream fouty(string(out_dir + "/AmzFACE_Y_mean_PFATE_AMB_LD.txt").c_str());
-	ofstream fouty_spp(string(out_dir + "/AmzFACE_Y_PFATE_AMB_LD.txt").c_str());
+	ofstream foutd(string(out_dir + "/" + I.get<string>("emgProps")).c_str());
+	ofstream fouty(string(out_dir + "/" + I.get<string>("cwmAvg")).c_str());
+	ofstream fouty_spp(string(out_dir + "/" + I.get<string>("cwmperSpecies")).c_str());
 	
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	double t_clear = 1050;
 	// t is years since 2000-01-01
-	for (double t=1000; t <= 3000; t=t+1) {
+	double y0, yf;
+	y0 = I.getScalar("year0");
+	yf = I.getScalar("yearf");
+	for (double t=y0; t <= yf; t=t+1) {
 		cout << "t = " << t << endl; //"\t";
 		S.step_to(t, after_step);
 		
@@ -599,7 +606,7 @@ int main(){
 				}
 			}
 			S.copyCohortsToState();
-			double t_int = -log(double(rand())/RAND_MAX) * 200;
+			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");;
 			t_clear = t + fmin(t_int, 1000);
 		}
 		
@@ -612,8 +619,6 @@ int main(){
 
 	}
 	
-	E.update_co2 = true;
-		
 
 	fco.close();
 	fseed.close();
@@ -624,6 +629,6 @@ int main(){
 	foutd.close();
 	fouty.close();
 	// free memory associated
-	for (auto s : S.species_vec) delete static_cast<Species<PSPM_Plant>*>(s);
+	for (auto s : S.species_vec) delete static_cast<Species<PSPM_Plant>*>(s); 
 }
 

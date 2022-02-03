@@ -21,20 +21,20 @@ LIB_PATH := -L$(ROOT_DIR)/pspm/lib
 CPPFLAGS = -O3 -g -pg -std=c++11 -Wall -Wextra 
 LDFLAGS =  -g -pg
 
-# -Weffc++ 
-#CPPFLAGS += -Wall -pedantic  \
-#-pedantic-errors -Wextra -Waggregate-return -Wcast-align \
+## -Weffc++ 
+#CPPFLAGS +=    \
+#-pedantic-errors  -Wcast-align \
 #-Wcast-qual -Wconversion \
 #-Wdisabled-optimization \
-#-Wfloat-equal -Wformat=2 \
+#-Wformat=2 \
 #-Wformat-nonliteral -Wformat-security  \
 #-Wformat-y2k \
-#-Wimplicit  -Wimport  -Winit-self  -Winline \
+#-Wimport  -Winit-self   \
 #-Winvalid-pch   \
 #-Wlong-long \
 #-Wmissing-field-initializers -Wmissing-format-attribute   \
 #-Wmissing-include-dirs -Wmissing-noreturn \
-#-Wpacked  -Wpadded -Wpointer-arith \
+#-Wpacked   -Wpointer-arith \
 #-Wredundant-decls \
 #-Wshadow -Wstack-protector \
 #-Wstrict-aliasing=2 -Wswitch-default \
@@ -42,7 +42,8 @@ LDFLAGS =  -g -pg
 #-Wunreachable-code -Wunused \
 #-Wunused-parameter \
 #-Wvariadic-macros \
-#-Wwrite-strings 
+#-Wwrite-strings \
+##-Waggregate-return -Wpadded -Wfloat-equal -Winline
 
 CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-but-set-variable -Wno-float-conversion \

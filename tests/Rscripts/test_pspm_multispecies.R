@@ -1,5 +1,5 @@
 code = "AMB_LD"
-setwd(paste0("/home/jaideep/codes/tmodel_cpp/pspm_output/AmzFACE_Final_",code,"_1/"))
+setwd(paste0("/home/jaideep/codes/tmodel_cpp/pspm_output/AmzFACE_Final_",code,"_3/"))
 
 plot_to_file = T
 n_species = 5

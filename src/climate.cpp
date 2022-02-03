@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <stdexcept>
 
 #include "climate.h"
 
@@ -17,12 +18,10 @@ int Climate::init(){
 	fin_co2.open(co2File.c_str());
 	
 	if (!fin_met){
-		std::cerr << "Error: Could not open file " << metFile << "\n";
-		return 1;
+		throw std::runtime_error("Could not open file " + metFile);
 	}
 	if (!fin_co2){
-		std::cerr << "Error: Could not open file " << co2File << "\n";
-		return 1;
+		throw std::runtime_error("Could not open file " + co2File);
 	}
 	
 	// skip header
