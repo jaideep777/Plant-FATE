@@ -41,9 +41,9 @@ void PSPM_Plant::preCompute(double x, double t, void * _env){
 }
 
 void PSPM_Plant::afterStep(double x, double t, void * _env){
-	EnvUsed * env = (EnvUsed*)_env;
-	
-	seeds_hist.push(t, rates.dseeds_dt_germ);
+//	EnvUsed * env = (EnvUsed*)_env;
+//	
+//	seeds_hist.push(t, rates.dseeds_dt_germ);
 	//seeds_hist.print_summary();
 }
 
@@ -59,22 +59,24 @@ double PSPM_Plant::growthRate(double x, double t, void * _env){
 }
 
 double PSPM_Plant::mortalityRate(double x, double t, void * _env){
-	return rates.dmort_dt;
+	double mort = rates.dmort_dt;
+//	double mort_cndd = 
+	return mort;
 }
 
 double PSPM_Plant::birthRate(double x, double t, void * _env){
-	if (par.T_seed_rain_avg > 0) 
-		return seeds_hist.get();           // birth rate is moving average of rate of germinating seeds over successional cycles
-	else 
+//	if (par.T_seed_rain_avg > 0){ 
+//		return seeds_hist.get(); // birth rate is moving average of rate of germinating seeds over successional cycles
+//	}          
+//	else{
 		return rates.dseeds_dt_germ;       // birth rate is instantaneous rate of germinating seeds 
-	
+//	}
 }
 
 void PSPM_Plant::init_state(double t, void * _env){
 	//set_size(x);	
 	EnvUsed * env = (EnvUsed*)_env;
 	geometry.lai = par.lai0;
-	geometry.crootmass = 0;
 	state.mortality = -log(p_survival_germination(*env)); ///env->patch_survival(t));    // mortality
 	state.seed_pool = 0; // viable seeds
 	t_birth = t;			// set cohort's birth time to current time
@@ -82,9 +84,9 @@ void PSPM_Plant::init_state(double t, void * _env){
 }
 
 vector<double>::iterator PSPM_Plant::set_state(vector<double>::iterator &it){
-	geometry.lai    = *it++;
-	state.mortality  = *it++;
-	state.seed_pool  = *it++;
+	geometry.lai       = *it++;
+	state.mortality    = *it++;
+	state.seed_pool    = *it++;
 	//vars.fecundity = viable_seeds; // only for single plant test run
 	return it;
 }

@@ -1,4 +1,4 @@
-#include "utils/moving_averager.h"
+#include "utils/moving_average.h"
 
 using namespace std;
 
@@ -20,6 +20,16 @@ int main(){
 		M.print();
 		cout << "t = " << i << ", Avg = " << M.get() << "\n";
 	}
+
+	M.clear();
+	M.set_interval(20);
+
+	for (int i=0; i<100; ++i){
+		M.push(i, (i<50)? 0.0 : 1.0);
+		//M.print();
+		cout << "t = " << i << ", Avg = " << M.get() << "\n";
+	}
+
 
 	return 0;
 }

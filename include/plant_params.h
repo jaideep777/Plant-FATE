@@ -15,6 +15,7 @@ class PlantTraits{
 	public:
 	double lma;             // leaf mass per leaf area [kg/m2]
 	double zeta;            // root mass per leaf area [kg/m2]
+	double fcr;             // coarse root mass per unit stem mass [-] 
 	double hmat;            // height at maturity [m]
 	double fhmat;           // height at reproductive maturity as fraction of hmat
 	double seed_mass;       // [kg]
@@ -33,12 +34,13 @@ class PlantTraits{
 
 
 	public:
-	inline int initFromFile(std::string fname){
+	inline void initFromFile(std::string fname){
 		io::Initializer I(fname);
 		I.readFile();
 
 		lma = I.getScalar("lma");
 		zeta = I.getScalar("zeta");
+		fcr = I.getScalar("fcr");
 		hmat = I.getScalar("hmat");
 		fhmat = I.getScalar("fhmat");
 		seed_mass = I.getScalar("seed_mass");
@@ -69,8 +71,6 @@ class PlantParameters{
 	double a;      // height-diameter allometry
 	double c;      // crown area allometry
 	double fg;		// upper canopy gap fraction
-
-	double frmin, frmax, frslope;  // coarse root allocation parameters
 
 	// ** LAI optimization
 	double Cc;                  // leaf construction costs
@@ -130,7 +130,7 @@ class PlantParameters{
 	
 	
 	public:
-	inline int initFromFile(std::string fname){
+	inline void initFromFile(std::string fname){
 		io::Initializer I(fname);
 		I.readFile();
 		//I.print();
@@ -144,10 +144,6 @@ class PlantParameters{
 		fg = I.getScalar("fg");
 		a  = I.getScalar("a");
 		c  = I.getScalar("c");
-
-		frmin = I.getScalar("frmin");
-		frmax = I.getScalar("frmax");
-		frslope = I.getScalar("frslope");
 
 		Cc  = I.getScalar("Cc");
 		Chyd = I.getScalar("Chyd");
@@ -190,7 +186,6 @@ class PlantParameters{
 
 		T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 
-		return 0;
 	}
 
 	inline void print(){

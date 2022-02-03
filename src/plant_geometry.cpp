@@ -80,17 +80,14 @@ double PlantGeometry::dsize_dmass(PlantTraits &traits) const {
 	double dmtrunk_dd = (geom.eta_c * M_PI * traits.wood_density / 4) * (2*height + diameter*dh_dd)*diameter;
 	double dmbranches_dd = (sqrt(geom.c / geom.a) * M_PI * traits.wood_density / 12) * (2.5*height + 0.5*diameter*dh_dd) * diameter*sqrt(diameter/height); 
 	double dmroot_dd = (traits.zeta/traits.lma) * dmleaf_dd;
+	double dmcroot_dd = (dmbranches_dd + dmtrunk_dd)*traits.fcr;
 
-	double dmass_dd = dmleaf_dd + dmtrunk_dd + dmbranches_dd + dmroot_dd;
+	double dmass_dd = dmleaf_dd + dmtrunk_dd + dmbranches_dd + dmroot_dd + dmcroot_dd;
 	return 1/dmass_dd;
 }
 
 double PlantGeometry::dreproduction_dmass(PlantParameters &par, PlantTraits &traits){
 	return par.a_f1 / (1.0 + exp(par.a_f2 * (1.0 - diameter / geom.dmat))); 
-}
-
-double PlantGeometry::dcoarseroot_dmass(PlantParameters &par, PlantTraits &traits){
-	return par.frmin + (par.frmax - par.frmin) * exp(-par.frslope * (diameter / geom.dmat)); 
 }
 
 
@@ -117,6 +114,10 @@ double PlantGeometry::root_mass(PlantTraits &traits){
 	return crown_area * lai * traits.zeta;	
 }
 
+double PlantGeometry::coarse_root_mass(PlantTraits &traits){
+	return stem_mass(traits)*traits.fcr;	
+}
+
 //double sapwood_mass(PlantTraits &traits){
 	//return traits.wood_density*(hvlc/geom.c)*crown_area*geom.eta_l*height;
 //}
@@ -140,7 +141,7 @@ double PlantGeometry::heartwood_mass(PlantTraits &traits){
 }
 
 double PlantGeometry::total_mass(PlantTraits &traits){
-	return stem_mass(traits) + leaf_mass(traits) + root_mass(traits) + crootmass;
+	return stem_mass(traits)*(1+traits.fcr) + leaf_mass(traits) + root_mass(traits);
 }
 
 // **
@@ -152,10 +153,6 @@ double PlantGeometry::get_size() const {
 
 void PlantGeometry::set_lai(double _l){
 	lai = _l;
-}
-
-void PlantGeometry::set_crootmass(double _cr){
-	crootmass = _cr;
 }
 
 

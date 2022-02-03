@@ -29,7 +29,6 @@ class PlantGeometry{
 	public:
 	// current state
 	double lai;          // leaf area index 
-	double crootmass;    // coarse root mass
 	double diameter;     // basal diameter
 
 	// variables calculated from state variables
@@ -65,7 +64,6 @@ class PlantGeometry{
 	double dsize_dmass(PlantTraits &traits) const ;
 
 	double dreproduction_dmass(PlantParameters &par, PlantTraits &traits);
-	double dcoarseroot_dmass(PlantParameters &par, PlantTraits &traits);
 
 
 	// **
@@ -82,6 +80,7 @@ class PlantGeometry{
 	double sapwood_mass(PlantTraits &traits);
 	double sapwood_mass_real(PlantTraits &traits);
 	double stem_mass(PlantTraits &traits);
+	double coarse_root_mass(PlantTraits &traits);
 	double heartwood_mass(PlantTraits &traits);
 	double total_mass(PlantTraits &traits);
 
@@ -90,7 +89,6 @@ class PlantGeometry{
 	// **	
 	double get_size() const ;
 	void set_lai(double _l);
-	void set_crootmass(double _cr);
 	void set_size(double _x, PlantTraits &traits);
 	std::vector<double>::iterator set_state(std::vector<double>::iterator S, PlantTraits &traits);
 	

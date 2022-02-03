@@ -18,12 +18,11 @@ namespace plant{
 //}
 
 
-int Plant::initParamsFromFile(std::string file){
-	int i;
-   	i = par.initFromFile(file);
-	i = traits.initFromFile(file);
+void Plant::initParamsFromFile(std::string file){
+	par.initFromFile(file);
+	traits.initFromFile(file);
 
-	seeds_hist.set_interval(par.T_seed_rain_avg);
+	//seeds_hist.set_interval(par.T_seed_rain_avg);
 
 	coordinateTraits();
 
@@ -31,19 +30,19 @@ int Plant::initParamsFromFile(std::string file){
 }
 
 
-int Plant::coordinateTraits(){
+void Plant::coordinateTraits(){
 	traits.ll = 1/(0.0286*pow(traits.lma, -1.71));  // Leaf Economics Spectrum (Relationship from Wright et al. 2004)
 	traits.p50_leaf = traits.p50_xylem/3.01;        // P50 = Pg88/3 = P50X/3
 	
 //	traits.K_leaf = exp(1.71-8.628*traits.lma)*1e-16;
 	
-//	par.c = 4*par.a* exp(log(3)+3.957265-0.040063*traits.hmat) /M_PI;
+	double c0 = par.c; // default value of c
+	par.c = 4*par.a* exp(log(c0/2000)+3.957265-0.040063*traits.hmat) /M_PI;
 	
 	//par.n = 1.1+6*(1-pow(0.5,pow(traits.hmat/25,4)));          // 12*(1-exp(-1*traits.hmat/30));
 	
 	geometry.init(par, traits);
 	
-	return 0;
 }
 
 

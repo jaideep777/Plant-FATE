@@ -14,12 +14,40 @@ ROOT_DIR := /home/jaideep/codes
 
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./include #-I./CppNumericalSolvers-1.0.0
-INC_PATH += -I$(ROOT_DIR)/phydro_cpp/include -I$(ROOT_DIR)/phydro_cpp/LBFGSpp/include -I$(ROOT_DIR)/pspm/include -I/usr/include/eigen3 
+INC_PATH += -I$(ROOT_DIR)/phydro_cpp/include -isystem $(ROOT_DIR)/phydro_cpp/LBFGSpp/include -I$(ROOT_DIR)/pspm/include -isystem /usr/include/eigen3 
 LIB_PATH := -L$(ROOT_DIR)/pspm/lib
 
 # flags
-CPPFLAGS = -O3 -g -pg -std=c++11 -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable
+CPPFLAGS = -O3 -g -pg -std=c++11 -Wall -Wextra 
 LDFLAGS =  -g -pg
+
+## -Weffc++ 
+#CPPFLAGS +=    \
+#-pedantic-errors  -Wcast-align \
+#-Wcast-qual -Wconversion \
+#-Wdisabled-optimization \
+#-Wformat=2 \
+#-Wformat-nonliteral -Wformat-security  \
+#-Wformat-y2k \
+#-Wimport  -Winit-self   \
+#-Winvalid-pch   \
+#-Wlong-long \
+#-Wmissing-field-initializers -Wmissing-format-attribute   \
+#-Wmissing-include-dirs -Wmissing-noreturn \
+#-Wpacked   -Wpointer-arith \
+#-Wredundant-decls \
+#-Wshadow -Wstack-protector \
+#-Wstrict-aliasing=2 -Wswitch-default \
+#-Wswitch-enum \
+#-Wunreachable-code -Wunused \
+#-Wunused-parameter \
+#-Wvariadic-macros \
+#-Wwrite-strings \
+##-Waggregate-return -Wpadded -Wfloat-equal -Winline
+
+CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
+-Wno-unused-but-set-variable -Wno-float-conversion \
+-Wno-unused-parameter
 
 # libs
 LIBS = 	 -lgsl -lgslcblas -lpspm	# additional libs
