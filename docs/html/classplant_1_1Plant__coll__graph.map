@@ -1,0 +1,9 @@
+<map id="plant::Plant" name="plant::Plant">
+<area shape="rect" id="node2" href="$structplant_1_1PlantAssimilationResult.html" title="plant::PlantAssimilation\lResult" alt="" coords="181,5,340,47"/>
+<area shape="rect" id="node5" href="$classplant_1_1Assimilator.html" title="plant::Assimilator" alt="" coords="493,57,616,83"/>
+<area shape="rect" id="node3" href="$classplant_1_1PlantGeometry.html" title="plant::PlantGeometry" alt="" coords="482,107,627,134"/>
+<area shape="rect" id="node4" href="$classplant_1_1PlantParameters.html" title="plant::PlantParameters" alt="" coords="477,158,632,185"/>
+<area shape="rect" id="node6" href="$classplant_1_1PlantTraits.html" title="plant::PlantTraits" alt="" coords="494,209,615,235"/>
+<area shape="rect" id="node7" title="STL class. " alt="" coords="221,209,301,235"/>
+<area shape="rect" id="node8" title="STL class. " alt="" coords="5,201,132,243"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="plant::Plant::p_survival_germination" name="plant::Plant::p_survival_germination">
+<area shape="rect" id="node2" href="$classPSPM__Plant.html#a4ceca1be5d1089c49dcecdc5ce216727" title="PSPM_Plant::establishment\lProbability" alt="" coords="208,5,395,47"/>
+<area shape="rect" id="node3" href="$classPSPM__Plant.html#ad3109143960e0a0ceded078733bc4d4c" title="PSPM_Plant::init_state" alt="" coords="222,71,381,98"/>
+</map>
