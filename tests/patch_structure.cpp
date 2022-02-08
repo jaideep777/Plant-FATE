@@ -331,6 +331,36 @@ class Patch{
 };
 
 int main(){
+    string paramsFile = "tests/params/p.ini";
+    io::Initializer I(paramsFile);
+    I.readFile();
+    string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
+    string command = "mkdir -p " + out_dir;
+    string command2 = "cp tests/params/p.ini " + out_dir;
+    int sysresult;
+    sysresult = system(command.c_str());
+    sysresult = system(command2.c_str());
+
+    PSPM_Dynamic_Environment E;
+    E.metFile = I.get<string>("metFile");
+    E.co2File = I.get<string>("co2File");
+    E.init();
+    E.print(0);
+    E.use_ppa = true;
+    E.update_met = true;
+    E.update_co2 = true;
+
+    Solver S(SOLVER_IFMU, "rk45ck");
+    S.control.ode_ifmu_stepsize = 0.0833333;
+    S.control.ifmu_centered_grids = false; //true;
+    S.use_log_densities = true;
+    S.setEnvironment(&E);
+    
+    TraitsReader Tr;
+    Tr.readFromFile(I.get<string>("traitsFile"));
+    Tr.print();
+    
+    int npatch = T.getScalar("nPatch");
     
     
 }
