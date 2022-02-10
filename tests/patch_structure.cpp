@@ -328,7 +328,28 @@ class EmergentProps{
 
 class Patch{
     public:
-  
+    
+    
+    string paramsFile = "tests/params/p.ini";
+    io::Initializer I(paramsFile);
+    I.readFile();
+    string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
+    string command = "mkdir -p " + out_dir;
+    string command2 = "cp tests/params/p.ini " + out_dir;
+    int sysresult;
+    sysresult = system(command.c_str());
+    sysresult = system(command2.c_str());
+    
+    Solver S(SOLVER_IFMU, "rk45ck");
+    S.control.ode_ifmu_stepsize = 0.0833333;
+    S.control.ifmu_centered_grids = false; //true;
+    S.use_log_densities = true;
+    S.setEnvironment(&E);
+    
+    void initPatch(){
+        
+        
+    }
     
     void initSpecies(){
         
@@ -342,15 +363,7 @@ class Patch{
 };
 
 int main(){
-    string paramsFile = "tests/params/p.ini";
-    io::Initializer I(paramsFile);
-    I.readFile();
-    string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
-    string command = "mkdir -p " + out_dir;
-    string command2 = "cp tests/params/p.ini " + out_dir;
-    int sysresult;
-    sysresult = system(command.c_str());
-    sysresult = system(command2.c_str());
+    
 
     PSPM_Dynamic_Environment E;
     E.metFile = I.get<string>("metFile");
@@ -361,11 +374,7 @@ int main(){
     E.update_met = true;
     E.update_co2 = true;
 
-    Solver S(SOLVER_IFMU, "rk45ck");
-    S.control.ode_ifmu_stepsize = 0.0833333;
-    S.control.ifmu_centered_grids = false; //true;
-    S.use_log_densities = true;
-    S.setEnvironment(&E);
+    
     
     TraitsReader Tr;
     Tr.readFromFile(I.get<string>("traitsFile"));
@@ -374,7 +383,7 @@ int main(){
     int npatch = I.getScalar("nPatches");
     for(int i=0; i<npatch; ++i){
         Patch pa1;
-        pa1.initPlantParamsFromFile("");
+        pa1.initPatch();
         pa1.initSpecies();
         pa1.initSolver();
         
