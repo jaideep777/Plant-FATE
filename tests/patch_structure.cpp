@@ -330,6 +330,77 @@ class Patch{
     public:
     
     
+    void initPatch(PSPM_Dynamic_Environment &E, TraitsReader &Tr, int nspp, double y0){
+        Solver S(SOLVER_IFMU, "rk45ck");
+        S.control.ode_ifmu_stepsize = 0.0833333;
+        S.control.ifmu_centered_grids = false; //true;
+        S.use_log_densities = true;
+        S.setEnvironment(&E);
+        
+        for (int i=0; i<nspp; ++i){
+            PSPM_Plant p1;
+            p1.initParamsFromFile("tests/params/p.ini");
+            p1.traits.species_name = Tr.species[i].species_name;
+            p1.traits.lma = Tr.species[i].lma;
+            p1.traits.wood_density = Tr.species[i].wood_density;
+            p1.traits.hmat = Tr.species[i].hmat;
+            p1.traits.p50_xylem = Tr.species[i].p50_xylem; // runif(-3.5,-0.5);
+            
+            p1.coordinateTraits();
+
+            ((plant::Plant*)&p1)->print();
+            
+            //p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
+            p1.set_size(0.01);
+            
+            Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
+
+            S.addSpecies(30, 0.01, 10, true, spp, 3, 1e-3);
+            
+            //    S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
+            //S.get_species(0)->set_bfin_is_u0in(true);    // say that input_birth_flux is u0
+        }
+        S.resetState(y0);
+        S.initialize();
+        
+        for (auto spp : S.species_vec) spp->setU(0, 1);
+        S.copyCohortsToState();
+
+        S.print();
+    //  S.control.update_cohorts = false;
+
+        SolverIO sio;
+        sio.S = &S;
+        sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir);
+    }
+    
+    void seed_thing(){
+        
+    }
+    
+    void create_files(){
+        
+        //ADD PATCH NUMBER FOR EACH FILE
+        
+        
+        //  ofstream fout("fmu_PlantFATE.txt");
+            ofstream fzst(string(out_dir + "/z_star.txt").c_str());
+            assert(fzst);
+            ofstream fco(string(out_dir + "/canopy_openness.txt").c_str());
+            ofstream fseed(string(out_dir + "/seeds.txt").c_str());
+            ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
+        //  ofstream flai(string(out_dir + "/LAI.txt").c_str());
+        //  ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
+            ofstream foutd(string(out_dir + "/" + I.get<string>("emgProps")).c_str());
+            ofstream fouty(string(out_dir + "/" + I.get<string>("cwmAvg")).c_str());
+            ofstream fouty_spp(string(out_dir + "/" + I.get<string>("cwmperSpecies")).c_str());
+        
+    }
+    
+    
+};
+
+int main(){
     string paramsFile = "tests/params/p.ini";
     io::Initializer I(paramsFile);
     I.readFile();
@@ -340,31 +411,9 @@ class Patch{
     sysresult = system(command.c_str());
     sysresult = system(command2.c_str());
     
-    Solver S(SOLVER_IFMU, "rk45ck");
-    S.control.ode_ifmu_stepsize = 0.0833333;
-    S.control.ifmu_centered_grids = false; //true;
-    S.use_log_densities = true;
-    S.setEnvironment(&E);
+    int nspp = I.getScalar("nSpecies");
+    double y0 = I.getScalar("year0");
     
-    void initPatch(){
-        
-        
-    }
-    
-    void initSpecies(){
-        
-    }
-    
-    void initSolver(){
-        
-    }
-    
-    
-};
-
-int main(){
-    
-
     PSPM_Dynamic_Environment E;
     E.metFile = I.get<string>("metFile");
     E.co2File = I.get<string>("co2File");
@@ -373,8 +422,12 @@ int main(){
     E.use_ppa = true;
     E.update_met = true;
     E.update_co2 = true;
-
     
+    Solver S(SOLVER_IFMU, "rk45ck");
+    S.control.ode_ifmu_stepsize = 0.0833333;
+    S.control.ifmu_centered_grids = false; //true;
+    S.use_log_densities = true;
+    S.setEnvironment(&E);
     
     TraitsReader Tr;
     Tr.readFromFile(I.get<string>("traitsFile"));
@@ -383,12 +436,19 @@ int main(){
     int npatch = I.getScalar("nPatches");
     for(int i=0; i<npatch; ++i){
         Patch pa1;
-        pa1.initPatch();
-        pa1.initSpecies();
-        pa1.initSolver();
-        
+        pa1.initPatch(&E, &Tr, nspp, y0);
     }
     
+    double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+    
+    //seed things
+    
+    //open file for each patch
+    
+    
+    ofstream fco[npatch];
+    
+    fco[i](string(out_dir + "/canopy_openness.txt").c_str());
     
 }
 // END OF FILE
