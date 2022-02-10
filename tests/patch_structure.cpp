@@ -328,6 +328,16 @@ class EmergentProps{
 
 class Patch{
     public:
+  
+    
+    void initSpecies(){
+        
+    }
+    
+    void initSolver(){
+        
+    }
+    
     
 };
 
@@ -361,8 +371,15 @@ int main(){
     Tr.readFromFile(I.get<string>("traitsFile"));
     Tr.print();
     
-    int npatch = T.getScalar("nPatch");
-    //test commit
+    int npatch = I.getScalar("nPatches");
+    for(int i=0; i<npatch; ++i){
+        Patch pa1;
+        pa1.initPlantParamsFromFile("");
+        pa1.initSpecies();
+        pa1.initSolver();
+        
+    }
+    
     
 }
 // END OF FILE
