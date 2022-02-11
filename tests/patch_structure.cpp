@@ -329,76 +329,179 @@ class EmergentProps{
 
 class Patch{
     public:
-    
-    
-    void initPatch(PSPM_Dynamic_Environment &E, TraitsReader &Tr, int nspp, double y0, int patchNo){
-        
     Solver S(SOLVER_IFMU, "rk45ck");
-    S.control.ode_ifmu_stepsize = 0.0833333;
-    S.control.ifmu_centered_grids = false; //true;
-    S.use_log_densities = true;
-    S.setEnvironment(&E);
-        
-    for (int i=0; i<nspp; ++i){
-        PSPM_Plant p1;
-        p1.initParamsFromFile("tests/params/p.ini");
-        p1.traits.species_name = Tr.species[i].species_name;
-        p1.traits.lma = Tr.species[i].lma;
-        p1.traits.wood_density = Tr.species[i].wood_density;
-        p1.traits.hmat = Tr.species[i].hmat;
-        p1.traits.p50_xylem = Tr.species[i].p50_xylem; // runif(-3.5,-0.5);
-                    
-        p1.coordinateTraits();
-            
-        ((plant::Plant*)&p1)->print();
-                
-        //p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
-        p1.set_size(0.01);
-                    
-        Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
-        
-        S.addSpecies(30, 0.01, 10, true, spp, 3, 1e-3);
-                    
-        //  S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
-        //  S.get_species(0)->set_bfin_is_u0in(true);    // say that input_birth_flux is u0
-    }
-        
-    S.resetState(y0);
-    S.initialize();
-        
-    for (auto spp : S.species_vec) spp->setU(0, 1);
-    S.copyCohortsToState();
-
-    S.print();
-    //  S.control.update_cohorts = false;
-
+    PSPM_Dynamic_Environment E;
+    TraitsReader Tr;
     SolverIO sio;
-    sio.S = &S;
-    sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir);
+    ofstream fzst;
+    ofstream fco;
+    ofstream fseed;
+    ofstream fabase;
+    ofstream foutd;
+    ofstream fouty;
+    ofstream fouty_spp;
+    int npatch;
+    
+    void initPatch(Initializer &I){
+        
+        npatch = I.getScalar("nPatches");
+        E.metFile = I.get<string>("metFile");
+        E.co2File = I.get<string>("co2File");
+        E.init();
+        E.print(0);
+        E.use_ppa = true;
+        E.update_met = true;
+        E.update_co2 = true;
+        
+        S.control.ode_ifmu_stepsize = 0.0833333;
+        S.control.ifmu_centered_grids = false; //true;
+        S.use_log_densities = true;
+        S.setEnvironment(&E);
+        
+        Tr.readFromFile(I.get<string>("traitsFile"));
+        Tr.print();
+        
+        int nspp = I.getScalar("nSpecies");
+        for (int i=0; i<nspp; ++i){
+            PSPM_Plant p1;
+            p1.initParamsFromFile("tests/params/p.ini");
+            p1.traits.species_name = Tr.species[i].species_name;
+            p1.traits.lma = Tr.species[i].lma;
+            p1.traits.wood_density = Tr.species[i].wood_density;
+            p1.traits.hmat = Tr.species[i].hmat;
+            p1.traits.p50_xylem = Tr.species[i].p50_xylem; // runif(-3.5,-0.5);
+            
+            p1.coordinateTraits();
 
-        //-------------------------------------//
-        // CREATING FILES AND ADDING DATA
-        //-------------------------------------//
+            ((plant::Plant*)&p1)->print();
+            
+            //p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
+            p1.set_size(0.01);
+            
+            Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 
+            S.addSpecies(30, 0.01, 10, true, spp, 3, 1e-3);
+            
+            //    S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
+            //S.get_species(0)->set_bfin_is_u0in(true);    // say that input_birth_flux is u0
+        }
+        S.resetState(I.getScalar("year0"));
+        S.initialize();
 
-    string patchpath = string(out_dir + "/Patch"+ patchNo);
-    string command = "mkdir -p " + patchpath;
-    int sysresult;
-    sysresult = system(command.c_str());
-    //ADD PATCH NUMBER FOR EACH FILE
-    //  ofstream fout("fmu_PlantFATE.txt");
-    ofstream fzst(string(patchpath + "/z_star.txt").c_str());
-    assert(fzst);
-    ofstream fco(string(patchpath + "/canopy_openness.txt").c_str());
-    ofstream fseed(string(patchpath + "/seeds.txt").c_str());
-    ofstream fabase(string(patchpath + "/basal_area.txt").c_str());
-    //	ofstream flai(string(out_dir + "/LAI.txt").c_str());
-    //	ofstream fcwmt(string(out_dir + "/cwmt.txt").c_str());
-    ofstream foutd(string(patchpath + "/" + I.get<string>("emgProps")).c_str());
-    ofstream fouty(string(patchpath + "/" + I.get<string>("cwmAvg")).c_str());
-    ofstream fouty_spp(string(patchpath + "/" + I.get<string>("cwmperSpecies")).c_str());
+        for (auto spp : S.species_vec) spp->setU(0, 1);
+        S.copyCohortsToState();
+
+        S.print();
+        sio.S = &S;
+        sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir);
+    }
+    
+    void initOutputFiles(){
+        fzst.open(string(out_dir + "/z_star.txt").c_str());
+        fco.open(string(out_dir + "/canopy_openness.txt").c_str());
+        fseed.open(string(out_dir + "/seeds.txt").c_str());
+        fabase.open(string(out_dir + "/basal_area.txt").c_str());
+        foutd.open(string(out_dir + "/" + I.get<string>("emgProps")).c_str());
+        fouty.open(string(out_dir + "/" + I.get<string>("cwmAvg")).c_str());
+        fouty_spp.open(string(out_dir + "/" + I.get<string>("cwmperSpecies")).c_str());
+        foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\n";
+        fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
+        fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
+    }
+    
+    void updatePatch(CWM &cwm, EmergentProps &props, double t){
+        
+        cout << "t = " << t << endl; //"\t";
+        S.step_to(t, after_step);
+        
+        cwm.update(t, S);
+        props.update(t, S);
+        
+        foutd << int(t) << "\t"
+              << (t-int(t))*365 << "\t"
+              << props.gpp*0.5/365*1000 << "\t"
+              << props.npp*0.5/365*1000 << "\t"
+              << props.resp_auto*0.5/365*1000 << "\t"  // gC/m2/d
+              << props.leaf_mass*1000*0.5 << "\t"
+              << props.stem_mass*1000*0.5 << "\t"
+              << props.croot_mass*1000*0.5 << "\t"
+              << props.froot_mass*1000*0.5 << "\t"
+              << (props.croot_mass+props.froot_mass)*1000*0.5 << "\t" // gC/m2
+              << cwm.gs << "\t"
+              << props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day
+              << props.lai << endl;
+        
+        fouty << int(t) << "\t"
+              << -9999  << "\t"
+              << cwm.n_ind << "\t"
+              << -9999  << "\t"
+              << cwm.height  << "\t"
+              << cwm.hmat  << "\t"
+              << cwm.canopy_area  << "\t"   // m2/m2
+              << cwm.ba  << "\t"            // m2/m2
+              << cwm.biomass  << "\t"       // kg/m2
+              << cwm.wd  << "\t"
+              << -9999  << "\t"
+              << 1/cwm.lma  << "\t"
+              << cwm.p50  << endl;
+        
+        for (int k=0; k<S.species_vec.size(); ++k){
+            fouty_spp
+                  << int(t) << "\t"
+                  << k  << "\t"
+                  << cwm.n_ind_vec[k] << "\t"
+                  << -9999  << "\t"
+                  << cwm.height_vec[k]  << "\t"
+                  << cwm.hmat_vec[k]  << "\t"
+                  << cwm.canopy_area_vec[k]  << "\t"   // m2/m2
+                  << cwm.ba_vec[k]  << "\t"            // m2/m2
+                  << cwm.biomass_vec[k]  << "\t"       // kg/m2
+                  << cwm.wd_vec[k]  << "\t"
+                  << -9999  << "\t"
+                  << 1/cwm.lma_vec[k]  << "\t"
+                  << cwm.p50_vec[k]  << "\n";
+        }
+        
+        fabase << t << "\t";
+        for (int i=0; i<S.n_species(); ++i) fabase << cwm.ba_vec[i] << "\t";
+        fabase << "\n";
+        
+        fzst << t << "\t";
+        for (auto z : E.z_star) fzst << z << "\t";
+        fzst << endl;
+        
+        fco << t << "\t";
+        for (auto z : E.canopy_openness) fco << z << "\t";
+        fco << endl;
+        
+        sio.writeState();
 
     }
+    
+    void flushPatch(){
+        fco.flush();
+        fseed.flush();
+        fzst.flush();
+        fabase.flush();
+    }
+    
+    
+    void clearPatch(){
+        
+    }
+    
+    void closePatch(){
+        fco.close();
+        fseed.close();
+        fzst.close();
+        fabase.close();
+    //    flai.close();
+    //    fcwmt.close();
+        foutd.close();
+        fouty.close();
+        for (auto s : S.species_vec) delete static_cast<Species<PSPM_Plant>*>(s);
+    }
+    
 }
 
 
@@ -414,41 +517,30 @@ int main(){
     int sysresult;
     sysresult = system(command.c_str());
     sysresult = system(command2.c_str());
-    
-    int npatch = I.getScalar("nPatches");
-    int nspp = I.getScalar("nSpecies");
-    double y0 = I.getScalar("year0");
-    
-    PSPM_Dynamic_Environment E;
-    E.metFile = I.get<string>("metFile");
-    E.co2File = I.get<string>("co2File");
-    E.init();
-    E.print(0);
-    E.use_ppa = true;
-    E.update_met = true;
-    E.update_co2 = true;
-
-    TraitsReader Tr;
-    Tr.readFromFile(I.get<string>("traitsFile"));
-    Tr.print();
-   
-    
-    for(int i=0; i<npatch; ++i){
-        Patch pa1;
-        pa1.initPatch(&E, &Tr, nspp, y0, i);
+ 
+    int npatches = I.getScalar("nPatches");
+    Patch pa[npatches];
+    for (int i=0; i<npatches; ++i){
+        pa[i].initPatch();
+        pa[i].initOutputFiles();
     }
     
-    double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+    double t_clear = 1050;
+    // t is years since 2000-01-01
+    double y0, yf;
+    y0 = I.getScalar("year0");
+    yf = I.getScalar("yearf");
+    for (double t=y0; t <= yf; t=t+1){
+        CWM cwm;
+        EmergentProps props;
+        for (int i=0; i<npatches; ++i){
+            pa[i].updatePatch(cwm, props, t);
+            pa[i].clearPatch(t);
+            pa[i].flushPatch();
+        }
+    }
     
-    //seed things
-    
-    //open file for each patch
-    
-    
-    // ofstream fco[npatch];
-    
-    // fco[i](string(out_dir + "/canopy_openness.txt").c_str());
-    
+    for (int i=0; i<npatches; ++i){
+        pa[i].closePatch();
+    }
 }
-
-// END OF FILE
