@@ -342,28 +342,27 @@ class Patch{
     ofstream fouty;
     ofstream fouty_spp;
     int npatch;
-
-    Patch(){
-
-    }
     
+    Patch(PSPM_SolverType _method, string ode_method) : S(_method, ode_method) {
+    }
+
     void initPatch(io::Initializer &I, int patchNo){
         
         npatch = I.getScalar("nPatches");
         E.metFile = I.get<string>("metFile");
         E.co2File = I.get<string>("co2File");
         string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
-        E.init();
+        // E.init();
         E.print(0);
         E.use_ppa = true;
         E.update_met = false;
         E.update_co2 = false;
-        
+        cout << "works" << endl;
         S.control.ode_ifmu_stepsize = 0.0833333;
         S.control.ifmu_centered_grids = false; //true;
         S.use_log_densities = true;
         S.setEnvironment(&E);
-        
+        cout << "works" << endl;
         Tr.readFromFile(I.get<string>("traitsFile"));
         Tr.print();
         
@@ -391,12 +390,13 @@ class Patch{
             //    S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
             //S.get_species(0)->set_bfin_is_u0in(true);    // say that input_birth_flux is u0
         }
+        cout << "works" << endl;
         S.resetState(I.getScalar("year0"));
         S.initialize();
-
+        cout << "works" << endl;
         for (auto spp : S.species_vec) spp->setU(0, 1);
         S.copyCohortsToState();
-
+        cout << "works" << endl;
         S.print();
         sio.S = &S;
         sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir+"/Patch"+ to_string(patchNo));
@@ -535,7 +535,7 @@ class Patch{
         for (auto s : S.species_vec) delete static_cast<Species<PSPM_Plant>*>(s);
     }
     
-}
+};
 
 
 
@@ -552,32 +552,35 @@ int main(){
     sysresult = system(command2.c_str());
  
     int npatches = I.getScalar("nPatches");
-    vector<Patch*> pa;
-    // Patch pa[npatches];
-    for (int i=0;i<npatches;i++){
-        Patch *patch = new Patch(SOLVER_IFMU, "rk45ck");
-        pa.push_back(patch);
-    }
-    for (int i=0; i<npatches; ++i){
-        pa[i]->initPatch(I, i);
-        pa[i]->initOutputFiles(I, i);
-    }
+    // vector<Patch*> pa;
+    // // Patch pa[npatches];
+    // for (int i=0;i<npatches;i++){
+    //     Patch *patch = new Patch(SOLVER_IFMU, "rk45ck");
+    //     pa.push_back(patch);
+    // }
+    // for (int i=0; i<npatches; ++i){
+    //     pa[i]->initPatch(I, i);
+    //     pa[i]->initOutputFiles(I, i);
+    // }
+    Patch pa(SOLVER_IFMU, "rk45ck");
+    pa.initPatch(I, 1);
+    //pa.initOutputFiles(I, 1);
     
-    double t_clear = 1050;
-    // t is years since 2000-01-01
-    double y0, yf;
-    y0 = I.getScalar("year0");
-    yf = I.getScalar("yearf");
-    for (double t=y0; t <= yf; t=t+1){
-        CWM cwm;
-        EmergentProps props;
-        for (int i=0; i<npatches; ++i){
-            pa[i]->updatePatch(I, cwm, props, t);
-            pa[i]->clearPatch(I,t,t_clear);
-            pa[i]->flushPatch();
-        }
-    }
-    for (int i=0; i<npatches; ++i){
-        pa[i]->closePatch();
-    }
+    // double t_clear = 1050;
+    // // // t is years since 2000-01-01
+    // double y0, yf;
+    // y0 = I.getScalar("year0");
+    // yf = I.getScalar("yearf");
+    //for (double t=y0; t <= yf; t=t+1){
+    //     CWM cwm;
+    //     EmergentProps props;
+    //     for (int i=0; i<npatches; ++i){
+    //         pa[i]->updatePatch(I, cwm, props, t);
+    //         pa[i]->clearPatch(I,t,t_clear);
+    //         pa[i]->flushPatch();
+    //     }
+    // }
+    // for (int i=0; i<npatches; ++i){
+    //     pa[i]->closePatch();
+    // }
 }
