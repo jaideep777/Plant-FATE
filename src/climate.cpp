@@ -74,11 +74,10 @@ int Climate::id(double t){
 
 
 void Climate::updateClimate(double t){
-
-	double tadj = t;  // adjusted t to lie between limits of observed data
-	while(tadj < *t_met.begin()) tadj += delta;
 		
 	if (update_met){
+		double tadj = t;  // adjusted t to lie between limits of observed data
+		while(tadj < *t_met.begin()) tadj += delta;
 		int idx_now = id(tadj);
 		int idx_next = (idx_now+1) % t_met.size();
 		clim = interp(v_met[idx_now], v_met[idx_next]);

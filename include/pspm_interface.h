@@ -131,7 +131,6 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 			z_star.push_back(0);
 			//std::cout << "z*_vec (" << z_star.size() << ") = "; for(auto z: z_star) std::cout << z << " "; cout << "\n"; cout.flush();
 			assert(z_star.size() == n_layers+1);
-			
 			canopy_openness.clear();
 			fapar_tot.clear();
 			canopy_openness.resize(n_layers+1);  

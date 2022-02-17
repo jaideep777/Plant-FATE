@@ -341,6 +341,9 @@ class Patch{
     ofstream foutd;
     ofstream fouty;
     ofstream fouty_spp;
+
+    vector<MovingAverager> seeds_hist;
+    double T_seed_rain_avg;
     int npatch;
     
     Patch(PSPM_SolverType _method, string ode_method) : S(_method, ode_method) {
@@ -357,12 +360,11 @@ class Patch{
         E.use_ppa = true;
         E.update_met = false;
         E.update_co2 = false;
-        cout << "works" << endl;
         S.control.ode_ifmu_stepsize = 0.0833333;
         S.control.ifmu_centered_grids = false; //true;
         S.use_log_densities = true;
         S.setEnvironment(&E);
-        cout << "works" << endl;
+
         Tr.readFromFile(I.get<string>("traitsFile"));
         Tr.print();
         
@@ -390,16 +392,20 @@ class Patch{
             //    S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
             //S.get_species(0)->set_bfin_is_u0in(true);    // say that input_birth_flux is u0
         }
-        cout << "works" << endl;
+
         S.resetState(I.getScalar("year0"));
         S.initialize();
-        cout << "works" << endl;
+   
         for (auto spp : S.species_vec) spp->setU(0, 1);
         S.copyCohortsToState();
-        cout << "works" << endl;
+       
         S.print();
         sio.S = &S;
-        sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir+"/Patch"+ to_string(patchNo));
+
+        // seed rain averager
+        T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+        seeds_hist.resize(S.species_vec.size());      
+        for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg);
     }
     
     void initOutputFiles(io::Initializer &I, int patchNo){
@@ -408,6 +414,8 @@ class Patch{
         string command = "mkdir -p " + patchpath;
         int sysresult;
         sysresult = system(command.c_str());
+
+        sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir+"/Patch"+ to_string(patchNo));
 
         fzst.open(string(patchpath + "/z_star.txt").c_str());
         fco.open(string(patchpath + "/canopy_openness.txt").c_str());
@@ -423,9 +431,9 @@ class Patch{
     
     void updatePatch(io::Initializer &I, CWM &cwm, EmergentProps &props, double t){
 
-        double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
-        vector<MovingAverager> seeds_hist(S.species_vec.size());      
-        for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg); 
+        // double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+        // vector<MovingAverager> seeds_hist(S.species_vec.size());      
+        // for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg); 
 
         cout << "t = " << t << endl; //"\t";
         S.step_to(t);
@@ -552,35 +560,51 @@ int main(){
     sysresult = system(command2.c_str());
  
     int npatches = I.getScalar("nPatches");
-    // vector<Patch*> pa;
-    // // Patch pa[npatches];
-    // for (int i=0;i<npatches;i++){
-    //     Patch *patch = new Patch(SOLVER_IFMU, "rk45ck");
-    //     pa.push_back(patch);
-    // }
-    // for (int i=0; i<npatches; ++i){
-    //     pa[i]->initPatch(I, i);
-    //     pa[i]->initOutputFiles(I, i);
-    // }
-    Patch pa(SOLVER_IFMU, "rk45ck");
-    pa.initPatch(I, 1);
-    //pa.initOutputFiles(I, 1);
-    
-    // double t_clear = 1050;
+    vector<Patch*> pa;
+    // Patch pa[npatches];
+    for (int i=0;i<npatches;i++){
+        Patch *patch = new Patch(SOLVER_IFMU, "rk45ck");
+        pa.push_back(patch);
+    }
+    for (int i=0; i<npatches; ++i){
+        pa[i]->initPatch(I, i);
+        pa[i]->initOutputFiles(I, i);
+    }
+    double t_clear = 20000;
     // // // t is years since 2000-01-01
+    double y0, yf;
+    y0 = I.getScalar("year0");
+    yf = I.getScalar("yearf");
+    for (double t=y0; t <= yf; t=t+1){
+        CWM cwm;
+        EmergentProps props;
+        for(int i=0;i<npatches;i++){
+            pa[i]->updatePatch(I, cwm, props, t);
+            pa[i]->clearPatch(I,t,t_clear);
+            pa[i]->flushPatch();
+        }
+    }
+    for (int i=0; i<npatches; ++i){
+        pa[i]->closePatch();
+    }
+
+    //--------code for running 1 patch-------//
+    // Patch pa(SOLVER_IFMU, "rk45ck");
+    // pa.initPatch(I, 1);
+    // pa.initOutputFiles(I, 1);
+    // double t_clear = 1050;
+    // // // // t is years since 2000-01-01
     // double y0, yf;
     // y0 = I.getScalar("year0");
     // yf = I.getScalar("yearf");
-    //for (double t=y0; t <= yf; t=t+1){
+    // for (double t=y0; t <= yf; t=t+1){
     //     CWM cwm;
     //     EmergentProps props;
-    //     for (int i=0; i<npatches; ++i){
-    //         pa[i]->updatePatch(I, cwm, props, t);
-    //         pa[i]->clearPatch(I,t,t_clear);
-    //         pa[i]->flushPatch();
-    //     }
+    //     pa.updatePatch(I, cwm, props, t);
+    //     pa.clearPatch(I,t,t_clear);
+    //     pa.flushPatch();
     // }
-    // for (int i=0; i<npatches; ++i){
-    //     pa[i]->closePatch();
-    // }
+    // // for (int i=0; i<npatches; ++i){
+    // pa.closePatch();
+    // // }
 }
