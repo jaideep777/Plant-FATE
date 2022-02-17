@@ -343,6 +343,7 @@ class Patch{
     ofstream fouty_spp;
 
     vector<MovingAverager> seeds_hist;
+    vector<double> patch_seeds;
     double T_seed_rain_avg;
     int npatch;
     
@@ -429,18 +430,17 @@ class Patch{
         fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
     }
     
-    void updatePatch(io::Initializer &I, CWM &cwm, EmergentProps &props, double t){
-
-        // double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
-        // vector<MovingAverager> seeds_hist(S.species_vec.size());      
-        // for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg); 
-
+    void updateSeeds(double t){
         cout << "t = " << t << endl; //"\t";
         S.step_to(t);
-        vector<double> seeds = S.newborns_out(t);
-		// calculate the total seeds and store it
+        patch_seeds = S.newborns_out(t);
+    }
+    
+    
+    void updatePatch(io::Initializer &I, CWM &cwm, EmergentProps &props, double t, vector<double> total_seeds){
+        
 		for (int k=0; k<S.species_vec.size(); ++k){
-			seeds_hist[k].push(t, seeds[k]);        // push the total seeds
+			seeds_hist[k].push(t, total_seeds[k]);        // push the total seeds
 			//seeds_hist[k].print_summary(); cout.flush();
 			S.species_vec[k]->set_inputBirthFlux(seeds_hist[k].get());
 		}
@@ -528,7 +528,7 @@ class Patch{
 				}
 			}
 			S.copyCohortsToState();
-			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");;
+            double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");;
 			t_clear = t + fmin(t_int, 1000);
 		}
     }
@@ -558,9 +558,10 @@ int main(){
     int sysresult;
     sysresult = system(command.c_str());
     sysresult = system(command2.c_str());
- 
+    int nspp_global = I.getScalar("nSpecies");
     int npatches = I.getScalar("nPatches");
     vector<Patch*> pa;
+    
     // Patch pa[npatches];
     for (int i=0;i<npatches;i++){
         Patch *patch = new Patch(SOLVER_IFMU, "rk45ck");
@@ -575,11 +576,25 @@ int main(){
     double y0, yf;
     y0 = I.getScalar("year0");
     yf = I.getScalar("yearf");
+    
     for (double t=y0; t <= yf; t=t+1){
+        
         CWM cwm;
         EmergentProps props;
+        
+        vector<double> total_seeds(nspp_global);
+        
         for(int i=0;i<npatches;i++){
-            pa[i]->updatePatch(I, cwm, props, t);
+            pa[i]->updateSeeds(t);
+        }
+        
+        for(int k=0; k<nspp_global; ++k){
+            for(int i=0;i<npatches;++i){
+                total_seeds[k] = total_seeds[k] + pa[i]->patch_seeds[k];
+            }
+        }
+        for(int i=0;i<npatches;i++){
+            pa[i]->updatePatch(I, cwm, props, t, total_seeds);
             pa[i]->clearPatch(I,t,t_clear);
             pa[i]->flushPatch();
         }
