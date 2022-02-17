@@ -341,6 +341,7 @@ class Patch{
     ofstream foutd;
     ofstream fouty;
     ofstream fouty_spp;
+    double t_clear = 1050;
 
     vector<MovingAverager> seeds_hist;
     vector<double> patch_seeds;
@@ -431,7 +432,7 @@ class Patch{
     }
     
     void updateSeeds(double t){
-        cout << "t = " << t << endl; //"\t";
+        // cout << "t = " << t << endl; //"\t";
         S.step_to(t);
         patch_seeds = S.newborns_out(t);
     }
@@ -516,7 +517,7 @@ class Patch{
         fabase.flush();
     }
     
-    void clearPatch(io::Initializer &I,double t, double t_clear){
+    void clearPatch(io::Initializer &I,double t){
 
         if (t >= t_clear){
 			for (auto spp : S.species_vec){
@@ -571,18 +572,18 @@ int main(){
         pa[i]->initPatch(I, i);
         pa[i]->initOutputFiles(I, i);
     }
-    double t_clear = 20000;
+    // double t_clear = 1050;
     // // // t is years since 2000-01-01
     double y0, yf;
     y0 = I.getScalar("year0");
     yf = I.getScalar("yearf");
     
     for (double t=y0; t <= yf; t=t+1){
-        
+        cout << "t = " << t << endl; //"\t";
         CWM cwm;
         EmergentProps props;
         
-        vector<double> total_seeds(nspp_global);
+        vector<double> total_seeds(nspp_global,0);
         
         for(int i=0;i<npatches;i++){
             pa[i]->updateSeeds(t);
@@ -595,7 +596,7 @@ int main(){
         }
         for(int i=0;i<npatches;i++){
             pa[i]->updatePatch(I, cwm, props, t, total_seeds);
-            pa[i]->clearPatch(I,t,t_clear);
+            pa[i]->clearPatch(I,t);
             pa[i]->flushPatch();
         }
     }
