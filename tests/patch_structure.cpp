@@ -133,6 +133,32 @@ class CWM{
     vector<double> p50_vec;
     vector<double> hmat_vec;
     vector<double> wd_vec;
+
+
+	CWM & operator /= (double s){
+		n_ind/=s;
+        biomass/=s;
+        ba/=s;
+        canopy_area/=s;
+        height/=s;
+        lma/=s;
+        p50/=s;
+        hmat/=s;
+        wd/=s;
+        gs/=s;
+
+        transform(n_ind_vec.begin(), n_ind_vec.end(), n_ind_vec.begin(), [k](int &c){ return c/=s; });
+        transform(biomass_vec.begin(), biomass_vec.end(), biomass_vec.begin(), [k](int &c){ return c/=s; });
+        transform(ba_vec.begin(), ba_vec.end(), ba_vec.begin(), [k](int &c){ return c/=s; });
+        transform(canopy_area_vec.begin(), canopy_area_vec.end(), canopy_area_vec.begin(), [k](int &c){ return c/=s; });
+        transform(height_vec.begin(), height_vec.end(), height_vec.begin(), [k](int &c){ return c/=s; });
+
+        transform(lma_vec.begin(), lma_vec.end(), lma_vec.begin(), [k](int &c){ return c/=s; });
+        transform(p50_vec.begin(), p50_vec.end(), p50_vec.begin(), [k](int &c){ return c/=s; });
+        transform(hmat_vec.begin(), hmat_vec.end(), hmat_vec.begin(), [k](int &c){ return c/=s; });
+        transform(wd_vec.begin(), wd_vec.end(), wd_vec.begin(), [k](int &c){ return c/=s; });
+	}
+
     
     void update(double t, Solver &S){
         n_ind_vec.clear();
@@ -234,6 +260,11 @@ class CWM{
     }
 };
 
+CWM operator + (CWM lhs, CWM &rhs){
+	lhs += rhs;
+	return lhs;
+}
+
 class EmergentProps{
     public:
     double gpp;
@@ -245,6 +276,19 @@ class EmergentProps{
     double stem_mass;
     double croot_mass;
     double froot_mass;
+
+
+    EmergentProps & operator /= (double s){
+		gpp/=s;
+        npp/=s;
+        resp_auto/=s;
+        trans/=s;
+        lai/=s;
+        leaf_mass/=s;
+        stem_mass/=s;
+        croot_mass/=s;
+        froot_mass/=s;
+	}
 
     void update(double t, Solver &S){
         // gpp
@@ -323,6 +367,11 @@ class EmergentProps{
     }
 };
 
+EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
+	lhs += rhs;
+	return lhs;
+}
+
 //*********************************************************************************
 //************** NEW CODE FOR PATCH STRUCTURE STARTS HERE - CAN EDIT **************
 //*********************************************************************************
@@ -332,6 +381,8 @@ class Patch{
     public:
     Solver S;
     PSPM_Dynamic_Environment E;
+    CWM cwm;
+    EmergentProps props;
     TraitsReader Tr;
     SolverIO sio;
     ofstream fzst;
@@ -341,7 +392,8 @@ class Patch{
     ofstream foutd;
     ofstream fouty;
     ofstream fouty_spp;
-    double t_clear = 1050;
+    double t_ret;
+    double t_clear;
 
     vector<MovingAverager> seeds_hist;
     vector<double> patch_seeds;
@@ -354,8 +406,12 @@ class Patch{
     void initPatch(io::Initializer &I, int patchNo){
         
         npatch = I.getScalar("nPatches");
+        t_ret = I.getScalar("T_return")
         E.metFile = I.get<string>("metFile");
         E.co2File = I.get<string>("co2File");
+
+        t_clear = fmin(-log(double(rand())/RAND_MAX)*t_ret,1000);
+
         string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
         // E.init();
         E.print(0);
@@ -432,17 +488,15 @@ class Patch{
     }
     
     void updateSeeds(double t){
-        // cout << "t = " << t << endl; //"\t";
         S.step_to(t);
         patch_seeds = S.newborns_out(t);
     }
     
     
-    void updatePatch(io::Initializer &I, CWM &cwm, EmergentProps &props, double t, vector<double> total_seeds){
+    void updatePatch(double t, vector<double> total_seeds){
         
 		for (int k=0; k<S.species_vec.size(); ++k){
-			seeds_hist[k].push(t, total_seeds[k]);        // push the total seeds
-			//seeds_hist[k].print_summary(); cout.flush();
+			seeds_hist[k].push(t, total_seeds[k]);  
 			S.species_vec[k]->set_inputBirthFlux(seeds_hist[k].get());
 		}
         
@@ -493,6 +547,10 @@ class Patch{
                   << 1/cwm.lma_vec[k]  << "\t"
                   << cwm.p50_vec[k]  << "\n";
         }
+
+        fseed << t << "\t";
+		for (int i=0; i<S.n_species(); ++i) fseed << seeds_hist[i].get() << "\t";
+		fseed << "\n";
         
         fabase << t << "\t";
         for (int i=0; i<S.n_species(); ++i) fabase << cwm.ba_vec[i] << "\t";
@@ -529,7 +587,7 @@ class Patch{
 				}
 			}
 			S.copyCohortsToState();
-            double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");;
+            double t_int = -log(double(rand())/RAND_MAX) * t_ret;
 			t_clear = t + fmin(t_int, 1000);
 		}
     }
@@ -572,36 +630,35 @@ int main(){
         pa[i]->initPatch(I, i);
         pa[i]->initOutputFiles(I, i);
     }
-    // double t_clear = 1050;
-    // // // t is years since 2000-01-01
+    
     double y0, yf;
     y0 = I.getScalar("year0");
     yf = I.getScalar("yearf");
     
     for (double t=y0; t <= yf; t=t+1){
-        cout << "t = " << t << endl; //"\t";
+        cout << "t = " << t << endl; 
         CWM cwm;
         EmergentProps props;
-        
-        vector<double> total_seeds(nspp_global,0);
         
         for(int i=0;i<npatches;i++){
             pa[i]->updateSeeds(t);
         }
-        
+        vector<double> total_seeds(nspp_global,0);
         for(int k=0; k<nspp_global; ++k){
             for(int i=0;i<npatches;++i){
                 total_seeds[k] = total_seeds[k] + pa[i]->patch_seeds[k];
             }
         }
+
         for(int i=0;i<npatches;i++){
-            pa[i]->updatePatch(I, cwm, props, t, total_seeds);
+            pa[i]->updatePatch(t, total_seeds);
             pa[i]->clearPatch(I,t);
             pa[i]->flushPatch();
         }
     }
     for (int i=0; i<npatches; ++i){
         pa[i]->closePatch();
+        delete pa[i];
     }
 
     //--------code for running 1 patch-------//
