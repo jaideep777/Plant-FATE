@@ -568,7 +568,7 @@ class Patch{
 
     }
     
-    void flushPatch(){
+    void flushPatchData(){
         fco.flush();
         fseed.flush();
         fzst.flush();
@@ -677,7 +677,7 @@ int main(){
         for(int i=0;i<npatches;i++){
             pa[i]->updatePatchData(t, seeds_hist);
             pa[i]->clearPatch(I,t);
-            pa[i]->flushPatch();
+            pa[i]->flushPatchData();
         }
         
         //Averaging CWM and EmergentProps values for entire Ecosystem
