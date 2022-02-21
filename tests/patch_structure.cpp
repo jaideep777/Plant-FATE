@@ -395,7 +395,7 @@ class Patch{
     double t_ret;
     double t_clear;
 
-    vector<MovingAverager> seeds_hist;
+    //vector<MovingAverager> seeds_hist;
     vector<double> patch_seeds;
     double T_seed_rain_avg;
     int npatch;
@@ -461,9 +461,9 @@ class Patch{
         sio.S = &S;
 
         // seed rain averager
-        T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
-        seeds_hist.resize(S.species_vec.size());      
-        for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg);
+        // T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+        // seeds_hist.resize(S.species_vec.size());
+        // for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg);
     }
     
     void initOutputFiles(io::Initializer &I, int patchNo){
@@ -487,16 +487,16 @@ class Patch{
         fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
     }
     
-    void updateSeeds(double t){
+    void stepPatch(double t){
         S.step_to(t);
         patch_seeds = S.newborns_out(t);
     }
     
     
-    void updatePatch(double t, vector<double> total_seeds){
+    void updatePatchData(double t, vector<MovingAverager> seeds_hist){
         
 		for (int k=0; k<S.species_vec.size(); ++k){
-			seeds_hist[k].push(t, total_seeds[k]);  
+			//seeds_hist[k].push(t, total_seeds[k]);
 			S.species_vec[k]->set_inputBirthFlux(seeds_hist[k].get());
 		}
         
@@ -619,43 +619,153 @@ int main(){
     sysresult = system(command2.c_str());
     int nspp_global = I.getScalar("nSpecies");
     int npatches = I.getScalar("nPatches");
-    vector<Patch*> pa;
+    vector<Patch> pa;
+    vector<MovingAverager> seeds_hist;
     
-    // Patch pa[npatches];
     for (int i=0;i<npatches;i++){
-        Patch *patch = new Patch(SOLVER_IFMU, "rk45ck");
-        pa.push_back(patch);
+        Patch patch(SOLVER_IFMU, "rk45ck");
+        pa.push_back(std::move(patch));
     }
     for (int i=0; i<npatches; ++i){
         pa[i]->initPatch(I, i);
         pa[i]->initOutputFiles(I, i);
     }
     
+    
+    //fzst.open(string(out_dir + "/z_star.txt").c_str());
+    //fco.open(string(out_dir + "/canopy_openness.txt").c_str());
+    fseed.open(string(out_dir + "/seeds.txt").c_str());
+    fabase.open(string(out_dir + "/basal_area.txt").c_str());
+    foutd.open(string(out_dir + "/" + I.get<string>("emgProps")).c_str());
+    fouty.open(string(out_dir + "/" + I.get<string>("cwmAvg")).c_str());
+    fouty_spp.open(string(out_dir + "/" + I.get<string>("cwmperSpecies")).c_str());
+    foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\n";
+    fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
+    fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
+    
+    
+    T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+    seeds_hist.resize(nspp_global);
+    for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg);
+    
+    
     double y0, yf;
     y0 = I.getScalar("year0");
     yf = I.getScalar("yearf");
     
+    
     for (double t=y0; t <= yf; t=t+1){
         cout << "t = " << t << endl; 
-        CWM cwm;
-        EmergentProps props;
+        CWM cwmEcosystem;
+        EmergentProps propsEcosystem;
         
         for(int i=0;i<npatches;i++){
-            pa[i]->updateSeeds(t);
+            pa[i]->stepPatch(t);
         }
+        
         vector<double> total_seeds(nspp_global,0);
         for(int k=0; k<nspp_global; ++k){
             for(int i=0;i<npatches;++i){
                 total_seeds[k] = total_seeds[k] + pa[i]->patch_seeds[k];
             }
         }
+        
+        for (int k=0; k<nspp_global; ++k){
+            seeds_hist[k].push(t, total_seeds[k]);
+        }
 
         for(int i=0;i<npatches;i++){
-            pa[i]->updatePatch(t, total_seeds);
+            pa[i]->updatePatchData(t, seeds_hist);
             pa[i]->clearPatch(I,t);
             pa[i]->flushPatch();
         }
+        
+        //Averaging CWM and EmergentProps values for entire Ecosystem
+        
+        for(int i=0; i<npatches; i++){
+            cwmEcosystem = cwmEcosystem + pa[i]->cwm;
+            propsEcosystem = propsEcosystem + pa[i]->props;
+        }
+        
+        cwmEcosystem = cwmEcosystem/npatches;
+        propsEcosystem = propsEcosystem/npatches;
+        
+        //Storing the data into file streams for entire Ecosystem
+        foutd << int(t) << "\t"
+              << (t-int(t))*365 << "\t"
+              << propsEcosystem.gpp*0.5/365*1000 << "\t"
+              << propsEcosystem.npp*0.5/365*1000 << "\t"
+              << propsEcosystem.resp_auto*0.5/365*1000 << "\t"  // gC/m2/d
+              << propsEcosystem.leaf_mass*1000*0.5 << "\t"
+              << propsEcosystem.stem_mass*1000*0.5 << "\t"
+              << propsEcosystem.croot_mass*1000*0.5 << "\t"
+              << propsEcosystem.froot_mass*1000*0.5 << "\t"
+              << (propsEcosystem.croot_mass+propsEcosystem.froot_mass)*1000*0.5 << "\t" // gC/m2
+              << cwmEcosystem.gs << "\t"
+              << propsEcosystem.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day
+              << propsEcosystem.lai << endl;
+        
+        fouty << int(t) << "\t"
+              << -9999  << "\t"
+              << cwmEcosystem.n_ind << "\t"
+              << -9999  << "\t"
+              << cwmEcosystem.height  << "\t"
+              << cwmEcosystem.hmat  << "\t"
+              << cwmEcosystem.canopy_area  << "\t"   // m2/m2
+              << cwmEcosystem.ba  << "\t"            // m2/m2
+              << cwmEcosystem.biomass  << "\t"       // kg/m2
+              << cwmEcosystem.wd  << "\t"
+              << -9999  << "\t"
+              << 1/cwmEcosystem.lma  << "\t"
+              << cwmEcosystem.p50  << endl;
+        
+        for (int k=0; k<nspp_global; ++k){
+            fouty_spp
+                  << int(t) << "\t"
+                  << k  << "\t"
+                  << cwmEcosystem.n_ind_vec[k] << "\t"
+                  << -9999  << "\t"
+                  << cwmEcosystem.height_vec[k]  << "\t"
+                  << cwmEcosystem.hmat_vec[k]  << "\t"
+                  << cwmEcosystem.canopy_area_vec[k]  << "\t"   // m2/m2
+                  << cwmEcosystem.ba_vec[k]  << "\t"            // m2/m2
+                  << cwmEcosystem.biomass_vec[k]  << "\t"       // kg/m2
+                  << cwmEcosystem.wd_vec[k]  << "\t"
+                  << -9999  << "\t"
+                  << 1/cwmEcosystem.lma_vec[k]  << "\t"
+                  << cwmEcosystem.p50_vec[k]  << "\n";
+        }
+        fseed << t << "\t";
+        for (int i=0; i<nspp_global; ++i) fseed << seeds_hist[i].get() << "\t";
+        fseed << "\n";
+        
+        fabase << t << "\t";
+        for (int i=0; i<nspp_global; ++i) fabase << cwmEcosystem.ba_vec[i] << "\t";
+        fabase << "\n";
+        
+        //fzst << t << "\t";
+        //for (auto z : E.z_star) fzst << z << "\t";
+        //fzst << endl;
+        
+        //fco << t << "\t";
+        //for (auto z : E.canopy_openness) fco << z << "\t";
+        //fco << endl;
+        
+        //fco.flush();
+        fseed.flush();
+        //fzst.flush();
+        fabase.flush();
+        
     }
+    fco.close();
+    fseed.close();
+    fzst.close();
+    fabase.close();
+//  flai.close();
+//  fcwmt.close();
+    foutd.close();
+    fouty.close();
+    
     for (int i=0; i<npatches; ++i){
         pa[i]->closePatch();
         delete pa[i];
