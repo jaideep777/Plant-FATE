@@ -112,16 +112,16 @@ class SolverIO{
 
 class CWM{
     public:
-    double n_ind;
-    double biomass;
-    double ba;
-    double canopy_area;
-    double height;
-    double lma;
-    double p50;
-    double hmat;
-    double wd;
-    double gs;
+    double n_ind=0;
+    double biomass=0;
+    double ba=0;
+    double canopy_area=0;
+    double height=0;
+    double lma=0;
+    double p50=0;
+    double hmat=0;
+    double wd=0;
+    double gs=0;
     
     vector<double> n_ind_vec;
     vector<double> biomass_vec;
@@ -294,15 +294,15 @@ CWM operator + (CWM lhs, CWM &rhs){
 
 class EmergentProps{
     public:
-    double gpp;
-    double npp;
-    double resp_auto;
-    double trans;
-    double lai;
-    double leaf_mass;
-    double stem_mass;
-    double croot_mass;
-    double froot_mass;
+    double gpp=0;
+    double npp=0;
+    double resp_auto=0;
+    double trans=0;
+    double lai=0;
+    double leaf_mass=0;
+    double stem_mass=0;
+    double croot_mass=0;
+    double froot_mass=0;
 
 
     EmergentProps & operator /= (double s){
@@ -736,11 +736,12 @@ int main(){
         for(int i=0; i<npatches; i++){
             cwmEcosystem += pa[i]->cwm;
             propsEcosystem += pa[i]->props;
+            //cout << cwmEcosystem.ba << " " << pa[i]->cwm.ba << endl;
         }
 
         cwmEcosystem/=npatches;
-
         propsEcosystem/=npatches;
+
         //Storing the data into file streams for entire Ecosystem
         foutd << int(t) << "\t"
               << (t-int(t))*365 << "\t"
