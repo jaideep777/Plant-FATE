@@ -13,6 +13,8 @@
 /**
 	\brief A simple initializer that reads parameters from an ini file.
 	
+	reference: https://codereview.stackexchange.com/questions/127819/ini-file-parser-in-c
+	
 	The parameter file must follow the formatting requirements of .ini files. 
 	Sections are enclosed with [] and cannot have spaces or comments on the 
 	same line. Each section has name-value pairs separated by =. Arrays have 
