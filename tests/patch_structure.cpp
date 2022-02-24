@@ -127,6 +127,17 @@ public:
 	vector<double> hmat_vec;
 	vector<double> wd_vec;
 	
+	void resize(int n){
+		n_ind_vec.resize(n);
+		ba_vec.resize(n);
+		biomass_vec.resize(n);
+		canopy_area_vec.resize(n);
+		height_vec.resize(n);
+		hmat_vec.resize(n);
+		lma_vec.resize(n);
+		wd_vec.resize(n);
+		p50_vec.resize(n);
+	}
 	
 	CWM & operator /= (double s){
 		
@@ -225,7 +236,7 @@ public:
 			}, t, k);
 		
 		for (int k=0; k<S.n_species(); ++k) height_vec[k] /= n_ind_vec[k];
-		
+		height = std::accumulate(height_vec.begin(), height_vec.end(), 0.0)/height_vec.size();
 		
 		hmat = 0;
 		for (int k=0; k<S.n_species(); ++k)
@@ -522,9 +533,6 @@ public:
 	
 	void updatePatchData(double t, vector<MovingAverager> seeds_hist){
 		
-		for (int k=0; k<S.species_vec.size(); ++k){
-			S.species_vec[k]->set_inputBirthFlux(seeds_hist[k].get());
-		}
 		
 		cwm.update(t, S);
 		props.update(t, S);
@@ -590,15 +598,16 @@ public:
 		for (auto z : E.canopy_openness) fco << z << "\t";
 		fco << endl;
 		
+		fco.flush();
+		fseed.flush();
+		fzst.flush();
+		fabase.flush();
+
 		sio.writeState();
 		
 	}
 	
 	void flushPatchData(){
-		fco.flush();
-		fseed.flush();
-		fzst.flush();
-		fabase.flush();
 	}
 	
 	void clearPatch(io::Initializer &I,double t){
@@ -688,36 +697,40 @@ int main(){
 		CWM cwmEcosystem;
 		EmergentProps propsEcosystem;
 		
-		cwmEcosystem.n_ind_vec.resize(nspp_global);
-		cwmEcosystem.ba_vec.resize(nspp_global);
-		cwmEcosystem.biomass_vec.resize(nspp_global);
-		cwmEcosystem.canopy_area_vec.resize(nspp_global);
-		cwmEcosystem.height_vec.resize(nspp_global);
-		cwmEcosystem.hmat_vec.resize(nspp_global);
-		cwmEcosystem.lma_vec.resize(nspp_global);
-		cwmEcosystem.wd_vec.resize(nspp_global);
-		cwmEcosystem.p50_vec.resize(nspp_global);
+		cwmEcosystem.resize(nspp_global);
 		
+		// step all patches
 		for(int i=0;i<npatches;i++){
 			pa[i]->stepPatch(t);
 		}
+		
+		// calculate total seed output from all patches 
 		vector<double> total_seeds(nspp_global,0);
 		for(int k=0; k<nspp_global; ++k){
 			for(int i=0;i<npatches;++i){
 				total_seeds[k] = total_seeds[k] + pa[i]->patch_seeds[k];
 			}
 		}
-		
 		for (auto& x : total_seeds) x/=npatches;
+		// Push total seeds to history and update patch seed inputs
 		for (int k=0; k<nspp_global; ++k){
 			seeds_hist[k].push(t, total_seeds[k]);
+			for(int i=0;i<npatches;i++){
+				pa[i]->S.species_vec[k]->set_inputBirthFlux(seeds_hist[k].get());
+			}
 		}
+
+		// output patch data
 		for(int i=0;i<npatches;i++){
 			pa[i]->updatePatchData(t, seeds_hist);
-			pa[i]->clearPatch(I,t);
 			pa[i]->flushPatchData();
 		}
 		
+		// implement disturbance - clear patches if disturbance interval has been reached
+		for(int i=0;i<npatches;i++){
+			pa[i]->clearPatch(I,t);
+		}
+
 		// Averaging CWM and EmergentProps values for entire Ecosystem
 		for(int i=0; i<npatches; i++){
 			cwmEcosystem += pa[i]->cwm;
@@ -794,3 +807,6 @@ int main(){
 		delete pa[i];
 	}
 }
+
+
+
