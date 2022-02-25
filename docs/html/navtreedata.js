@@ -1,6 +1,7 @@
 var NAVTREE =
 [
   [ "Plant-FATE", "index.html", [
+    [ "Home", "../index.html", null ],
     [ "Namespaces", null, [
       [ "Namespace List", "namespaces.html", "namespaces" ]
     ] ],
@@ -21,14 +22,15 @@ var NAVTREE =
         [ "Functions", "globals_func.html", null ],
         [ "Typedefs", "globals_type.html", null ]
       ] ]
-    ] ]
+    ] ],
+    [ "Github", "^https://github.com/jaideep777/Plant-FATE", null ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"annotated.html",
-"classplant_1_1PlantTraits.html#a766eafdb97220b5d07f3742f3b347fec"
+"../index.html",
+"classplant_1_1PlantTraits.html#a6e76d3f69afac02fc28949acc713936b"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

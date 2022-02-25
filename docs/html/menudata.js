@@ -1,5 +1,6 @@
 var menudata={children:[
-{text:"Main Page",url:"index.html"},
+{text:"Home",url:"../index.html"},
+{text:"API Home",url:"index.html"},
 {text:"Namespaces",url:"namespaces.html",children:[
 {text:"Namespace List",url:"namespaces.html"}]},
 {text:"Classes",url:"annotated.html",children:[
@@ -82,4 +83,5 @@ var menudata={children:[
 {text:"File Members",url:"globals.html",children:[
 {text:"All",url:"globals.html"},
 {text:"Functions",url:"globals_func.html"},
-{text:"Typedefs",url:"globals_type.html"}]}]}]}
+{text:"Typedefs",url:"globals_type.html"}]}]},
+{text:"Github",url:"https://github.com/jaideep777/Plant-FATE"}]}

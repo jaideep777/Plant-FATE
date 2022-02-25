@@ -1,0 +1,10 @@
+pandoc: 2.3.1
+pkgdown: 2.0.2
+pkgdown_sha: ~
+articles:
+  create: create.html
+last_built: 2022-02-25T16:07Z
+urls:
+  reference: https://jaideep777.github.io/Plant-FATE/reference
+  article: https://jaideep777.github.io/Plant-FATE/articles
+
