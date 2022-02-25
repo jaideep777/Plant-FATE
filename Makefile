@@ -11,11 +11,10 @@ HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 #CUDA_INSTALL_PATH ?= /usr/local/cuda#-5.0
 
 ROOT_DIR := /home/jaideep/codes
-
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./include #-I./CppNumericalSolvers-1.0.0
-INC_PATH += -I$(ROOT_DIR)/phydro_cpp/include -isystem $(ROOT_DIR)/phydro_cpp/LBFGSpp/include -I$(ROOT_DIR)/pspm/include -isystem /usr/include/eigen3 
-LIB_PATH := -L$(ROOT_DIR)/pspm/lib
+INC_PATH += -I$(ROOT_DIR)/phydro_cpp/include -isystem $(ROOT_DIR)/phydro_cpp/LBFGSpp/include -I$(ROOT_DIR)/libpspm/include -isystem /usr/include/eigen3 
+LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags
 CPPFLAGS = -O3 -g -pg -std=c++11 -Wall -Wextra 
@@ -68,12 +67,12 @@ $(TARGET): $(OBJECTS)
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@ 
 
-clean:
+libclean:
 	rm -f $(TARGET) build/*.o log.txt gmon.out 
 	
 re: clean all
 
-superclean: clean testclean
+clean: libclean testclean
 
 
 ## TESTING SUITE ##
@@ -114,7 +113,11 @@ recheck: testclean check
 # ------------------------------------------------------------------------------
 
 
+website:
+	R -e "Sys.setenv(RSTUDIO_PANDOC='/usr/lib/rstudio/bin/pandoc'); pkgdown::clean_site(); pkgdown::init_site(); pkgdown::build_home(); pkgdown::build_articles(); pkgdown::build_tutorials(); pkgdown::build_news()"
 
+api:
+	doxygen doxygen/Doxyfile
 
 
 #-gencode=arch=compute_10,code=\"sm_10,compute_10\"  -gencode=arch=compute_20,code=\"sm_20,compute_20\"  -gencode=arch=compute_30,code=\"sm_30,compute_30\" 
