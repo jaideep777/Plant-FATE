@@ -115,12 +115,14 @@ public:
 	double hmat=0;
 	double wd=0;
 	double gs=0;
+	double vcmax=0;
 	
 	vector<double> n_ind_vec;
 	vector<double> biomass_vec;
 	vector<double> ba_vec;
 	vector<double> canopy_area_vec;
 	vector<double> height_vec;
+	vector<double> vcmax_vec;
 	
 	vector<double> lma_vec;
 	vector<double> p50_vec;
@@ -133,6 +135,7 @@ public:
 		biomass_vec.resize(n);
 		canopy_area_vec.resize(n);
 		height_vec.resize(n);
+		vcmax_vec.resize(n);
 		hmat_vec.resize(n);
 		lma_vec.resize(n);
 		wd_vec.resize(n);
@@ -146,6 +149,7 @@ public:
 		ba/=s;
 		canopy_area/=s;
 		height/=s;
+		vcmax/=s;
 		lma/=s;
 		p50/=s;
 		hmat/=s;
@@ -156,6 +160,7 @@ public:
 		transform(ba_vec.begin(), ba_vec.end(), ba_vec.begin(), [s](const double &c){ return c/s; });
 		transform(canopy_area_vec.begin(), canopy_area_vec.end(), canopy_area_vec.begin(), [s](const double &c){ return c/s; });
 		transform(height_vec.begin(), height_vec.end(), height_vec.begin(), [s](const double &c){ return c/s; });
+		transform(vcmax_vec.begin(), vcmax_vec.end(), vcmax_vec.begin(), [s](const double &c){ return c/s; });
 		transform(lma_vec.begin(), lma_vec.end(), lma_vec.begin(), [s](const double &c){ return c/s; });
 		transform(p50_vec.begin(), p50_vec.end(), p50_vec.begin(), [s](const double &c){ return c/s; });
 		transform(hmat_vec.begin(), hmat_vec.end(), hmat_vec.begin(), [s](const double &c){ return c/s; });
@@ -171,6 +176,7 @@ public:
 		ba+=s.ba;
 		canopy_area+=s.canopy_area;
 		height+=s.height;
+		vcmax+=s.vcmax;
 		lma+=s.lma;
 		p50+=s.p50;
 		hmat+=s.hmat;
@@ -181,6 +187,7 @@ public:
 		transform(ba_vec.begin(), ba_vec.end(), s.ba_vec.begin(), ba_vec.begin(),std::plus<double>());
 		transform(canopy_area_vec.begin(), canopy_area_vec.end(), s.canopy_area_vec.begin(), canopy_area_vec.begin(),std::plus<double>());
 		transform(height_vec.begin(), height_vec.end(), s.height_vec.begin(), height_vec.begin(),std::plus<double>());
+		transform(vcmax_vec.begin(), vcmax_vec.end(), s.vcmax_vec.begin(), vcmax_vec.begin(), std::plus<double>());
 		transform(lma_vec.begin(), lma_vec.end(), s.lma_vec.begin(), lma_vec.begin(),std::plus<double>());
 		transform(p50_vec.begin(), p50_vec.end(), s.p50_vec.begin(), p50_vec.begin(),std::plus<double>());
 		transform(hmat_vec.begin(), hmat_vec.end(), s.hmat_vec.begin(), hmat_vec.begin(),std::plus<double>());
@@ -261,6 +268,8 @@ public:
 		for (int k=0; k<S.n_species(); ++k) height_vec[k] /= n_ind_vec[k];                      // sum(N*h)[k]/sum(N)[k]
 		height /= n_ind;                                                                        // sum(N*h) / sum(N)
 		
+		calc_cwm_trait(vcmax, vcmax_vec, n_ind, t, S, [](const PSPM_Plant* p){return p->res.vcmax_avg;});
+
 		calc_cwm_trait(hmat, hmat_vec, n_ind, t, S, [](const PSPM_Plant* p){return p->traits.hmat;});
 		calc_cwm_trait(lma, lma_vec, n_ind, t, S, [](const PSPM_Plant* p){return p->traits.lma;});
 		calc_cwm_trait(wd, wd_vec, n_ind, t, S, [](const PSPM_Plant* p){return p->traits.wood_density;});
@@ -581,6 +590,10 @@ public:
 };
 
 
+// AMZ-FACE TODO:
+//	vcmax is too low (16) vs obs (40)
+//	gs is too high (0.3 / 0.6) vs obs (0.15)
+	
 
 int main(){
 	
@@ -619,7 +632,7 @@ int main(){
 	ofstream fouty(string(out_dir + "/" + I.get<string>("cwmAvg")).c_str());
 	ofstream fouty_spp(string(out_dir + "/" + I.get<string>("cwmperSpecies")).c_str());
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\n";
-	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
+	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tVCM\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	
 	
@@ -706,7 +719,8 @@ int main(){
 		<< cwmEcosystem.wd  << "\t"
 		<< -9999  << "\t"
 		<< 1/cwmEcosystem.lma  << "\t"
-		<< cwmEcosystem.p50  << endl;
+		<< cwmEcosystem.p50  << "\t"
+		<< cwmEcosystem.vcmax << endl;
 		
 		for (int k=0; k<nspp_global; ++k){
 			fouty_spp

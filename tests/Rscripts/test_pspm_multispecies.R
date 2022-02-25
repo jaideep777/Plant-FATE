@@ -62,6 +62,9 @@ matplot(BAp$V1, BAp[,-1]*1e4, lty=1, col=rainbow(n = n_species, start = 0, end =
 matplot(tD, amzD$GS, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Stomatal conductance (mol/m2/s)", log="")
 
+matplot(tY, amzY$VCM, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Vcmax (umol/m2/s)", log="")
+
 matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Species Seed output", log="")
 

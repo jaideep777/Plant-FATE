@@ -30,6 +30,17 @@ int main(){
 		cout << "t = " << i << ", Avg = " << M.get() << "\n";
 	}
 
+	M.clear();
+	M.set_interval(0);
+
+	for (int i=0; i<20; ++i){
+//		M.push(i, (i<50)? 0.0 : 1.0);
+		M.push(i, i*0.01);
+		M.print_summary();
+		cout << "t = " << i << ", Avg = " << M.get() << "\n";
+	}
+
+
 
 	return 0;
 }
