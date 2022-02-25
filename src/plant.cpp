@@ -50,7 +50,7 @@ void Plant::set_size(double x){
 	geometry.set_size(x, traits);
 }
 
-double Plant::get_biomass(){
+double Plant::get_biomass() const{
 	return geometry.total_mass(traits);
 }
 

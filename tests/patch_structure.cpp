@@ -103,7 +103,7 @@ public:
 	}
 };
 
-class CWM{
+class SpeciesProps{
 public:
 	double n_ind=0;
 	double biomass=0;
@@ -139,7 +139,7 @@ public:
 		p50_vec.resize(n);
 	}
 	
-	CWM & operator /= (double s){
+	SpeciesProps & operator /= (double s){
 		
 		n_ind/=s;
 		biomass/=s;
@@ -164,7 +164,7 @@ public:
 		return *this;
 	}
 	
-	CWM & operator += (const CWM &s){
+	SpeciesProps & operator += (const SpeciesProps &s){
 		
 		n_ind+=s.n_ind;
 		biomass+=s.biomass;
@@ -189,96 +189,84 @@ public:
 		return *this;
 	}
 	
-	
-	void update(double t, Solver &S){
-		n_ind_vec.clear();
-		n_ind_vec.resize(S.n_species());
+	template<class Func>
+	void integrate_prop(vector<double> &vx, double t, Solver &S, const Func &f){
+		vx.clear();
+		vx.resize(S.n_species());
 		for (int k=0; k<S.n_species(); ++k)
-			n_ind_vec[k] = S.integrate_x([&S,k](int i, double t){
-				return 1;
+			vx[k] = S.integrate_x([&S,k,f](int i, double t){
+				auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+				const PSPM_Plant * pp = &p;
+				return f(pp);
 			}, t, k);
+		
+	}
+
+	template<class Func>
+	void integrate_prop_above(vector<double> &vx, double t, Solver &S, const Func &f, double xlow){
+		vx.clear();
+		vx.resize(S.n_species());
+		for (int k=0; k<S.n_species(); ++k)
+			vx[k] = S.integrate_wudx_above([&S,k,f](int i, double t){
+				auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+				const PSPM_Plant * pp = &p;
+				return f(pp);
+			}, t, xlow, k);
+		
+	}
+	
+	template<class Func>
+	void integrate_prop(double &x, double t, Solver &S, const Func &f){
+		x = 0;
+		for (int k=0; k<S.n_species(); ++k)
+			x += S.integrate_x([&S,k,f](int i, double t){
+				auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+				const PSPM_Plant * pp = &p;
+				return f(pp);
+			}, t, k);
+		
+	}
+
+	template<class Func>
+	void calc_cwm_trait(double &x, vector<double> &vx, double _n_ind, double t, Solver &S, const Func &f){
+		integrate_prop(x, t, S, [&f](const PSPM_Plant* p){return f(p);});
+		x /= _n_ind;
+
+		vx.resize(S.n_species());
+		for (int k=0; k<S.n_species(); ++k){
+			auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1);
+			const PSPM_Plant * pp = &p;
+			vx[k] = f(pp);
+		}
+	}
+
+	void update(double t, Solver &S){
+		integrate_prop(n_ind_vec, t, S, [](const PSPM_Plant* p){return 1;});
 		n_ind = std::accumulate(n_ind_vec.begin(), n_ind_vec.end(), 0.0);
 		
-		biomass_vec.clear();
-		biomass_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k)
-			biomass_vec[k] = S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.get_biomass();
-			}, t, k);
+		integrate_prop(biomass_vec, t, S, [](const PSPM_Plant* p){return p->get_biomass();});
 		biomass = std::accumulate(biomass_vec.begin(), biomass_vec.end(), 0.0);
-		
-		ba_vec.clear();
-		ba_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k)
-			ba_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
-				double D = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry.diameter;
-				return M_PI*D*D/4;
-			}, t, 0.1, k);
+
+		integrate_prop_above(ba_vec, t, S, [](const PSPM_Plant* p){
+			double D = p->geometry.diameter; 
+			return M_PI*D*D/4;
+			}, 0.1);
 		ba = std::accumulate(ba_vec.begin(), ba_vec.end(), 0.0);
 		
-		canopy_area_vec.clear();
-		canopy_area_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k)
-			canopy_area_vec[k] = S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
-				return p.crown_area;
-			}, t, k);
+		integrate_prop(canopy_area_vec, t, S, [](const PSPM_Plant* p){return p->geometry.crown_area;});
 		canopy_area = std::accumulate(canopy_area_vec.begin(), canopy_area_vec.end(), 0.0);
 		
+		integrate_prop(height_vec, t, S, [](const PSPM_Plant* p){return p->geometry.height;}); // sum(N*h)[k]
+		height = std::accumulate(height_vec.begin(), height_vec.end(), 0.0);                    // sum(N*h)
+		for (int k=0; k<S.n_species(); ++k) height_vec[k] /= n_ind_vec[k];                      // sum(N*h)[k]/sum(N)[k]
+		height /= n_ind;                                                                        // sum(N*h) / sum(N)
 		
-		height_vec.clear();
-		height_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k)
-			height_vec[k] = S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.geometry.height;
-			}, t, k);
-		
-		for (int k=0; k<S.n_species(); ++k) height_vec[k] /= n_ind_vec[k];
-		height = std::accumulate(height_vec.begin(), height_vec.end(), 0.0)/height_vec.size();
-		
-		hmat = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			hmat += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.traits.hmat;
-			}, t, k);
-		hmat /= n_ind;
-		hmat_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k) hmat_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.hmat;
-		
-		
-		lma = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			lma += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.traits.lma;
-			}, t, k);
-		lma /= n_ind;
-		lma_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k) lma_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.lma;
-		
-		wd = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			wd += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.traits.wood_density;
-			}, t, k);
-		wd /= n_ind;
-		wd_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k) wd_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.wood_density;
-		
-		p50 = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			p50 += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.traits.p50_xylem;
-			}, t, k);
-		p50 /= n_ind;
-		p50_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k) p50_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.p50_xylem;
-		
+		calc_cwm_trait(hmat, hmat_vec, n_ind, t, S, [](const PSPM_Plant* p){return p->traits.hmat;});
+		calc_cwm_trait(lma, lma_vec, n_ind, t, S, [](const PSPM_Plant* p){return p->traits.lma;});
+		calc_cwm_trait(wd, wd_vec, n_ind, t, S, [](const PSPM_Plant* p){return p->traits.wood_density;});
+		calc_cwm_trait(p50, p50_vec, n_ind, t, S, [](const PSPM_Plant* p){return p->traits.p50_xylem;});
+				
+		// FIXME: gs should be calc as trans/1.6D in EmergentProps
 		gs = 0;
 		for (int k=0; k<S.n_species(); ++k)
 			gs += S.integrate_x([&S,k](int i, double t){
@@ -290,7 +278,7 @@ public:
 	}
 };
 
-CWM operator + (CWM lhs, CWM &rhs){
+SpeciesProps operator + (SpeciesProps lhs, SpeciesProps &rhs){
 	lhs += rhs;
 	return lhs;
 }
@@ -302,6 +290,7 @@ public:
 	double npp=0;
 	double resp_auto=0;
 	double trans=0;
+	double gs=0;
 	double lai=0;
 	double leaf_mass=0;
 	double stem_mass=0;
@@ -315,6 +304,7 @@ public:
 		npp/=s;
 		resp_auto/=s;
 		trans/=s;
+		gs/=s;
 		lai/=s;
 		leaf_mass/=s;
 		stem_mass/=s;
@@ -330,6 +320,7 @@ public:
 		npp+=s.npp;
 		resp_auto+=s.resp_auto;
 		trans+=s.trans;
+		gs+=s.gs;
 		lai+=s.lai;
 		leaf_mass+=s.leaf_mass;
 		stem_mass+=s.stem_mass;
@@ -339,81 +330,32 @@ public:
 		return *this;
 	}
 	
-	void update(double t, Solver &S){
-		// gpp
-		gpp = 0;
+	template<class Func>
+	void integrate_prop(double &x, double t, Solver &S, const Func &f){
+		x = 0;
 		for (int k=0; k<S.n_species(); ++k)
-			gpp += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.res.gpp;
-			}, t, k);
-		
-		// npp
-		npp = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			npp += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.res.npp;
-			}, t, k);
-		
-		// transpiration
-		trans = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			trans += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.res.trans;
-			}, t, k);
-		
-		
-		// autotropic respiration
-		resp_auto = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			resp_auto += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.res.rleaf + p.res.rroot + p.res.rstem;
-			}, t, k);
-		
-		// LAI
-		lai = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			lai += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
-				return p.crown_area*p.lai;
-			}, t, k);
-		
-		// Leaf mass
-		leaf_mass = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			leaf_mass += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.geometry.leaf_mass(p.traits);
-			}, t, k);
-		
-		// Wood mass
-		stem_mass = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			stem_mass += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.geometry.stem_mass(p.traits);
-			}, t, k);
-		
-		// coarse root mass
-		croot_mass = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			croot_mass += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.geometry.coarse_root_mass(p.traits);
-			}, t, k);
-		
-		// fine root mass
-		froot_mass = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			froot_mass += S.integrate_x([&S,k](int i, double t){
-				auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				return p.geometry.root_mass(p.traits);
+			x += S.integrate_x([&S,k,f](int i, double t){
+				auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+				const PSPM_Plant * pp = &p;
+				return f(pp);
 			}, t, k);
 		
 	}
+	
+	void update(double t, Solver &S){
+		integrate_prop(gpp, t, S, [](const PSPM_Plant* p){return p->res.gpp;});
+		integrate_prop(npp, t, S, [](const PSPM_Plant* p){return p->res.npp;});
+		integrate_prop(trans, t, S, [](const PSPM_Plant* p){return p->res.trans;});
+		integrate_prop(resp_auto, t, S, [](const PSPM_Plant* p){return p->res.rleaf + p->res.rroot + p->res.rstem;});
+		integrate_prop(lai, t, S, [](const PSPM_Plant* p){return p->geometry.crown_area*p->geometry.lai;});
+		integrate_prop(leaf_mass, t, S, [](const PSPM_Plant* p){return p->geometry.leaf_mass(p->traits);});
+		integrate_prop(stem_mass, t, S, [](const PSPM_Plant* p){return p->geometry.stem_mass(p->traits);});
+		integrate_prop(croot_mass, t, S, [](const PSPM_Plant* p){return p->geometry.coarse_root_mass(p->traits);});
+		integrate_prop(froot_mass, t, S, [](const PSPM_Plant* p){return p->geometry.root_mass(p->traits);});
+		gs = (trans*55.55/365/86400)/1.6/(static_cast<PSPM_Dynamic_Environment*>(S.env)->clim.vpd/1.0325e5);
+		//     ^ convert kg/m2/yr --> mol/m2/s
+	}
+
 };
 
 EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
@@ -427,7 +369,7 @@ public:
 	
 	Solver S;
 	PSPM_Dynamic_Environment E;
-	CWM cwm;
+	SpeciesProps cwm;
 	EmergentProps props;
 	TraitsReader Tr;
 	SolverIO sio;
@@ -486,6 +428,7 @@ public:
 			
 			((plant::Plant*)&p1)->print();
 			//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
+			// FIXME: Need initial size calculation from seed mass
 			p1.set_size(0.01);
 			Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 			S.addSpecies(30, 0.01, 10, true, spp, 3, 1e-3);
@@ -531,7 +474,7 @@ public:
 	}
 	
 	
-	void updatePatchData(double t, vector<MovingAverager> seeds_hist){
+	void writePatchData(double t, vector<MovingAverager> seeds_hist){
 		
 		
 		cwm.update(t, S);
@@ -547,7 +490,7 @@ public:
 		<< props.croot_mass*1000*0.5 << "\t"
 		<< props.froot_mass*1000*0.5 << "\t"
 		<< (props.croot_mass+props.froot_mass)*1000*0.5 << "\t" // gC/m2
-		<< cwm.gs << "\t"
+		<< props.gs << "\t"
 		<< props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day
 		<< props.lai << endl;
 		
@@ -607,8 +550,6 @@ public:
 		
 	}
 	
-	void flushPatchData(){
-	}
 	
 	void clearPatch(io::Initializer &I,double t){
 		
@@ -694,7 +635,7 @@ int main(){
 	// Simulation Start Point
 	for (double t=y0; t <= yf; t=t+1){
 		cout << "t = " << t << endl;
-		CWM cwmEcosystem;
+		SpeciesProps cwmEcosystem;
 		EmergentProps propsEcosystem;
 		
 		cwmEcosystem.resize(nspp_global);
@@ -704,7 +645,7 @@ int main(){
 			pa[i]->stepPatch(t);
 		}
 		
-		// calculate total seed output from all patches 
+		// calculate average seed output from all patches 
 		vector<double> total_seeds(nspp_global,0);
 		for(int k=0; k<nspp_global; ++k){
 			for(int i=0;i<npatches;++i){
@@ -722,8 +663,7 @@ int main(){
 
 		// output patch data
 		for(int i=0;i<npatches;i++){
-			pa[i]->updatePatchData(t, seeds_hist);
-			pa[i]->flushPatchData();
+			pa[i]->writePatchData(t, seeds_hist);
 		}
 		
 		// implement disturbance - clear patches if disturbance interval has been reached
@@ -731,7 +671,7 @@ int main(){
 			pa[i]->clearPatch(I,t);
 		}
 
-		// Averaging CWM and EmergentProps values for entire Ecosystem
+		// Averaging SpeciesProps and EmergentProps values for entire Ecosystem
 		for(int i=0; i<npatches; i++){
 			cwmEcosystem += pa[i]->cwm;
 			propsEcosystem += pa[i]->props;
@@ -750,7 +690,7 @@ int main(){
 		<< propsEcosystem.croot_mass*1000*0.5 << "\t"
 		<< propsEcosystem.froot_mass*1000*0.5 << "\t"
 		<< (propsEcosystem.croot_mass+propsEcosystem.froot_mass)*1000*0.5 << "\t" // gC/m2
-		<< cwmEcosystem.gs << "\t"
+		<< propsEcosystem.gs << "\t"
 		<< propsEcosystem.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day
 		<< propsEcosystem.lai << endl;
 		

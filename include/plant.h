@@ -61,7 +61,7 @@ class Plant{
 	
 	void set_size(double x);
 
-	double get_biomass();
+	double get_biomass() const;
 	
 	// LAI model
 	template<class Env>

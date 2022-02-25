@@ -75,14 +75,14 @@ class PlantGeometry{
 	// **
 	// ** Carbon pools
 	// **
-	double leaf_mass(PlantTraits &traits);
-	double root_mass(PlantTraits &traits);
-	double sapwood_mass(PlantTraits &traits);
-	double sapwood_mass_real(PlantTraits &traits);
-	double stem_mass(PlantTraits &traits);
-	double coarse_root_mass(PlantTraits &traits);
-	double heartwood_mass(PlantTraits &traits);
-	double total_mass(PlantTraits &traits);
+	double leaf_mass(const PlantTraits &traits) const;
+	double root_mass(const PlantTraits &traits) const;
+	double sapwood_mass(const PlantTraits &traits) const;
+	double sapwood_mass_real(const PlantTraits &traits) const;
+	double stem_mass(const PlantTraits &traits) const;
+	double coarse_root_mass(const PlantTraits &traits) const;
+	double heartwood_mass(const PlantTraits &traits) const;
+	double total_mass(const PlantTraits &traits) const;
 
 	// **
 	// ** state manipulations
