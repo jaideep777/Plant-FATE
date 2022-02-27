@@ -15,7 +15,7 @@ navbar:
   structure:
     left:
     - home
-    - tutorials
+    - theory 
     - api
     right:
     - news
@@ -25,17 +25,14 @@ navbar:
       text: Home
       icon: fa-home fa-lg
       href: index.html
-    tutorials:
-      text: Tutorials
+    theory:
+      text: Theory
       icon: fa-book fa-lg
       menu:
-        - text: Creating a tensor
-          icon: fa-battery-quarter
-          href: articles/create.html
-        - text: Tensor operators
-          icon: fa-terminal
-          href: articles/operators.html
-        - text: "---------"
+        - text: Allometric relations
+          href: articles/theory_allometry.html
+        - text: Crown shape model
+          href: articles/crown_geometry.html
     api:
       text: API
       icon: fa-code fa-lg
