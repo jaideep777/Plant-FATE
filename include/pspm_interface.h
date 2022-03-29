@@ -101,7 +101,7 @@ class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnviro
 	//// level attributes from x, which can be reused if required. E.g., in Plant, we can add leaf_area
 	//// as an iAttribute. iAttributes can be mapped to integers, say using enums
 	//// Alternatively, switch to Indiviudual class as a template parameter for solver
-	void computeEnv(double t, Solver *S){
+	void computeEnv(double t, Solver *S, std::vector<double>::iterator _S, std::vector<double>::iterator _dSdt){
 		updateClimate(t);
 
 		//            _xm 

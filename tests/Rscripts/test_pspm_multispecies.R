@@ -1,8 +1,8 @@
 code = "AMB_LD"
-setwd(paste0("/home/jaideep/codes/tmodel_cpp/pspm_output/AmzFACE_Final_",code,"_3/"))
+setwd(paste0("~/codes/tmodel_cpp/pspm_output/AmzFACE_Final_",code,"_3/Patch0"))
 
 plot_to_file = F
-n_species = 5
+n_species = 3
 n = 101
 
 hp   = read.delim(paste0("species_",0,"_height.txt"), header=F, col.names = paste0("V", 1:n))
