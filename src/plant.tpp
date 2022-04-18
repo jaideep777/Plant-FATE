@@ -80,6 +80,11 @@ double Plant::mortality_rate(Env &env){
 	           par.clnD*log(D*1000) + par.cD*(D*1000) + 
 	           par.cG*log(rates.rgr*D*1000) + 
 	           par.cWD*(traits.wood_density - par.cWD0);
+	
+	// Adding Hydraulic Mortality function to overall mortality rate
+	
+	
+	
 	double mu = 1/(1+exp(-r));
 	return mu;	
 	

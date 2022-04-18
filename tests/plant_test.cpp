@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <fstream>
+#include <random>
 
 #include "plant_params.h"
 #include "plant_geometry.h"
@@ -37,6 +38,18 @@ int main(){
 //	C.canopy_openness = {1,exp(-0.5*3.5)};
 //	C.n_layers = C.z_star.size()-1;
 
+	
+// Creating random number generator for soil water potential
+	double prng_mean = -40.0;
+	double prng_stddev = 15.0;
+	std::default_random_engine generator;
+	std::normal_distribution<double> dist(mean, stddev);
+	for (double t=double t=2000; t<=2050; t=t+0.1){
+		C.t_met.push_back(t);
+		C.v_met_swp.push_back(dist(generator));
+	}
+	
+	
 	C.print(0);
 
 
