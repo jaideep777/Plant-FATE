@@ -25,7 +25,7 @@ class Clim{
 
 
 class Climate{
-	private:
+	//private:
 	double t_prev = 0;  // time at current data values (years since 2000-01-01)
 	double t_next = 0;  // next time in file for which data is available
 	Clim clim_prev;

@@ -43,8 +43,8 @@ int main(){
 	double prng_mean = -40.0;
 	double prng_stddev = 15.0;
 	std::default_random_engine generator;
-	std::normal_distribution<double> dist(mean, stddev);
-	for (double t=double t=2000; t<=2050; t=t+0.1){
+	std::normal_distribution<double> dist(prng_mean, prng_stddev);
+	for (double t=2000; t<=2050; t=t+0.1){
 		C.t_met.push_back(t);
 		C.v_met_swp.push_back(dist(generator));
 	}
