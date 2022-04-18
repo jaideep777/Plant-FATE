@@ -58,7 +58,7 @@ double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 
 
 template<class Env>
-double Plant::mortality_rate(Env &env){
+double Plant::mortality_rate(Env &env, double t){
 	double D = geometry.diameter;
 	double dDs = par.mS0*exp(-rates.rgr*par.mS); //-log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
 	double dDd = exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
@@ -82,10 +82,10 @@ double Plant::mortality_rate(Env &env){
 	           par.cWD*(traits.wood_density - par.cWD0);
 	
 	// Adding Hydraulic Mortality function to overall mortality rate
+	double h = 0.5^((env.v_met_swp[(t-2000)*10]/(3*traits.p50_xylem))^1);
 	
 	
-	
-	double mu = 1/(1+exp(-r));
+	double mu = 1/(1+exp(-(r+h)));
 	return mu;	
 	
 	//double logit = -5 -1*log(D*1000) - 0.004*D*1000 + -0.3*log(rates.rgr);
@@ -101,7 +101,7 @@ double Plant::fecundity_rate(double _dmass_dt_rep, Env &env){
 
 
 template<class Env>
-void Plant::calc_demographic_rates(Env &env){
+void Plant::calc_demographic_rates(Env &env, double t){
 
 	res = assimilator.net_production(env, &geometry, par, traits);	
 	bp.dmass_dt_tot = std::max(res.npp, 0.0);  // No biomass growth if npp is negative
@@ -114,7 +114,7 @@ void Plant::calc_demographic_rates(Env &env){
 
 	// set core rates
 	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
-	rates.dmort_dt  = mortality_rate(env); 
+	rates.dmort_dt  = mortality_rate(env, t);
 
 	double fec = fecundity_rate(bp.dmass_dt_rep, env);
 	rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool

@@ -112,7 +112,7 @@ class Plant{
 			state.seed_pool = S[5];
 			germinated = S[6];
 
-			calc_demographic_rates(env);
+			calc_demographic_rates(env,t);
 			
 			dSdt[0] = rates.dlai_dt;       // lai growth rate
 //			dSdt[1] = rates.dcroot_dt;    // growth rate of coarse root biomass
