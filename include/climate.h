@@ -25,7 +25,7 @@ class Clim{
 
 
 class Climate{
-	//private:
+	private:
 	double t_prev = 0;  // time at current data values (years since 2000-01-01)
 	double t_next = 0;  // next time in file for which data is available
 	Clim clim_prev;
@@ -38,14 +38,18 @@ class Climate{
 	std::vector<int>    t_co2;
 	std::vector<double> v_co2;
 
-	std::vector<double> t_met;
-	std::vector<Clim>   v_met;
+	//std::vector<double> t_met;
+	//std::vector<Clim>   v_met;
 	// Adding temp vector for soil water potential
-	std::vector<double> v_met_swp;
+	//std::vector<double> v_met_swp;
 
 	public:
 	double t_now;
 	Clim clim;
+	std::vector<double> t_met;
+	std::vector<Clim>   v_met;
+	// Adding temp vector for soil water potential
+	std::vector<double> v_met_swp;
 
 	std::string metFile = "";
 	std::string co2File = "";
