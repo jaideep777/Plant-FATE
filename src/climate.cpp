@@ -74,6 +74,9 @@ int Climate::id(double t){
 
 
 void Climate::updateClimate(double t){
+
+	// double tadj = t;  // adjusted t to lie between limits of observed data
+	// while(tadj < *t_met.begin()) tadj += delta;
 		
 	if (update_met){
 		double tadj = t;  // adjusted t to lie between limits of observed data
@@ -97,7 +100,6 @@ void Climate::updateClimate(double t){
 	}
 
 }
-
 
 int Climate::readNextLine_met(Clim &clim, double &t){
 
