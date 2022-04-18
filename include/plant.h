@@ -75,13 +75,13 @@ class Plant{
 	double size_growth_rate(double _dmass_dt_growth, Env &env);
 
 	template<class Env>
-	double mortality_rate(Env &env);
+	double mortality_rate(Env &env, double t);
 
 	template<class Env>
 	double fecundity_rate(double _dmass_dt_rep, Env &env);
 
 	template<class Env>
-	void calc_demographic_rates(Env &env);
+	void calc_demographic_rates(Env &env, double t);
 
 	template<class Env>
 	double p_survival_germination(Env &env);
