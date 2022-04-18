@@ -50,6 +50,7 @@ class Climate{
 	std::vector<Clim>   v_met;
 	// Adding temp vector for soil water potential
 	std::vector<double> v_met_swp;
+	int counter_var = 1;
 
 	std::string metFile = "";
 	std::string co2File = "";
