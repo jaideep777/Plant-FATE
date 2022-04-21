@@ -97,9 +97,9 @@ class Plant{
 	// ** - grows plant over dt with constant assimilation rate A
 	// ** 
 	template<class Env>
-	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated){
+	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated, &mortality){
 
-		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, &mortality, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 			//if (fabs(t - 2050) < 1e-5) 
 			//env.updateClimate(t);
 
@@ -111,6 +111,7 @@ class Plant{
 			rep = S[4];
 			state.seed_pool = S[5];
 			germinated = S[6];
+			mortality = S[7];
 
 			calc_demographic_rates(env);
 			
@@ -121,10 +122,11 @@ class Plant{
 			dSdt[3] = bp.dmass_dt_lit;  // litter biomass growth rate
 			dSdt[4] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
 			dSdt[5] = rates.dseeds_dt_pool;
-			dSdt[6] = rates.dseeds_dt_germ;
+			dSdt[6] = rates.dseeds_dt_germ*mortality;
+			dSdt[7] = rates.dmort_dt;
 		};
 
-		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated};
+		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated, mortality};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
 		geometry.set_lai(S[0]);
@@ -135,6 +137,7 @@ class Plant{
 		rep = S[4];
 		state.seed_pool = S[5];
 		germinated = S[6];
+		mortality = S[7];
 		//seeds_hist.push(t+dt, rates.dseeds_dt_germ);
 		//seeds_hist.print();
 

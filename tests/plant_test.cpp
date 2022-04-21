@@ -87,6 +87,7 @@ int main(){
 	double total_rep = 0;
 	double litter_pool = 0;
 	double germinated = 0;
+	double mortality =0;
 	cout << "Starting biomass = " << total_prod << "\n";
 	for (double t=2000; t<=2050; t=t+dt){
 
@@ -120,11 +121,13 @@ int main(){
 			 << germinated << "\t"
 			 << 0/*P.seeds_hist.get()*/ << "\t"
 			 << total_prod << "\t"
-			 << litter_pool << "\n";
+			 << litter_pool << "\t";
+			 << mortality << "\t";
+		
 		
 		//total_prod += P*P.geometry.leaf_area*dt;
 		
-		P.grow_for_dt(t, dt, C, total_prod, total_rep, litter_pool, germinated);
+		P.grow_for_dt(t, dt, C, total_prod, total_rep, litter_pool, germinated, mortality);
 		//double dhdM = P.geometry.dheight_dmass(par, traits);
 		//double h_new = P.geometry.height + dhdM*P*P.geometry.leaf_area*dt;
 		//P.geometry.set_height(h_new, par, traits);
