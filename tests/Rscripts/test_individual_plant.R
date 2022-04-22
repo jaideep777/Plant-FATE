@@ -1,5 +1,5 @@
 # R script to test:
-dat = read.delim("assim.txt")
+dat = read.delim("D:/github_stuff/Plant-FATE_patch/assim.txt")
 dat$leaf_area = dat$crown_area * dat$lai
 dat$heartwood_fraction = 1-dat$sapwood_fraction
 

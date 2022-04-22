@@ -97,7 +97,7 @@ class Plant{
 	// ** - grows plant over dt with constant assimilation rate A
 	// ** 
 	template<class Env>
-	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated, &mortality){
+	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated, double &mortality){
 
 		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, &mortality, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 			//if (fabs(t - 2050) < 1e-5) 

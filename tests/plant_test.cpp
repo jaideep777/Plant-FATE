@@ -54,6 +54,7 @@ int main(){
 
 
 	ofstream fout("assim.txt");
+	ofstream fmort("mort.txt");
 	fout << "i" << "\t"
 		 << "ppfd" <<"\t"
 		 << "assim_net" << "\t"
@@ -81,7 +82,8 @@ int main(){
 		 << "germinated" << "\t"
 		 << "germinated_avg" << "\t"
 		 << "total_prod" << "\t"
-		 << "litter_mass" << "\n";
+		 << "litter_mass" << "\t"
+		 << "mortality" << "\n";
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
 	double total_rep = 0;
@@ -121,8 +123,10 @@ int main(){
 			 << germinated << "\t"
 			 << 0/*P.seeds_hist.get()*/ << "\t"
 			 << total_prod << "\t"
-			 << litter_pool << "\t";
+			 << litter_pool << "\t"
 			 << mortality << "\t";
+
+		fmort << mortality << "\t";
 		
 		
 		//total_prod += P*P.geometry.leaf_area*dt;
@@ -134,6 +138,7 @@ int main(){
 
 	}
 	fout.close();
+	fmort.close();
 
 	cout << "At t = " << 100 << "\n" 
 		 << setprecision(12) 

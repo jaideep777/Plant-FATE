@@ -1,3 +1,5 @@
+#include <cmath>
+
 namespace plant{
 
 
@@ -82,7 +84,7 @@ double Plant::mortality_rate(Env &env){
 	           par.cWD*(traits.wood_density - par.cWD0);
 	
 	// Adding Hydraulic Mortality function to overall mortality rate
-	double h = 0.5^((env.v_met_swp[env.counter_var]/(3*traits.p50_xylem))^1);
+	double h = pow(0.5,((env.v_met_swp[env.counter_var]/(3*traits.p50_xylem))));
 	env.counter_var ++;
 	
 	double mu = 1/(1+exp(-(r+h)));
