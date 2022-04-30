@@ -29,7 +29,6 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 }
 
 
-
 // seed and sapling survival 
 template<class Env>
 double Plant::p_survival_germination(Env &env){
@@ -84,10 +83,12 @@ double Plant::mortality_rate(Env &env){
 	           par.cWD*(traits.wood_density - par.cWD0);
 	
 	// Adding Hydraulic Mortality function to overall mortality rate
-	double h = pow(0.5,((env.v_met_swp[env.counter_var]/(3*traits.p50_xylem))));
+	double h = 1-pow(0.5,-((env.v_met_swp[env.counter_var]/(3*traits.p50_xylem))));
+	fmuh << env.v_met_swp[env.counter_var] << "\t" << h << "\t";
 	env.counter_var ++;
 	
-	double mu = 1/(1+exp(-(r+h)));
+	double mu = 1/(1+exp(-(h)));
+	fmuh << mu << "\n";
 	return mu;	
 	
 	//double logit = -5 -1*log(D*1000) - 0.004*D*1000 + -0.3*log(rates.rgr);

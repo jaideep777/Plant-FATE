@@ -40,13 +40,18 @@ int main(){
 
 	
 // Creating random number generator for soil water potential
-	double prng_mean = -40.0;
-	double prng_stddev = 15.0;
+	ofstream fswp("swp.txt");
+
+	double prng_mean = -3.0;
+	double prng_stddev = -0.5;
 	std::default_random_engine generator;
 	std::normal_distribution<double> dist(prng_mean, prng_stddev);
-	for (double t=2000; t<=2050; t=t+0.1){
+	for (double t=0; t<=2000; t=t+1){
 		C.t_met.push_back(t);
-		C.v_met_swp.push_back(dist(generator));
+		double val = dist(generator);
+		if(val>0) val = 0;
+		C.v_met_swp.push_back(val);
+		fswp << C.v_met_swp[t] << "\n";
 	}
 	
 	
@@ -55,6 +60,8 @@ int main(){
 
 	ofstream fout("assim.txt");
 	ofstream fmort("mort.txt");
+	ofstream fmort_i("mort_i.txt");
+
 	fout << "i" << "\t"
 		 << "ppfd" <<"\t"
 		 << "assim_net" << "\t"
@@ -126,7 +133,8 @@ int main(){
 			 << litter_pool << "\t"
 			 << mortality << "\t";
 
-		fmort << mortality << "\t";
+		fmort << mortality << "\n";
+		fmort_i << P.rates.dmort_dt << "\n";
 		
 		
 		//total_prod += P*P.geometry.leaf_area*dt;
@@ -139,6 +147,8 @@ int main(){
 	}
 	fout.close();
 	fmort.close();
+	fmort_i.close();
+	fswp.close();
 
 	cout << "At t = " << 100 << "\n" 
 		 << setprecision(12) 
