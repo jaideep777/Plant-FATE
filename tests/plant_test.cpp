@@ -46,12 +46,15 @@ int main(){
 	double prng_stddev = -0.5;
 	std::default_random_engine generator;
 	std::normal_distribution<double> dist(prng_mean, prng_stddev);
-	for (double t=0; t<=2000; t=t+1){
+	for (double t=0; t<=500; t=t+1){
 		C.t_met.push_back(t);
 		double val = dist(generator);
 		if(val>0) val = 0;
 		C.v_met_swp.push_back(val);
-		fswp << C.v_met_swp[t] << "\n";
+		C.v_met_swp.push_back(val);
+		C.v_met_swp.push_back(val);
+		C.v_met_swp.push_back(val);
+		fswp << C.v_met_swp[4*t] << "\n";
 	}
 	
 	
