@@ -1,6 +1,6 @@
 #ifndef PLANT_FATE_PLANT_PLANT_H_
 #define PLANT_FATE_PLANT_PLANT_H_
-
+#include <fstream>
 #include "plant_params.h"
 #include "plant_geometry.h"
 #include "assimilation.h"
@@ -15,7 +15,7 @@ class Plant{
 	struct{
 		//double lai;         // these are in geometry 
 		//double size;
-		double mortality;     // cummulative mortality
+		double mortality = 0;     // cummulative mortality
 		double seed_pool = 0; // seed pool size  // FIXME: This needs to be a species characteristic if nonlinearities come in, e.g. environmentally dependent germination
 	} state;
 	
@@ -38,13 +38,14 @@ class Plant{
 		double dmass_dt_tot;
 	} bp;
 
+
 	PlantAssimilationResult res;
 
 	// seed output history
 	//MovingAverager seeds_hist;
 
 	public:
-
+	std::ofstream fmuh;
 	PlantTraits traits;
 	PlantParameters par;
 
@@ -52,7 +53,13 @@ class Plant{
 	PlantGeometry geometry;
 	
 	public:
-//	Plant();
+	Plant(){
+		fmuh.open("muh.txt");
+
+		fmuh << "swp" << "\t"
+			 << "h" <<"\t"
+		 	 << "mu" << "\n";
+	};
 //	~Plant();
 //	Plant(const Plant &P);  // we need a copy constructor to correctly set geometry and assimilator pointers
 
@@ -97,9 +104,9 @@ class Plant{
 	// ** - grows plant over dt with constant assimilation rate A
 	// ** 
 	template<class Env>
-	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated, double &mortality){
+	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated){
 
-		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, &mortality, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 			//if (fabs(t - 2050) < 1e-5) 
 			//env.updateClimate(t);
 
@@ -111,7 +118,7 @@ class Plant{
 			rep = S[4];
 			state.seed_pool = S[5];
 			germinated = S[6];
-			mortality = S[7];
+			state.mortality = S[7];
 
 			calc_demographic_rates(env);
 			
@@ -122,11 +129,11 @@ class Plant{
 			dSdt[3] = bp.dmass_dt_lit;  // litter biomass growth rate
 			dSdt[4] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
 			dSdt[5] = rates.dseeds_dt_pool;
-			dSdt[6] = rates.dseeds_dt_germ*mortality;
+			dSdt[6] = rates.dseeds_dt_germ;
 			dSdt[7] = rates.dmort_dt;
 		};
 
-		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated, mortality};
+		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
 		geometry.set_lai(S[0]);
@@ -137,12 +144,11 @@ class Plant{
 		rep = S[4];
 		state.seed_pool = S[5];
 		germinated = S[6];
-		mortality = S[7];
+		state.mortality = S[7];
 		//seeds_hist.push(t+dt, rates.dseeds_dt_germ);
 		//seeds_hist.print();
 
 	}
-
 
 };
 

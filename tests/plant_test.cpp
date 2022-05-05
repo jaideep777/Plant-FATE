@@ -43,15 +43,18 @@ int main(){
 	ofstream fswp("swp.txt");
 
 	double prng_mean = -3.0;
-	double prng_stddev = -0.5;
+	double prng_stddev = -4.0;
 	std::default_random_engine generator;
 	std::normal_distribution<double> dist(prng_mean, prng_stddev);
-	for (double t=0; t<=2000; t=t+1){
+	for (double t=0; t<=500; t=t+1){
 		C.t_met.push_back(t);
 		double val = dist(generator);
 		if(val>0) val = 0;
 		C.v_met_swp.push_back(val);
-		fswp << C.v_met_swp[t] << "\n";
+		C.v_met_swp.push_back(val);
+		C.v_met_swp.push_back(val);
+		C.v_met_swp.push_back(val);
+		fswp << C.v_met_swp[4*t] << "\n";
 	}
 	
 	
@@ -91,12 +94,12 @@ int main(){
 		 << "total_prod" << "\t"
 		 << "litter_mass" << "\t"
 		 << "mortality" << "\n";
+
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
 	double total_rep = 0;
 	double litter_pool = 0;
 	double germinated = 0;
-	double mortality =0;
 	cout << "Starting biomass = " << total_prod << "\n";
 	for (double t=2000; t<=2050; t=t+dt){
 
@@ -131,15 +134,14 @@ int main(){
 			 << 0/*P.seeds_hist.get()*/ << "\t"
 			 << total_prod << "\t"
 			 << litter_pool << "\t"
-			 << mortality << "\t";
+			 << P.state.mortality << "\n";
 
-		fmort << mortality << "\n";
+		fmort << P.state.mortality << "\n";
 		fmort_i << P.rates.dmort_dt << "\n";
-		
 		
 		//total_prod += P*P.geometry.leaf_area*dt;
 		
-		P.grow_for_dt(t, dt, C, total_prod, total_rep, litter_pool, germinated, mortality);
+		P.grow_for_dt(t, dt, C, total_prod, total_rep, litter_pool, germinated);
 		//double dhdM = P.geometry.dheight_dmass(par, traits);
 		//double h_new = P.geometry.height + dhdM*P*P.geometry.leaf_area*dt;
 		//P.geometry.set_height(h_new, par, traits);

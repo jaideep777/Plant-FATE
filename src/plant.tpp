@@ -83,11 +83,12 @@ double Plant::mortality_rate(Env &env){
 	           par.cWD*(traits.wood_density - par.cWD0);
 	
 	// Adding Hydraulic Mortality function to overall mortality rate
-	double h = 1-pow(0.5,-((env.v_met_swp[env.counter_var]/(3*traits.p50_xylem))));
+	double c = 5;
+	double h = c*(1-pow(0.5,((env.v_met_swp[env.counter_var]/(3*traits.p50_xylem)))));
 	fmuh << env.v_met_swp[env.counter_var] << "\t" << h << "\t";
 	env.counter_var ++;
 	
-	double mu = 1/(1+exp(-(h)));
+	double mu = h + 1/(1+exp(-(r)));
 	fmuh << mu << "\n";
 	return mu;	
 	
@@ -101,7 +102,6 @@ template<class Env>
 double Plant::fecundity_rate(double _dmass_dt_rep, Env &env){
 	return _dmass_dt_rep/(4*traits.seed_mass);
 }
-
 
 template<class Env>
 void Plant::calc_demographic_rates(Env &env){
@@ -119,7 +119,7 @@ void Plant::calc_demographic_rates(Env &env){
 	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
 	rates.dmort_dt  = mortality_rate(env);
 
-	double fec = fecundity_rate(bp.dmass_dt_rep, env);
+	double fec = fecundity_rate(bp.dmass_dt_rep, env); //*exp(-state.mortality);
 	rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
 	rates.dseeds_dt_germ =   state.seed_pool/par.ll_seed;   // seeds that leave seed pool proceed for germincation
 	// need to add seed decay
