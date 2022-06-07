@@ -46,7 +46,7 @@ int main(){
 	double prng_stddev = -4.0;
 	std::default_random_engine generator;
 	std::normal_distribution<double> dist(prng_mean, prng_stddev);
-	for (double t=0; t<=500; t=t+1){
+	for (double t=0; t<=5000; t=t+1){
 		C.t_met.push_back(t);
 		double val = dist(generator);
 		if(val>0) val = 0;
@@ -93,6 +93,7 @@ int main(){
 		 << "germinated_avg" << "\t"
 		 << "total_prod" << "\t"
 		 << "litter_mass" << "\t"
+		 << "fecundity" << "\t"
 		 << "mortality" << "\n";
 
 	double dt = 0.1; 
@@ -101,7 +102,7 @@ int main(){
 	double litter_pool = 0;
 	double germinated = 0;
 	cout << "Starting biomass = " << total_prod << "\n";
-	for (double t=2000; t<=2050; t=t+dt){
+	for (double t=2000; t<=2500; t=t+dt){
 
 		//cout << t << " " << P.geometry.total_mass(par, traits) << " " << total_prod << "\n";
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;
@@ -134,6 +135,7 @@ int main(){
 			 << 0/*P.seeds_hist.get()*/ << "\t"
 			 << total_prod << "\t"
 			 << litter_pool << "\t"
+			 << P.state.f << "\t"
 			 << P.state.mortality << "\n";
 
 		fmort << P.state.mortality << "\n";
