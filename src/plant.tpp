@@ -90,6 +90,7 @@ double Plant::mortality_rate(Env &env){
 	
 	double mu = h + 1/(1+exp(-(r)));
 	fmuh << mu << "\n";
+	assert(mu>=0);
 	return mu;	
 	
 	//double logit = -5 -1*log(D*1000) - 0.004*D*1000 + -0.3*log(rates.rgr);
@@ -120,7 +121,8 @@ void Plant::calc_demographic_rates(Env &env){
 	rates.dmort_dt  = mortality_rate(env);
 
 	double fec = fecundity_rate(bp.dmass_dt_rep, env)*exp(-state.mortality);
-	state.f = fec;
+	state.f_m = fec;
+	state.f = fecundity_rate(bp.dmass_dt_rep, env);
 	rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
 	rates.dseeds_dt_germ =   state.seed_pool/par.ll_seed;   // seeds that leave seed pool proceed for germincation
 	// need to add seed decay

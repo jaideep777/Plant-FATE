@@ -62,8 +62,6 @@ int main(){
 
 
 	ofstream fout("assim.txt");
-	ofstream fmort("mort.txt");
-	ofstream fmort_i("mort_i.txt");
 
 	fout << "i" << "\t"
 		 << "ppfd" <<"\t"
@@ -94,7 +92,9 @@ int main(){
 		 << "total_prod" << "\t"
 		 << "litter_mass" << "\t"
 		 << "fecundity" << "\t"
-		 << "mortality" << "\n";
+		 << "fecundity_mort" << "\t"
+		 << "mortality" << "\t"
+		 << "mortality_inst" << "\n";
 
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
@@ -136,10 +136,9 @@ int main(){
 			 << total_prod << "\t"
 			 << litter_pool << "\t"
 			 << P.state.f << "\t"
-			 << P.state.mortality << "\n";
-
-		fmort << P.state.mortality << "\n";
-		fmort_i << P.rates.dmort_dt << "\n";
+			 << P.state.f_m << "\t"
+			 << P.state.mortality << "\t"
+			 << P.rates.dmort_dt << "\n";
 		
 		//total_prod += P*P.geometry.leaf_area*dt;
 		
@@ -150,8 +149,6 @@ int main(){
 
 	}
 	fout.close();
-	fmort.close();
-	fmort_i.close();
 	fswp.close();
 
 	cout << "At t = " << 100 << "\n" 

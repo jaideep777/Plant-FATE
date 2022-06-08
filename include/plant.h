@@ -17,6 +17,7 @@ class Plant{
 		//double size;
 		double mortality = 0;     // cummulative mortality
 		double seed_pool = 0;
+		double f_m = 0;
 		double f = 0; // seed pool size  // FIXME: This needs to be a species characteristic if nonlinearities come in, e.g. environmentally dependent germination
 	} state;
 	
@@ -134,7 +135,7 @@ class Plant{
 			dSdt[7] = rates.dmort_dt;
 		};
 
-		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, state.mortality, germinated};
+		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated, state.mortality};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
 		geometry.set_lai(S[0]);
