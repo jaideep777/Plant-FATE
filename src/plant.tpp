@@ -59,7 +59,7 @@ double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 
 
 template<class Env>
-double Plant::mortality_rate(Env &env){
+double Plant::mortality_rate(Env &env, double t){
 	double D = geometry.diameter;
 	double dDs = par.mS0*exp(-rates.rgr*par.mS); //-log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
 	double dDd = exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
@@ -84,9 +84,9 @@ double Plant::mortality_rate(Env &env){
 	
 	// Adding Hydraulic Mortality function to overall mortality rate
 	double c = 2;
-	double h = c*(1-pow(0.5,((env.v_met_swp[env.counter_var]/(3*traits.p50_xylem)))));
-	fmuh << env.v_met_swp[env.counter_var] << "\t" << h << "\t";
-	env.counter_var ++;
+	double h = c*(1-pow(0.5,((env.inst_swp[t]/(3*traits.p50_xylem)))));
+	fmuh << env.inst_swp[t] << "\t" << h << "\t";
+	
 	
 	double mu = h + 1/(1+exp(-(r)));
 	fmuh << mu << "\n";
@@ -105,7 +105,7 @@ double Plant::fecundity_rate(double _dmass_dt_rep, Env &env){
 }
 
 template<class Env>
-void Plant::calc_demographic_rates(Env &env){
+void Plant::calc_demographic_rates(Env &env, double t){
 
 	res = assimilator.net_production(env, &geometry, par, traits);	
 	bp.dmass_dt_tot = std::max(res.npp, 0.0);  // No biomass growth if npp is negative
@@ -118,7 +118,7 @@ void Plant::calc_demographic_rates(Env &env){
 
 	// set core rates
 	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
-	rates.dmort_dt  = mortality_rate(env);
+	rates.dmort_dt  = mortality_rate(env, t);
 
 	double fec = fecundity_rate(bp.dmass_dt_rep, env)*exp(-state.mortality);
 	state.f_m = fec;

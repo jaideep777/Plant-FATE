@@ -84,13 +84,13 @@ class Plant{
 	double size_growth_rate(double _dmass_dt_growth, Env &env);
 
 	template<class Env>
-	double mortality_rate(Env &env);
+	double mortality_rate(Env &env, double t);
 
 	template<class Env>
 	double fecundity_rate(double _dmass_dt_rep, Env &env);
 
 	template<class Env>
-	void calc_demographic_rates(Env &env);
+	void calc_demographic_rates(Env &env, double t);
 
 	template<class Env>
 	double p_survival_germination(Env &env);
@@ -122,7 +122,7 @@ class Plant{
 			germinated = S[6];
 			state.mortality = S[7];
 
-			calc_demographic_rates(env);
+			calc_demographic_rates(env, t);
 			
 			dSdt[0] = rates.dlai_dt;       // lai growth rate
 //			dSdt[1] = rates.dcroot_dt;    // growth rate of coarse root biomass

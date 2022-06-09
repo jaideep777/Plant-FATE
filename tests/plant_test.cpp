@@ -46,15 +46,12 @@ int main(){
 	double prng_stddev = -4.0;
 	std::default_random_engine generator;
 	std::normal_distribution<double> dist(prng_mean, prng_stddev);
-	for (double t=0; t<=5000; t=t+1){
+	for (double t=2000; t<=2100; t=t+1){
 		C.t_met.push_back(t);
 		double val = dist(generator);
 		if(val>0) val = 0;
 		C.v_met_swp.push_back(val);
-		C.v_met_swp.push_back(val);
-		C.v_met_swp.push_back(val);
-		C.v_met_swp.push_back(val);
-		fswp << C.v_met_swp[4*t] << "\n";
+		fswp << C.v_met_swp[t] << "\n";
 	}
 	
 	
@@ -102,7 +99,7 @@ int main(){
 	double litter_pool = 0;
 	double germinated = 0;
 	cout << "Starting biomass = " << total_prod << "\n";
-	for (double t=2000; t<=2500; t=t+dt){
+	for (double t=2000; t<=2100; t=t+dt){
 
 		//cout << t << " " << P.geometry.total_mass(par, traits) << " " << total_prod << "\n";
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;

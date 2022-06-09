@@ -73,7 +73,10 @@ class Climate{
 	void updateClimate(double t);
 
 	int readNextLine_met(Clim &clim, double &t);
-
+	
+	int binarySearch(double k);
+	double inst_swp(double year);
+	
 	template<class T> 
 	T as(std::string s);
 
