@@ -156,26 +156,27 @@ void Climate::print_all(){
 	}
 }
 
-int binarySearch(double k){
-	int low = 0;
-	int len = t_met.size();
-	int high = len - 1;
-	int mid = (high+low)/2;
-	int index = -1;
-	while(low <= high){
-		mid =( low + high ) / 2;
-		if(t_met_swp[mid] <= k){
-			index = mid;
-			low = mid+1;
-		}
-		else{
-			high=mid-1;
-		}
-	}
-	return index;
-}
+
 
 double Climate::inst_swp(double year){
+	int binarySearch(double k){
+		int low = 0;
+		int len = t_met.size();
+		int high = len - 1;
+		int mid = (high+low)/2;
+		int index = -1;
+		while(low <= high){
+			mid =( low + high ) / 2;
+			if(t_met_swp[mid] <= k){
+				index = mid;
+				low = mid+1;
+			}
+			else{
+				high=mid-1;
+			}
+		}
+		return index;
+	}
 	
 	int i = binarySearch(year);
 	if (i == (t_met.size()-1)){

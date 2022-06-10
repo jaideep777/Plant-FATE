@@ -84,8 +84,8 @@ double Plant::mortality_rate(Env &env, double t){
 	
 	// Adding Hydraulic Mortality function to overall mortality rate
 	double c = 2;
-	double h = c*(1-pow(0.5,((env.inst_swp[t]/(3*traits.p50_xylem)))));
-	fmuh << env.inst_swp[t] << "\t" << h << "\t";
+	double h = c*(1-pow(0.5,((env.inst_swp(t)/(3*traits.p50_xylem)))));
+	fmuh << env.inst_swp(t) << "\t" << h << "\t";
 	
 	
 	double mu = h + 1/(1+exp(-(r)));
