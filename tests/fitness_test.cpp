@@ -42,7 +42,7 @@ int main(){
 	       << "Fitness_Avg" << "\n";
 	
 	
-	for (double i_mean = swp_mean_start; i_mean <= swp_mean_stop; i_mean = i_mean - 0.1 ){
+	for (double i_mean = swp_mean_start; i_mean >= swp_mean_stop; i_mean = i_mean - 0.1 ){
 		
 		std::vector<double> germi_avg;
 		cout << "Starting SWP mean : " << to_string(i_mean) << "\n";
@@ -70,7 +70,7 @@ int main(){
 				if(val>0) val = 0;
 				C.v_met_swp.push_back(val);
 			}
-			C.print(0);
+			//C.print(0);
 			
 			double total_prod = P.get_biomass();
 			double total_rep = 0;
@@ -87,12 +87,10 @@ int main(){
 	
 		double average = accumulate(germi_avg.begin(), germi_avg.end(), 0.0) / germi_avg.size();
 		
-		f_mean << average << "\t"
-		<< i_mean << "\n";
-		
+		f_mean << i_mean << "\t"
+		<< average << "\n";
 		germi_avg.clear();
 	}
-	
 	f_mean.close();
 	return 0;
 }
