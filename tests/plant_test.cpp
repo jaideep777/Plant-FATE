@@ -46,7 +46,7 @@ int main(){
 	double prng_stddev = -4.0;
 	std::default_random_engine generator;
 	std::normal_distribution<double> dist(prng_mean, prng_stddev);
-	for (double t=2000; t<=2100; t=t+1){
+	for (double t=2000; t<=2100; t=t+10){
 		C.t_met.push_back(t);
 		double val = dist(generator);
 		if(val>0) val = 0;
