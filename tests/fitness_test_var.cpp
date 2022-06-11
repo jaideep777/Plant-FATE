@@ -38,7 +38,7 @@ int main(){
 	
 	std::vector<double> swp_var;
 	
-	f_mean << "SWP_Var" << "\t"
+	f_var << "SWP_Var" << "\t"
 	       << "Fitness_Avg" << "\n";
 	
 	
@@ -87,7 +87,7 @@ int main(){
 	
 		double average = accumulate(germi_avg.begin(), germi_avg.end(), 0.0) / germi_avg.size();
 		
-		f_mean << i_var << "\t"
+		f_var << i_var << "\t"
 		<< average << "\n";
 		germi_avg.clear();
 	}
