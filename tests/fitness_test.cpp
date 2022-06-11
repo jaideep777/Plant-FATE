@@ -63,7 +63,7 @@ int main(){
 			C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 			
 			std::default_random_engine generator;
-			std::normal_distribution<double> dist(swp_mean, swp_stddev);
+			std::normal_distribution<double> dist(i_mean, swp_stddev);
 			for (double t=sim_start_t; t<=sim_end_t; t=t+time_step_swp){
 				C.t_met.push_back(t);
 				double val = dist(generator);
