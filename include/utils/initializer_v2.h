@@ -25,12 +25,14 @@
 	Here is an example parameter file:
 	
 	~~~{.ini}
-	[section 1]
 	; a comment
+	; this unnamed section is treated as the global section
 	sim_name    =   mySimution    ;another comment
 	output_file =  ~/output/test.txt  # yet another comment
 	
 	# this is also a comment
+	; comments cannot be inserted in combinaiton with section headers. 
+	; Also, no spaces after ] below
 	[section 2]
 	graphics    =  1           # Do we want graphics to be on? 
 	timesteps   =  1000        ; For how many timesteps do we run the simulation?
@@ -71,7 +73,7 @@ class Initializer{
 		static const std::regex section_regex{R"(\s*\[([^\]]+)\])"};
 		static const std::regex value_regex{R"(\s*(\S[^ \t=]*)\s*=\s*((\s*\S+)+)\s*$)"};
 		static const std::regex comment_regex{"([^;#]*)([;#])"};
-		std::string current_section;
+		std::string current_section = "global";
 		std::smatch pieces;
 		std::string line;
 		while (std::getline(in, line)){
@@ -122,6 +124,11 @@ class Initializer{
 	}
 
 	template<class T>
+	T get(const std::string& keyname) const {
+		return get<T>("global", keyname);
+	}
+
+	template<class T>
 	std::vector<T> get_vector(const std::string& sectionname, const std::string& keyname) const {
 		std::string result = get_value(sectionname, keyname);
 		std::stringstream sin(result);
@@ -132,6 +139,11 @@ class Initializer{
 		}
 		return vec;	
 	}
+
+	template<class T>
+	std::vector<T> get_vector(const std::string& keyname) const {
+		return get_vector<T>("global", keyname);
+	}
 	
 	inline void print() const {
 		std::cout << "------------------\n";
@@ -139,7 +151,7 @@ class Initializer{
 		for (const auto& sec : sections){
 			std::cout << "  [" << sec.first << "]\n";
 			for (const auto& x : sec.second){
-				std::cout << "    " << x.first << " = " << x.second << "\n";
+				std::cout << "    " << x.first << " = {" << x.second << "}\n";
 			}
 		}
 		std::cout << "------------------\n";
