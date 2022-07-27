@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <fstream>
+#include <random>
 
 #include "plant_params.h"
 #include "plant_geometry.h"
@@ -37,10 +38,28 @@ int main(){
 //	C.canopy_openness = {1,exp(-0.5*3.5)};
 //	C.n_layers = C.z_star.size()-1;
 
+	
+// Creating random number generator for soil water potential
+	ofstream fswp("swp.txt");
+
+	double prng_mean = -3.0;
+	double prng_stddev = -4.0;
+	std::default_random_engine generator;
+	std::normal_distribution<double> dist(prng_mean, prng_stddev);
+	for (double t=2000; t<=2100; t=t+10){
+		C.t_met.push_back(t);
+		double val = dist(generator);
+		if(val>0) val = 0;
+		C.v_met_swp.push_back(val);
+		fswp << C.v_met_swp[t] << "\n";
+	}
+	
+	
 	C.print(0);
 
 
 	ofstream fout("assim.txt");
+
 	fout << "i" << "\t"
 		 << "ppfd" <<"\t"
 		 << "assim_net" << "\t"
@@ -68,14 +87,19 @@ int main(){
 		 << "germinated" << "\t"
 		 << "germinated_avg" << "\t"
 		 << "total_prod" << "\t"
-		 << "litter_mass" << "\n";
+		 << "litter_mass" << "\t"
+		 << "fecundity" << "\t"
+		 << "fecundity_mort" << "\t"
+		 << "mortality" << "\t"
+		 << "mortality_inst" << "\n";
+
 	double dt = 0.1; 
 	double total_prod = P.get_biomass();
 	double total_rep = 0;
 	double litter_pool = 0;
 	double germinated = 0;
 	cout << "Starting biomass = " << total_prod << "\n";
-	for (double t=2000; t<=2050; t=t+dt){
+	for (double t=2000; t<=2100; t=t+dt){
 
 		//cout << t << " " << P.geometry.total_mass(par, traits) << " " << total_prod << "\n";
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;
@@ -107,7 +131,11 @@ int main(){
 			 << germinated << "\t"
 			 << 0/*P.seeds_hist.get()*/ << "\t"
 			 << total_prod << "\t"
-			 << litter_pool << "\n";
+			 << litter_pool << "\t"
+			 << P.state.f << "\t"
+			 << P.state.f_m << "\t"
+			 << P.state.mortality << "\t"
+			 << P.rates.dmort_dt << "\n";
 		
 		//total_prod += P*P.geometry.leaf_area*dt;
 		
@@ -118,6 +146,7 @@ int main(){
 
 	}
 	fout.close();
+	fswp.close();
 
 	cout << "At t = " << 100 << "\n" 
 		 << setprecision(12) 

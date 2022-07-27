@@ -74,6 +74,9 @@ int Climate::id(double t){
 
 
 void Climate::updateClimate(double t){
+
+	// double tadj = t;  // adjusted t to lie between limits of observed data
+	// while(tadj < *t_met.begin()) tadj += delta;
 		
 	if (update_met){
 		double tadj = t;  // adjusted t to lie between limits of observed data
@@ -97,7 +100,6 @@ void Climate::updateClimate(double t){
 	}
 
 }
-
 
 int Climate::readNextLine_met(Clim &clim, double &t){
 
@@ -153,6 +155,42 @@ void Climate::print_all(){
 		std::cout << " | " << v_met[i].tc << " " << v_met[i].ppfd      << " " << v_met[i].vpd << "\n"; 
 	}
 }
+
+int Climate::binarySearch(double k){
+	int low = 0;
+	int len = t_met.size();
+	int high = len - 1;
+	int mid = (high+low)/2;
+	int index = -1;
+	while(low <= high){
+		mid =( low + high ) / 2;
+		if(t_met[mid] <= k){
+			index = mid;
+			low = mid+1;
+		}
+		else{
+			high=mid-1;
+		}
+	}
+	return index;
+}
+	
+
+double Climate::inst_swp(double year){
+	int i = binarySearch(year);
+	if (i == (t_met.size()-1)){
+		return v_met_swp[i];
+	}
+	else {
+		double x_1 = t_met[i];
+		double y_1 = v_met_swp[i];
+		int x_2 = t_met[i+1];
+		double y_2 = v_met_swp[i+1];
+		double y = y_1 - (((y_2-y_1)/(x_2-x_1))*(x_1-year));
+		return y;
+	}
+}
+
 
 
 } // namespace env
