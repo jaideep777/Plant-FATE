@@ -75,6 +75,7 @@ double Plant::mortality_rate(Env &env, double t){
 //	double wd = (traits.wood_density/1000);
 //	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
 //	return mu_d;
+	double mu = 0;
 	
 	double r = par.c0 + 
 	           par.cL*log(res.c_open_avg*100) + 
@@ -83,13 +84,14 @@ double Plant::mortality_rate(Env &env, double t){
 	           par.cWD*(traits.wood_density - par.cWD0);
 	
 	// Adding Hydraulic Mortality function to overall mortality rate
-	double c = 2;
-	double h = c*(1-pow(0.5,((env.inst_swp(t)/(3*traits.p50_xylem)))));
-	fmuh << env.inst_swp(t) << "\t" << h << "\t";
-	
-	
-	double mu = h + 1/(1+exp(-(r)));
-	fmuh << mu << "\n";
+//	double c = 2;
+//	double h = c*(1-pow(0.5,((env.inst_swp(t)/(3*traits.p50_xylem)))));
+//	//fmuh << env.inst_swp(t) << "\t" << h << "\t";
+//	
+//	
+//	mu += h;
+	mu += 1/(1+exp(-(r)));
+	//fmuh << mu << "\n";
 	assert(mu>=0);
 	return mu;	
 	

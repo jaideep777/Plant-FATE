@@ -13,7 +13,7 @@ gprof2dot.py
 *~
 .~lock*
 
-inst*
+
 *.cppx
 *.hx
 *.hppx

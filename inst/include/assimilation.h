@@ -63,7 +63,7 @@ class Assimilator{
 
 } // namespace plant
 
-#include "../src/assimilation.tpp"
+#include "assimilation.tpp"
 
 #endif
 

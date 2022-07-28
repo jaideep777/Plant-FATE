@@ -47,7 +47,7 @@ class Plant{
 	//MovingAverager seeds_hist;
 
 	public:
-	std::ofstream fmuh;
+	//std::ofstream fmuh; // Cannot use streams here because we need copy-constructor for Plants, which in turn would need a copy constructor for streams, which is deleted.
 	PlantTraits traits;
 	PlantParameters par;
 
@@ -55,13 +55,13 @@ class Plant{
 	PlantGeometry geometry;
 	
 	public:
-	Plant(){
-		fmuh.open("muh.txt");
+//	Plant(){
+//		fmuh.open("muh.txt");
 
-		fmuh << "swp" << "\t"
-			 << "h" <<"\t"
-		 	 << "mu" << "\n";
-	};
+//		fmuh << "swp" << "\t"
+//			 << "h" <<"\t"
+//		 	 << "mu" << "\n";
+//	};
 //	~Plant();
 //	Plant(const Plant &P);  // we need a copy constructor to correctly set geometry and assimilator pointers
 
@@ -157,6 +157,6 @@ class Plant{
 
 }	// namespace plant
 
-#include "../src/plant.tpp"
+#include "plant.tpp"
 
 #endif
