@@ -10,10 +10,10 @@ HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 # paths
 #CUDA_INSTALL_PATH ?= /usr/local/cuda#-5.0
 
-ROOT_DIR := /mnt/d/github_stuff
+ROOT_DIR := /home/jaideep/codes
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./include #-I./CppNumericalSolvers-1.0.0
-INC_PATH += -I$(ROOT_DIR)/phydro_cpp/include -isystem $(ROOT_DIR)/phydro_cpp/LBFGSpp/include -I$(ROOT_DIR)/libpspm/include -isystem /usr/include/eigen3
+INC_PATH += -I$(ROOT_DIR)/phydro_cpp/inst/include -isystem $(ROOT_DIR)/phydro_cpp/inst/LBFGSpp/include -I$(ROOT_DIR)/libpspm/include -isystem /usr/include/eigen3
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags
