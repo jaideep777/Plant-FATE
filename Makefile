@@ -3,7 +3,7 @@
 TARGET := 1
 
 # files
-SRCFILES  :=  $(wildcard src/*.cpp) 
+SRCFILES  :=  $(wildcard src/*.cpp)
 HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 # ------------------------------------------------------------------------------
 
@@ -11,17 +11,16 @@ HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 #CUDA_INSTALL_PATH ?= /usr/local/cuda#-5.0
 
 ROOT_DIR := /home/jaideep/codes
-
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./include #-I./CppNumericalSolvers-1.0.0
-INC_PATH += -I$(ROOT_DIR)/phydro_cpp/include -isystem $(ROOT_DIR)/phydro_cpp/LBFGSpp/include -I$(ROOT_DIR)/pspm/include -isystem /usr/include/eigen3 
-LIB_PATH := -L$(ROOT_DIR)/pspm/lib
+INC_PATH += -I$(ROOT_DIR)/phydro_cpp/inst/include -isystem $(ROOT_DIR)/phydro_cpp/inst/LBFGSpp/include -I$(ROOT_DIR)/libpspm/include -isystem /usr/include/eigen3
+LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags
-CPPFLAGS = -O3 -g -pg -std=c++11 -Wall -Wextra 
+CPPFLAGS = -O3 -g -pg -std=c++11 -Wall -Wextra
 LDFLAGS =  -g -pg
 
-## -Weffc++ 
+## -Weffc++
 #CPPFLAGS +=    \
 #-pedantic-errors  -Wcast-align \
 #-Wcast-qual -Wconversion \
@@ -51,25 +50,25 @@ CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
 
 # libs
 LIBS = 	 -lgsl -lgslcblas -lpspm	# additional libs
-#LIBS = -lcudart 			# cuda libs 		
+#LIBS = -lcudart 			# cuda libs
 
 # files
 OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 
 
-all: dir $(TARGET)	
+all: dir $(TARGET)
 
-dir: 
+dir:
 	mkdir -p lib build tests/build
 
-$(TARGET): $(OBJECTS) 
-	g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS) 
+$(TARGET): $(OBJECTS)
+	g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
-	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@ 
+	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 clean:
-	rm -f $(TARGET) build/*.o log.txt gmon.out 
+	rm -f $(TARGET) build/*.o log.txt gmon.out
 	
 re: clean all
 
@@ -78,11 +77,11 @@ superclean: clean testclean
 
 ## TESTING SUITE ##
 
-TEST_FILES = $(wildcard tests/*.cpp) 
+TEST_FILES = $(wildcard tests/*.cpp)
 TEST_OBJECTS = $(patsubst tests/%.cpp, tests/%.o, $(TEST_FILES))
 TEST_TARGETS = $(patsubst tests/%.cpp, tests/%.test, $(TEST_FILES))
 TEST_RUNS = $(patsubst tests/%.cpp, tests/%.run, $(TEST_FILES))
-ADD_OBJECTS = 
+ADD_OBJECTS =
 
 check: $(OBJECTS) compile_tests clean_log run_tests
 
@@ -91,21 +90,21 @@ compile_tests: $(TEST_TARGETS)
 clean_log:
 	@rm -f log.txt
 
-run_tests: $(TEST_RUNS) 
+run_tests: $(TEST_RUNS)
 	
-$(TEST_RUNS): tests/%.run : tests/%.test	
+$(TEST_RUNS): tests/%.run : tests/%.test
 	@echo "~~~~~~~~~~~~~~~ $< ~~~~~~~~~~~~~~~~" >> log.txt
 	@time ./$< #>> log.txt && \
 #		printf "%b" "\033[0;32m[PASS]\033[m" ": $* \n"  || \
 #		printf "%b" "\033[1;31m[FAIL]\033[m" ": $* \n"
 
-$(TEST_OBJECTS): tests/%.o : tests/%.cpp $(HEADERS) 
+$(TEST_OBJECTS): tests/%.o : tests/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
-$(TEST_TARGETS): tests/%.test : tests/%.o $(HEADERS) 
-	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS) 
+$(TEST_TARGETS): tests/%.test : tests/%.o $(HEADERS)
+	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS)
 
-testclean: 
+testclean:
 	rm -f tests/*.o tests/*.test
 
 recheck: testclean check
@@ -117,19 +116,19 @@ recheck: testclean check
 
 
 
-#-gencode=arch=compute_10,code=\"sm_10,compute_10\"  -gencode=arch=compute_20,code=\"sm_20,compute_20\"  -gencode=arch=compute_30,code=\"sm_30,compute_30\" 
+#-gencode=arch=compute_10,code=\"sm_10,compute_10\"  -gencode=arch=compute_20,code=\"sm_20,compute_20\"  -gencode=arch=compute_30,code=\"sm_30,compute_30\"
 
-#-W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function 
-#-m64 -fno-strict-aliasing 
-#-I. -I/usr/local/cuda/include -I../../common/inc -I../../../shared//inc 
+#-W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function
+#-m64 -fno-strict-aliasing
+#-I. -I/usr/local/cuda/include -I../../common/inc -I../../../shared//inc
 #-DUNIX -O2
 
 
-#g++ -fPIC   -m64 -o ../../bin/linux/release/swarming_chasing_predator obj/x86_64/release/genmtrand.cpp.o  obj/x86_64/release/simpleGL.cu.o  -L/usr/local/cuda/lib64 -L../../lib -L../../common/lib/linux -L../../../shared//lib -lcudart   
-#-lGL -lGLU -lX11 -lXi -lXmu -lGLEW_x86_64 -L/usr/X11R6/lib64 -lGLEW_x86_64 -L/usr/X11R6/lib64 -lglut 
-#-L/usr/local/cuda/lib64 -L../../lib -L../../common/lib/linux -L../../../shared//lib -lcudart 
-#-L/usr/lib -lgsl -lgslcblas 
-#-lcutil_x86_64  -lshrutil_x86_64 
+#g++ -fPIC   -m64 -o ../../bin/linux/release/swarming_chasing_predator obj/x86_64/release/genmtrand.cpp.o  obj/x86_64/release/simpleGL.cu.o  -L/usr/local/cuda/lib64 -L../../lib -L../../common/lib/linux -L../../../shared//lib -lcudart
+#-lGL -lGLU -lX11 -lXi -lXmu -lGLEW_x86_64 -L/usr/X11R6/lib64 -lGLEW_x86_64 -L/usr/X11R6/lib64 -lglut
+#-L/usr/local/cuda/lib64 -L../../lib -L../../common/lib/linux -L../../../shared//lib -lcudart
+#-L/usr/lib -lgsl -lgslcblas
+#-lcutil_x86_64  -lshrutil_x86_64
 
 
 
@@ -155,7 +154,8 @@ recheck: testclean check
 #	-Wmissing-declarations \
 #	-Wnested-externs \
 #	-Wmain \
-#	
+#
 	
 #HEADERS  := $(wildcard *.h)
 	
+

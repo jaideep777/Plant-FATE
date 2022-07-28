@@ -1,8 +1,8 @@
 code = "AMB_LD"
-setwd(paste0("/home/jaideep/codes/tmodel_cpp/pspm_output/AmzFACE_Final_",code,"_3/"))
+setwd(paste0("~/codes/tmodel_cpp/pspm_output/AmzFACE_Final_",code,"_3/Patch0"))
 
-plot_to_file = T
-n_species = 5
+plot_to_file = F
+n_species = 3
 n = 101
 
 hp   = read.delim(paste0("species_",0,"_height.txt"), header=F, col.names = paste0("V", 1:n))
@@ -56,8 +56,14 @@ plot(tY, amzY$BA*1e4, lty=1, type="l",
 matplot(BAp$V1, BAp[,-1]*1e4, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Basal area (m2 / Ha)\n", log="", add=T)#, ylim=c(exp(-9), exp(3.5)))
 
-matplot(tD, cbind(amzD$CL+amzD$CW)*1e-3, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="Biomass (kgC / m2)", log="")
+# matplot(tD, cbind(amzD$CL+amzD$CW)*1e-3, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+#         las=1, xlab="Time (years)", ylab="AG Biomass (kgC / m2)", log="")
+
+matplot(tD, amzD$GS, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Stomatal conductance (mol/m2/s)", log="")
+
+matplot(tY, amzY$VCM, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Vcmax (umol/m2/s)", log="")
 
 matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Species Seed output", log="")
@@ -86,14 +92,14 @@ matplot(tD, cbind(amzD$GPP, amzD$NPP, amzD$RAU), lty=1, col=c("green4", "green3"
 matplot(tD, amzD$ET, lty=1, col="blue", type="l",
         las=1, xlab="Time (years)", ylab="Transpiration (mm/d)", log="")
 
-matplot(tD, cbind(amzD$CL, amzD$CW, amzD$CCR, amzD$CFR), lty=1, col=c("green4", "brown", "yellow3", "yellow2"), type="l",
-        las=1, xlab="Time (years)", ylab="Biomass pools (gC/m2)", log="")
+matplot(tD, cbind(amzD$CL, amzD$CW, amzD$CCR, amzD$CFR)*1e-3, lty=1, col=c("green4", "brown", "yellow3", "yellow2"), type="l",
+        las=1, xlab="Time (years)", ylab="Biomass pools (kgC/m2)", log="")
 
 matplot(tY, amzY$DE*1e4, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Number of individuals / Ha", log="")
 
 matplot(tY, cbind(amzD$CL+amzD$CW)*1e-3, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
-        las=1, xlab="Time (years)", ylab="Biomass (kg / m2)", log="")
+        las=1, xlab="Time (years)", ylab="AGB (kg / m2)", log="")
 
 matplot(tY, amzY$SLA, lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="CWM SLA", log="")

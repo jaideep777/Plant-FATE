@@ -1,5 +1,5 @@
 # R script to test:
-dat = read.delim("~/codes/tmodel_cpp/assim.txt")
+dat = read.delim("~/codes/Plant-FATE/assim.txt")
 dat$leaf_area = dat$crown_area * dat$lai
 dat$heartwood_fraction = 1-dat$sapwood_fraction
 

@@ -106,15 +106,15 @@ double PlantGeometry::dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTrai
 // **
 // ** Carbon pools
 // **
-double PlantGeometry::leaf_mass(PlantTraits &traits){
+double PlantGeometry::leaf_mass(const PlantTraits &traits) const{
 	return crown_area * lai * traits.lma;	
 }
 
-double PlantGeometry::root_mass(PlantTraits &traits){
+double PlantGeometry::root_mass(const PlantTraits &traits) const{
 	return crown_area * lai * traits.zeta;	
 }
 
-double PlantGeometry::coarse_root_mass(PlantTraits &traits){
+double PlantGeometry::coarse_root_mass(const PlantTraits &traits) const{
 	return stem_mass(traits)*traits.fcr;	
 }
 
@@ -122,25 +122,25 @@ double PlantGeometry::coarse_root_mass(PlantTraits &traits){
 	//return traits.wood_density*(hvlc/geom.c)*crown_area*geom.eta_l*height;
 //}
 	
-double PlantGeometry::sapwood_mass(PlantTraits &traits){
+double PlantGeometry::sapwood_mass(const PlantTraits &traits) const{
 	return stem_mass(traits)*sapwood_fraction;
 }
 
-double PlantGeometry::sapwood_mass_real(PlantTraits &traits){
+double PlantGeometry::sapwood_mass_real(const PlantTraits &traits) const{
 	return sapwood_mass(traits)*functional_xylem_fraction;
 }
 
-double PlantGeometry::stem_mass(PlantTraits &traits){
+double PlantGeometry::stem_mass(const PlantTraits &traits) const{
 	double trunk_mass = traits.wood_density*(M_PI*diameter*diameter/4)*height*geom.eta_c;
 	double branch_mass = traits.wood_density * (M_PI*diameter*diameter/12)*height * sqrt((geom.c/geom.a)*(diameter/height));	
 	return trunk_mass + branch_mass;
 }
 
-double PlantGeometry::heartwood_mass(PlantTraits &traits){
+double PlantGeometry::heartwood_mass(const PlantTraits &traits) const{
 	return stem_mass(traits)*(1-sapwood_fraction);
 }
 
-double PlantGeometry::total_mass(PlantTraits &traits){
+double PlantGeometry::total_mass(const PlantTraits &traits) const{
 	return stem_mass(traits)*(1+traits.fcr) + leaf_mass(traits) + root_mass(traits);
 }
 
