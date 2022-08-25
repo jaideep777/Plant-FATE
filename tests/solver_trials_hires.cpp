@@ -93,14 +93,14 @@ class SolverIO{
 
 			for (int i=0; i<streams[s].size(); ++i) streams[s][i] << S->current_time << "\t";
 
-			// vector<double> breaks = my_log_seq(0.01, 10, 100);
-			// vector<double> dist = S->getDensitySpecies(s, breaks);
-			// //cout << "here: " << breaks.size() << " " << dist.size() << endl;
+			vector<double> breaks = my_log_seq(0.01, 10, 100);
+			vector<double> dist = S->getDensitySpecies(s, breaks);
+			//cout << "here: " << breaks.size() << " " << dist.size() << endl;
 
-			// for (int i=0; i<100; ++i){
-			// 	streams[s][0] << breaks[i] << "\t";
-			// 	streams[s][1] << dist[i] << "\t";
-			// }
+			for (int i=0; i<100; ++i){
+				streams[s][0] << breaks[i] << "\t";
+				streams[s][1] << dist[i] << "\t";
+			}
 
 			for (int j=0; j<spp->xsize(); ++j){
 				auto& C = spp->getCohort(j);
@@ -361,7 +361,7 @@ int main(){
 
 	string solver_method = I.get<string>("solver");
 	Solver S(solver_method, "rk45ck");
-	S.control.abm_n0 = 20;
+	S.control.abm_n0 = 80;
     S.control.ode_ifmu_stepsize = 0.02; //0.0833333;
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ifmu_order = 1;
