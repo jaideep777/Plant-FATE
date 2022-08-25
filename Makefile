@@ -10,11 +10,11 @@ HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 # paths
 #CUDA_INSTALL_PATH ?= /usr/local/cuda#-5.0
 
-ROOT_DIR := /home/jaideep/codes
+ROOT_DIR := /home/jaideep/Documents/codes
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
-INC_PATH += -I$(ROOT_DIR)/phydro_cpp/inst/include -isystem $(ROOT_DIR)/phydro_cpp/inst/LBFGSpp/include -I$(ROOT_DIR)/libpspm/include -isystem /usr/include/eigen3
+INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -I$(ROOT_DIR)/libpspm/include -isystem /usr/include/eigen3
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags

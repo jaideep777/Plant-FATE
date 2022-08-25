@@ -410,11 +410,12 @@ public:
 		t_clear =1050;
 		
 		string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
-		// E.init();
+		E.init();
 		E.print(0);
 		E.use_ppa = true;
-		E.update_met = false;
-		E.update_co2 = false;
+		E.update_met = true;
+		E.update_co2 = true;
+
 		S.control.ode_ifmu_stepsize = 0.0833333;
 		S.control.ifmu_centered_grids = false; //true;
 		S.use_log_densities = true;
@@ -441,6 +442,7 @@ public:
 			p1.set_size(0.01);
 			Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 			S.addSpecies(30, 0.01, 10, true, spp, 3, 1e-3);
+			//S.addSpecies({0.01,0.01+1e-4}, spp, 3, 1e-3);
 			
 			//    S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 			//S.get_species(0)->set_bfin_is_u0in(true);    // say that input_birth_flux is u0

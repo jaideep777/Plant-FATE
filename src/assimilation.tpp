@@ -35,6 +35,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	for (int ilayer=0; ilayer <= env.n_layers; ++ilayer){ // for l in 1:layers{	
 		double zst = env.z_star[ilayer];
 		double ca_layer = G->crown_area_above(zst, traits) - ca_cumm;
+		//std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << /*", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " <<*/ ", ca_layer = " << ca_layer << /*" m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << ", vcmax = " << res.vcmax <<*/ "\n"; 
 		
 		if (by_layer == true){
 			double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
@@ -45,7 +46,6 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 			plant_assim.dpsi_avg   += res.dpsi * ca_layer;
 			plant_assim.vcmax_avg  += res.vcmax * ca_layer;
 			plant_assim.gs_avg     += res.gs * ca_layer;
-			//std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << ", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " << ca_layer << " m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << ", vcmax = " << res.vcmax << "\n"; 
 		}
 		
 		plant_assim.c_open_avg += env.canopy_openness[ilayer] * ca_layer;

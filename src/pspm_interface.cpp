@@ -28,7 +28,7 @@ double PSPM_Plant::init_density(double x, void * _env, double input_seed_rain){
 //	return u0;
 //	if (geometry.diameter < 0.02) return 1;
 //	else return 0; // dummy initial density of 1, for now. This shouldn't matter because there is spinup.
-	return 0;
+	return 1e-2*exp(-x/0.1);
 }
 
 

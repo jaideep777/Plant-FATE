@@ -77,6 +77,7 @@ void Climate::updateClimate(double t){
 
 	// double tadj = t;  // adjusted t to lie between limits of observed data
 	// while(tadj < *t_met.begin()) tadj += delta;
+	if (t_met.size() == 0) throw std::runtime_error("Climate time vector is empty");
 		
 	if (update_met){
 		double tadj = t;  // adjusted t to lie between limits of observed data
