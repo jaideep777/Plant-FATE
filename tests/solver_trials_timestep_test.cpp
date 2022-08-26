@@ -361,8 +361,8 @@ int main(){
 
 	string solver_method = I.get<string>("solver");
 	Solver S(solver_method, "rk45ck");
-	S.control.abm_n0 = 80;
-    S.control.ode_ifmu_stepsize = 0.02; //0.0833333;
+	S.control.abm_n0 = 20;
+    S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ifmu_order = 1;
 	S.control.ebt_ucut = 1e-10;
@@ -393,7 +393,7 @@ int main(){
 		Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 
 		int res = I.getScalar("resolution");
-		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
+		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-4);
 		//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 		
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
@@ -461,7 +461,8 @@ int main(){
 		cout << ")" << endl;
 
 		S.step_to(t, after_step);
-		
+		//S.print(); cout.flush();
+
 		CWM cwm;
 		EmergentProps props; 
 		

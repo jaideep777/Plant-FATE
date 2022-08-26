@@ -1,9 +1,15 @@
 code = "AMB_LD"
-setwd(paste0("~/codes/tmodel_cpp/pspm_output/AmzFACE_Final_",code,"_3/Patch0"))
+setwd(paste0("~/codes/Plant-FATE/pspm_output/AmzFACE_Final_",code,"_3"))
 
 plot_to_file = F
 n_species = 3
 n = 101
+
+seeds = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
+
+matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.85), type="l",
+        las=1, xlab="Time (years)", ylab="Species Seed output", log="")
+
 
 hp   = read.delim(paste0("species_",0,"_height.txt"), header=F, col.names = paste0("V", 1:n))
 Dp   = read.delim(paste0("species_",0,"_X.txt"), header=F, col.names = paste0("V", 1:n))

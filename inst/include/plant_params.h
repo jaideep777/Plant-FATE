@@ -29,8 +29,8 @@ class PlantTraits{
 
 	// variable (plastic) traits
 	public:
-	double ll;	// leaf-longevity (as a function of LMA and environment)
-	double p50_leaf;		// Leaf hydraulic capacity [MPa]
+	double ll;              // leaf-longevity (as a function of LMA and environment)
+	double p50_leaf;        // Leaf hydraulic capacity [MPa]
 
 
 	public:
