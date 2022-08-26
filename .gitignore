@@ -1,5 +1,7 @@
+.vscode
 vignettes/*
 inst/website
+pspm_output_*
 *Rproj*
 *.Rhistory*
 ^plant.Rcheck$

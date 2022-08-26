@@ -1,24 +1,30 @@
-code = "AMB_LD"
-solver = "IFMU500"
-setwd(paste0("~/codes/Plant-FATE/pspm_output/AmzFACE_Final_",code,"_3_noL_",solver))
+output_dir = "pspm_output_3"
+prefix = "timestep_test"
+
+solver = "IEBT0.1"
+setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
-n_species = 3
+n_species = 100
 n = 101
 
 seeds = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 Zp   = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
+BA  =     read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 
 par(mfcol=c(2,3), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(4,1,0))
-matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species, start = 0, end = 0.65, rev=T), type="l",
+matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.65), type="l",
         las=1, xlab="Time (years)", ylab="Species Seed output", log="")
 mtext(line=0.5, side=3, text=solver)
 matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Z*")
 
+matplot(BA$V1, cbind(BA[,-1], rowSums(BA[,-1], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species+1, start = 0, end = 0.85), "black"), type="l",
+        las=1, xlab="Time (years)", ylab="Basal area", log="")
 
-solver = "IEBT3"
-setwd(paste0("~/codes/Plant-FATE/pspm_output/AmzFACE_Final_",code,"_3_noL_",solver))
+
+solver = "ABM0.1"
+setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
 n_species = 3
@@ -37,8 +43,8 @@ matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type=
     
 
 
-solver = "ABM6"
-setwd(paste0("~/codes/Plant-FATE/pspm_output/AmzFACE_Final_",code,"_3_noL_",solver))
+solver = "ABM0.1_20"
+setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
 n_species = 3
