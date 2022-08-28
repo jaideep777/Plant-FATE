@@ -93,21 +93,21 @@ class SolverIO{
 
 			for (int i=0; i<streams[s].size(); ++i) streams[s][i] << S->current_time << "\t";
 
-			vector<double> breaks = my_log_seq(0.01, 10, 100);
-			vector<double> dist = S->getDensitySpecies(s, breaks);
-			//cout << "here: " << breaks.size() << " " << dist.size() << endl;
+			// vector<double> breaks = my_log_seq(0.01, 10, 100);
+			// vector<double> dist = S->getDensitySpecies(s, breaks);
+			// //cout << "here: " << breaks.size() << " " << dist.size() << endl;
 
-			for (int i=0; i<100; ++i){
-				streams[s][0] << breaks[i] << "\t";
-				streams[s][1] << dist[i] << "\t";
-			}
+			// for (int i=0; i<100; ++i){
+			// 	streams[s][0] << breaks[i] << "\t";
+			// 	streams[s][1] << dist[i] << "\t";
+			// }
 
 			for (int j=0; j<spp->xsize(); ++j){
 				auto& C = spp->getCohort(j);
 				int is = 2;
 				//streams[s][is++] << C.x << "\t";
 				//streams[s][is++] << C.u << "\t";
-				streams[s][is++] << C.geometry.height << "\t";
+				streams[s][is++] << C.geometry.diameter << "\t";
 				streams[s][is++] << C.geometry.lai << "\t";
 				streams[s][is++] << C.rates.dmort_dt << "\t";
 				streams[s][is++] << C.state.seed_pool << "\t";
@@ -365,7 +365,7 @@ int main(){
     S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ifmu_order = 1;
-	S.control.ebt_ucut = 1e-10;
+	S.control.ebt_ucut = 1e-7;
     S.use_log_densities = true;
 	S.setEnvironment(&E);
 	
@@ -393,7 +393,7 @@ int main(){
 		Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 
 		int res = I.getScalar("resolution");
-		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-4);
+		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
 		//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 		
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
@@ -410,7 +410,7 @@ int main(){
 
 	SolverIO sio;
 	sio.S = &S;
-	sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir);
+	sio.openStreams({"height", "lai", "mort", "seeds", "rgr", "gpp"}, out_dir);
 
 
 
@@ -455,7 +455,8 @@ int main(){
 	double y0, yf;
 	y0 = I.getScalar("year0");
 	yf = I.getScalar("yearf");
-	for (double t=y0; t <= yf; t=t+0.25) {
+	double delta_T = I.getScalar("delta_T");
+	for (double t=y0; t <= yf; t=t+delta_T) {
 		cout << "t = " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
@@ -648,6 +649,7 @@ int main(){
 
 	}
 	
+	S.print();
 
 	fco.close();
 	fseed.close();

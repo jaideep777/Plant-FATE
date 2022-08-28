@@ -123,6 +123,9 @@ class PlantParameters{
 	double cWD, cWD0;     // wood density related mortality params
 	double cS, cS0;       // light related mortality params
 	
+	double cD0, cD1;
+	double m_alpha, m_beta, m_gamma;
+
 	// **
 	// ** Patch structure and successsion
 	// **
@@ -182,7 +185,14 @@ class PlantParameters{
 		cWD = I.getScalar("cWD");
 		cWD0 = I.getScalar("cWD0");
 //		cS = I.getScalar("cS");
-//		cS0 = I.getScalar("cS0");
+		cS0 = I.getScalar("cS0");
+		cD0 = I.getScalar("cD0");
+		cD1 = I.getScalar("cD1");
+
+		m_alpha = I.getScalar("m_alpha");
+		m_beta = I.getScalar("m_beta");
+		m_gamma = I.getScalar("m_gamma");
+
 
 		T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 

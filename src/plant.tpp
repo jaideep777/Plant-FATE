@@ -78,10 +78,12 @@ double Plant::mortality_rate(Env &env, double t){
 	double mu = 0;
 	
 	double r = par.c0 + 
-	           par.cL*log(res.c_open_avg*100) + 
-	           par.clnD*log(D*1000) + par.cD*(D*1000) + 
-	           par.cG*log(rates.rgr*D*1000) + 
-	           par.cWD*(traits.wood_density - par.cWD0);
+	            par.cL*log(res.c_open_avg*100) + 
+	            par.clnD*log(D*1000) + 
+				par.cD*(D*1000) + 
+	            par.cG*log(rates.rgr*D*1000) + 
+	        //    par.cWD*(traits.wood_density - par.cWD0)+
+			   par.cS0*exp(-res.npp/1);
 	
 	// Adding Hydraulic Mortality function to overall mortality rate
 //	double c = 2;
@@ -92,7 +94,17 @@ double Plant::mortality_rate(Env &env, double t){
 //	mu += h;
 	mu += 1/(1+exp(-(r)));
 	//fmuh << mu << "\n";
+
+	mu = par.m_gamma + 
+	     par.m_alpha*exp(-par.m_beta * rates.rgr*D*100) +
+		 par.cD0*(D*D) + 
+		 par.cD1*exp(-D/0.01);
+
 	assert(mu>=0);
+	
+	//std::cout << "npp = " << res.npp << std::endl;
+	//mu = par.c0*(1 + exp(-res.npp/par.cG));
+	
 	return mu;	
 	
 	//double logit = -5 -1*log(D*1000) - 0.004*D*1000 + -0.3*log(rates.rgr);
