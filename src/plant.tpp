@@ -19,7 +19,7 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	if (par.optimize_lai) dL_dt = par.response_intensity*(dgpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma);
 	//std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
 	
-	if (lai_curr < 1) dL_dt = 0;  // limit to prevent LAI going negative
+	if (lai_curr < 0.1) dL_dt = 0;  // limit to prevent LAI going negative
 	
 	// calculate and constrain rate of LAI change
 	double max_alloc_lai = par.max_alloc_lai * _dmass_dt_tot; // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
@@ -95,8 +95,8 @@ double Plant::mortality_rate(Env &env, double t){
 	mu += 1/(1+exp(-(r)));
 	//fmuh << mu << "\n";
 
-	mu = par.m_gamma + 
-	     par.m_alpha*exp(-par.m_beta * rates.rgr*D*100) +
+	mu = par.m_gamma*pow(traits.wood_density/600, -1.8392) + 
+	     par.m_alpha*pow(traits.wood_density/600, -1.1493)*exp(-par.m_beta * rates.rgr*D*100) +
 		 par.cD0*(D*D) + 
 		 par.cD1*exp(-D/0.01);
 

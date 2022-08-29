@@ -58,7 +58,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	if (by_layer == true){
 		plant_assim.dpsi_avg   /= ca_total;                // MPa
 		plant_assim.vcmax_avg  /= ca_total;                // umol/m2/s
-		plant_assim.gs_avg     /= ca_total;                // mmol C/m2/s
+		plant_assim.gs_avg     /= ca_total;                // mol CO2/m2/s
 		//std::cout << "--- total (by layer) \n";
 		//std::cout << "h = " << G->height << ", nz* = " << env.n_layers << ", I = " << plant_assim.c_open_avg << ", fapar = " << fapar << ", A = " << plant_assim.gpp/ca_total << " umol/m2/s x " << ca_total << " = " << plant_assim.gpp << ", vcmax_avg = " << plant_assim.vcmax_avg << "\n"; 
 	}
@@ -106,12 +106,14 @@ PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, 
 	plant_assim.troot = root_turnover_rate(G, par,traits);  // kg yr-1
 	
 	double A = plant_assim.gpp;
-	double R = plant_assim.rleaf + plant_assim.rroot + plant_assim.rstem;
+	//if (G->height > 15) std::cout << "h/A = " << G->height << " / " << A/G->crown_area << std::endl;
+	double R = plant_assim.rleaf + plant_assim.rroot*A/G->crown_area/4.5 + plant_assim.rstem*A/G->crown_area/4.5;
 	double T = plant_assim.tleaf + plant_assim.troot;
 
-	plant_assim.npp = par.y*(A-R) - T;	// net biomass growth rate (kg yr-1)
+	plant_assim.npp = par.y*(A-R) - T*plant_assim.vcmax_avg/80; //*A/G->crown_area/4.5;	// net biomass growth rate (kg yr-1)
 
-//	std::cout << "assim net = " << plant_assim.npp << ", assim_gros	= " << plant_assim.gpp << "\n"; std::cout.flush();
+	// if (env.n_layers > 1 && G->height < 5) std::cout << "h/L/ml/mr | A/R/T/Vc = " << G->height << " / " << G->lai << " / " << G->leaf_mass(traits) << " / " << G->root_mass(traits) << " | " << A << " / " << R << " / " << T << " / " << plant_assim.vcmax_avg << "\n"; 
+	// std::cout.flush();
 	return plant_assim;
 }
 

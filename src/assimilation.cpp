@@ -27,6 +27,9 @@ double Assimilator::sapwood_respiration_rate(PlantGeometry *G, PlantParameters &
 }
 
 double Assimilator::leaf_turnover_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+	// double hT = 1; //exp(par.les_c - par.les_hT_dH/par.les_molar_R/)
+	// double fac = par.les_k1 * par.les_k2 * 1 * plant_assim.mc / (2 * par.les_u * les_cc);
+	// double kappa = plant_assim.vcmax_avg / traits.lma;
 	return G->leaf_mass(traits) / traits.ll;	
 }
 

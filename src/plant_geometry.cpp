@@ -107,11 +107,11 @@ double PlantGeometry::dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTrai
 // ** Carbon pools
 // **
 double PlantGeometry::leaf_mass(const PlantTraits &traits) const{
-	return crown_area * lai * traits.lma;	
+	return crown_area * lai * traits.lma;
 }
 
 double PlantGeometry::root_mass(const PlantTraits &traits) const{
-	return crown_area * lai * traits.zeta;	
+	return crown_area * lai * traits.zeta;
 }
 
 double PlantGeometry::coarse_root_mass(const PlantTraits &traits) const{
