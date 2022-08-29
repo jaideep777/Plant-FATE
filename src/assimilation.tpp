@@ -27,6 +27,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	plant_assim.trans      = 0;
 	plant_assim.dpsi_avg   = 0;
 	plant_assim.vcmax_avg  = 0;
+	plant_assim.vcmax25_avg = 0;
+	plant_assim.mc_avg     = 0;
 	plant_assim.gs_avg     = 0;
 	plant_assim.c_open_avg = 0;
 	
@@ -46,6 +48,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 			plant_assim.dpsi_avg   += res.dpsi * ca_layer;
 			plant_assim.vcmax_avg  += res.vcmax * ca_layer;
 			plant_assim.gs_avg     += res.gs * ca_layer;
+			plant_assim.vcmax25_avg += res.vcmax25 * ca_layer;
+			plant_assim.mc_avg     += res.mc * ca_layer;
 		}
 		
 		plant_assim.c_open_avg += env.canopy_openness[ilayer] * ca_layer;
@@ -57,8 +61,10 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	plant_assim.c_open_avg /= ca_total;                // unitless
 	if (by_layer == true){
 		plant_assim.dpsi_avg   /= ca_total;                // MPa
-		plant_assim.vcmax_avg  /= ca_total;                // umol/m2/s
+		plant_assim.vcmax_avg  /= ca_total;                // umol CO2/m2/s
 		plant_assim.gs_avg     /= ca_total;                // mol CO2/m2/s
+		plant_assim.vcmax25_avg /= ca_total;               // umol CO2/m2/s
+		plant_assim.mc_avg     /= ca_total;                // unitless
 		//std::cout << "--- total (by layer) \n";
 		//std::cout << "h = " << G->height << ", nz* = " << env.n_layers << ", I = " << plant_assim.c_open_avg << ", fapar = " << fapar << ", A = " << plant_assim.gpp/ca_total << " umol/m2/s x " << ca_total << " = " << plant_assim.gpp << ", vcmax_avg = " << plant_assim.vcmax_avg << "\n"; 
 	}
@@ -72,6 +78,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		plant_assim.dpsi_avg   = res.dpsi;
 		plant_assim.vcmax_avg  = res.vcmax;
 		plant_assim.gs_avg     = res.gs;
+		plant_assim.vcmax25_avg = res.vcmax25;
+		plant_assim.mc_avg     = res.mc;
 
 		//std::cout << "--- total (by avg light)\n";
 		//std::cout << "h = " << G->height << ", nz* = " << env.n_layers << ", I = " << plant_assim.c_open_avg << ", fapar = " << fapar << ", A = " << plant_assim.gpp/ca_total << " umol/m2/s x " << ca_total << " = " << plant_assim.gpp << ", vcmax_avg = " << plant_assim.vcmax_avg << "\n"; 
@@ -107,10 +115,10 @@ PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, 
 	
 	double A = plant_assim.gpp;
 	//if (G->height > 15) std::cout << "h/A = " << G->height << " / " << A/G->crown_area << std::endl;
-	double R = plant_assim.rleaf + plant_assim.rroot*A/G->crown_area/4.5 + plant_assim.rstem*A/G->crown_area/4.5;
+	double R = plant_assim.rleaf + plant_assim.rroot + plant_assim.rstem;
 	double T = plant_assim.tleaf + plant_assim.troot;
 
-	plant_assim.npp = par.y*(A-R) - T*plant_assim.vcmax_avg/80; //*A/G->crown_area/4.5;	// net biomass growth rate (kg yr-1)
+	plant_assim.npp = par.y*(A-R) - T; // net biomass growth rate (kg yr-1)
 
 	// if (env.n_layers > 1 && G->height < 5) std::cout << "h/L/ml/mr | A/R/T/Vc = " << G->height << " / " << G->lai << " / " << G->leaf_mass(traits) << " / " << G->root_mass(traits) << " | " << A << " / " << R << " / " << T << " / " << plant_assim.vcmax_avg << "\n"; 
 	// std::cout.flush();
