@@ -475,7 +475,7 @@ int main(){
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
-	double t_clear = 102000;
+	double t_clear = 1050;
 	// t is years since 2000-01-01
 	double y0, yf;
 	y0 = I.getScalar("year0");
@@ -659,10 +659,10 @@ int main(){
 				for (int i=0; i<spp->xsize(); ++i){
 					auto& p = (static_cast<Species<PSPM_Plant>*>(spp))->getCohort(i);
 					p.geometry.lai = p.par.lai0;
-					double u_new = spp->getU(i) * double(rand())/RAND_MAX;
+					double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
 					spp->setU(i, u_new);
 				}
-				// spp->setX(spp->xsize()-1, 0);
+				spp->setX(spp->xsize()-1, 0);
 			}
 			S.copyCohortsToState();
 			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");;

@@ -1,11 +1,11 @@
 output_dir = "pspm_output_4"
-prefix = "timestep_test"
+prefix = "lma_test"
 
 solver = "IEBT0.1_succ3"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
-n_species = 10
+n_species = 3
 n = 101
 
 seeds = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))

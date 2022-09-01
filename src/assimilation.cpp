@@ -39,8 +39,10 @@ double Assimilator::root_turnover_rate(PlantGeometry *G, PlantParameters &par, P
 	double hT = plant_assim.vcmax_avg / plant_assim.vcmax25_avg;
 	double f = 1;
 	double fac = sqrt(par.les_k1 * par.les_k2 * f * hT * plant_assim.mc_avg / (2 * par.les_u * par.les_cc));
-	double kappa = plant_assim.vcmax25_avg / (traits.lma*1e3) * fac;
-	return G->root_mass(traits) * kappa * 365; // / par.lr;
+	double kappa_l = plant_assim.vcmax25_avg / (traits.lma*1e3) * fac;
+	//double kappa_r = kappa_l * traits.lma/traits.zeta;
+	double kappa_r = plant_assim.vcmax25_avg / (traits.zeta*1e3) * fac;
+	return G->root_mass(traits) * kappa_r * 365; // / par.lr;
 }
 
 
