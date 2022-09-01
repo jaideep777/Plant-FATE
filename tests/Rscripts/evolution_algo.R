@@ -2,6 +2,7 @@ library(tidyverse)
 
 dat = read.delim("~/codes/Plant-FATE/evolution.txt")
 traits = read.delim("~/codes/Plant-FATE/evol_traits.txt")
+# traits$iter = traits$t
 
 dat1 = dat %>% filter(iter==1)
 traits1 = traits %>% filter(iter==1)
@@ -12,12 +13,29 @@ abline(h=traits1$K[traits1$resident==1], col=scales::muted(rainbow(nrow(traits1)
 traits %>% 
   filter(resident==T) %>% 
   ggplot(aes(y=y-dfy*0.01, x=x-dfx*0.01))+
-  theme_classic()+
+  theme_classic(base_size = 18)+
   geom_point(aes(col=iter), alpha=0.7)+
   scale_color_viridis_c(direction = -1)+
   xlim(c(-1,1))+
   ylim(c(-1,1))+
   geom_point(data=traits %>% filter(iter==0), col="grey80", size=4, alpha=0.6)+
-  geom_point(data=traits %>% filter(iter==max(iter)), border="red", col="black", size=3, alpha=1)+
-  geom_segment(data=traits %>% filter(iter==0), aes(xend=x, yend=y), arrow = arrow(length = unit(0.2, "cm")))
+  geom_point(data=traits %>% filter(iter==max(iter)), col="magenta4", size=3, alpha=1)+
+  geom_segment(data=traits %>% filter(iter==0), aes(xend=x, yend=y), arrow = arrow(length = unit(0.2, "cm")))+
+  ylab("y")+
+  xlab("x")
   
+
+traits %>% 
+  filter(resident==T) %>% 
+  ggplot(aes(y=y, x=x))+
+  theme_classic(base_size = 18)+
+  geom_point(aes(col=t), alpha=0.7)+
+  scale_color_viridis_c(direction = -1)+
+  xlim(c(-1,1))+
+  ylim(c(-1,1))+
+  geom_point(data=traits %>% filter(t==0 & resident==T), col="grey80", size=4, alpha=0.6)+
+  geom_point(data=traits %>% filter(t==max(t) & resident==T), col="magenta4", size=3, alpha=1)+
+  #geom_segment(data=traits %>% filter(t==0), aes(xend=x, yend=y), arrow = arrow(length = unit(0.2, "cm")))+
+  ylab("y")+
+  xlab("x")
+
