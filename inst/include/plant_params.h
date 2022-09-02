@@ -81,6 +81,15 @@ class PlantParameters{
 	double lai0;                // initial lai
 	bool   optimize_lai;
 
+	// ** Leaf Economics
+	double les_u;           //   768   # [dimensionless]
+	double les_cc;           //   23   # [dimensionless]
+	double les_k1;          //   24.5   # g biomass / mol CO2 (see cbio below)
+	double les_k2;          // 0.0864   # (mol-CO2/day) / (umol-CO2/s)
+	double les_hT_dH;       //  65.33e3  # J mol-1
+	double les_hT_c;        //  26.35   # - 
+	double les_molar_R;     //   8.31    # J mol-1 K-1
+
 	// **
 	// ** Respiration and turnover 
 	// **
@@ -123,6 +132,9 @@ class PlantParameters{
 	double cWD, cWD0;     // wood density related mortality params
 	double cS, cS0;       // light related mortality params
 	
+	double cD0, cD1;
+	double m_alpha, m_beta, m_gamma;
+
 	// **
 	// ** Patch structure and successsion
 	// **
@@ -153,6 +165,15 @@ class PlantParameters{
 		lai0  = I.getScalar("lai0");
 		optimize_lai = (I.getScalar("optimize_lai") == 1) ? true:false;
 
+		les_u = I.getScalar("les_u");
+		les_cc = I.getScalar("les_cc");
+		les_k1 = I.getScalar("les_k1");
+		les_k2 = I.getScalar("les_k2"); 
+		les_hT_dH = I.getScalar("les_hT_dH");
+		les_molar_R = I.getScalar("les_molar_R");
+		les_hT_c = I.getScalar("les_hT_c");
+		
+
 		rd  = I.getScalar("rd");
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");
@@ -182,7 +203,14 @@ class PlantParameters{
 		cWD = I.getScalar("cWD");
 		cWD0 = I.getScalar("cWD0");
 //		cS = I.getScalar("cS");
-//		cS0 = I.getScalar("cS0");
+		cS0 = I.getScalar("cS0");
+		cD0 = I.getScalar("cD0");
+		cD1 = I.getScalar("cD1");
+
+		m_alpha = I.getScalar("m_alpha");
+		m_beta = I.getScalar("m_beta");
+		m_gamma = I.getScalar("m_gamma");
+
 
 		T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 

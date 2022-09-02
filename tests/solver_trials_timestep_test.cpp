@@ -93,14 +93,14 @@ class SolverIO{
 
 			for (int i=0; i<streams[s].size(); ++i) streams[s][i] << S->current_time << "\t";
 
-			vector<double> breaks = my_log_seq(0.01, 10, 100);
-			vector<double> dist = S->getDensitySpecies(s, breaks);
-			//cout << "here: " << breaks.size() << " " << dist.size() << endl;
+			// vector<double> breaks = my_log_seq(0.01, 10, 100);
+			// vector<double> dist = S->getDensitySpecies(s, breaks);
+			// //cout << "here: " << breaks.size() << " " << dist.size() << endl;
 
-			for (int i=0; i<100; ++i){
-				streams[s][0] << breaks[i] << "\t";
-				streams[s][1] << dist[i] << "\t";
-			}
+			// for (int i=0; i<100; ++i){
+			// 	streams[s][0] << breaks[i] << "\t";
+			// 	streams[s][1] << dist[i] << "\t";
+			// }
 
 			for (int j=0; j<spp->xsize(); ++j){
 				auto& C = spp->getCohort(j);
@@ -135,7 +135,8 @@ class CWM{
 	double hmat;
 	double wd;
 	double gs;
-	
+	double vcmax;
+
 	vector<double> n_ind_vec;
 	vector<double> biomass_vec;
 	vector<double> ba_vec;
@@ -147,6 +148,8 @@ class CWM{
 	vector<double> hmat_vec;
 	vector<double> wd_vec;
 	
+	vector<double> vcmax_vec;
+
 	void update(double t, Solver &S){
 		n_ind_vec.clear();
 		n_ind_vec.resize(S.n_species());
@@ -240,10 +243,19 @@ class CWM{
 		for (int k=0; k<S.n_species(); ++k)
 			gs += S.integrate_x([&S,k](int i, double t){
 										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-										      return p.res.gs_avg;
+										      return p.res.gs_avg * p.geometry.crown_area;
 										}, t, k);
-		gs /= n_ind;
-	
+		gs /= canopy_area;
+
+		vcmax_vec.clear();
+		vcmax_vec.resize(S.n_species());
+		for (int k=0; k<S.n_species(); ++k)
+			vcmax_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
+											  auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+											  return p.res.vcmax_avg * p.geometry.crown_area;
+										}, t, 0.1, k);
+		vcmax = std::accumulate(vcmax_vec.begin(), vcmax_vec.end(), 0.0);
+		vcmax /= canopy_area;
 	}
 };
 
@@ -258,6 +270,7 @@ class EmergentProps{
 	double stem_mass;
 	double croot_mass;
 	double froot_mass;
+	vector <double> lai_vert;
 
 	void update(double t, Solver &S){
 		// gpp
@@ -300,6 +313,17 @@ class EmergentProps{
 									  auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
 									  return p.crown_area*p.lai;
 								}, t, k);
+
+
+		// LAI vertical profile
+		lai_vert.resize(25);
+		for (int iz=0; iz<25; ++iz)
+			for (int k=0; k<S.n_species(); ++k)
+				lai_vert[iz] += S.integrate_x([&S,k,iz](int i, double t){
+									  auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+									  return p.geometry.crown_area_above(iz,p.traits)*p.geometry.lai;
+								}, t, k);
+
 
 		// Leaf mass
 		leaf_mass = 0;
@@ -365,7 +389,7 @@ int main(){
     S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ifmu_order = 1;
-	S.control.ebt_ucut = 1e-10;
+	S.control.ebt_ucut = 1e-7;
     S.use_log_densities = true;
 	S.setEnvironment(&E);
 	
@@ -393,7 +417,7 @@ int main(){
 		Species<PSPM_Plant>* spp = new Species<PSPM_Plant>(p1);
 
 		int res = I.getScalar("resolution");
-		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-4);
+		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
 		//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 		
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
@@ -410,7 +434,7 @@ int main(){
 
 	SolverIO sio;
 	sio.S = &S;
-	sio.openStreams({"height", "lai", "mort", "seeds", "g", "gpp"}, out_dir);
+	sio.openStreams({"height", "lai", "mort", "seeds", "rgr", "gpp"}, out_dir);
 
 
 
@@ -439,6 +463,7 @@ int main(){
 	ofstream fzst(string(out_dir + "/z_star.txt").c_str());
 	assert(fzst);
 	ofstream fco(string(out_dir + "/canopy_openness.txt").c_str());
+	ofstream flai(string(out_dir + "/lai_profile.txt").c_str());
 	ofstream fseed(string(out_dir + "/seeds.txt").c_str());
 	ofstream fabase(string(out_dir + "/basal_area.txt").c_str());
 //	ofstream flai(string(out_dir + "/LAI.txt").c_str());
@@ -447,15 +472,16 @@ int main(){
 	ofstream fouty(string(out_dir + "/" + I.get<string>("cwmAvg")).c_str());
 	ofstream fouty_spp(string(out_dir + "/" + I.get<string>("cwmperSpecies")).c_str());
 	
-	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\n";
+	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
-	double t_clear = 1050*100;
+	double t_clear = 105000;
 	// t is years since 2000-01-01
 	double y0, yf;
 	y0 = I.getScalar("year0");
 	yf = I.getScalar("yearf");
-	for (double t=y0; t <= yf; t=t+0.25) {
+	double delta_T = I.getScalar("delta_T");
+	for (double t=y0; t <= yf; t=t+delta_T) {
 		cout << "t = " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
@@ -481,7 +507,8 @@ int main(){
 			  << (props.croot_mass+props.froot_mass)*1000*0.5 << "\t" // gC/m2
 			  << cwm.gs << "\t"
 			  << props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
-			  << props.lai << endl;
+			  << props.lai << "\t"
+			  << cwm.vcmax << endl;
 		
 		fouty << int(t) << "\t"
 		      << -9999  << "\t"
@@ -514,7 +541,9 @@ int main(){
 				  << cwm.p50_vec[k]  << "\n";
 		}
 	
-		      
+		flai << t << "\t";
+		for (int i=0; i<props.lai_vert.size(); ++i) flai << props.lai_vert[i] << "\t";
+		flai << "\n";
 		//fouty << t << -9999 << cwm.n_ind << -9999 << 
 		
 //		vector<double> seeds = S.newborns_out(t);
@@ -630,9 +659,10 @@ int main(){
 				for (int i=0; i<spp->xsize(); ++i){
 					auto& p = (static_cast<Species<PSPM_Plant>*>(spp))->getCohort(i);
 					p.geometry.lai = p.par.lai0;
-					double u_new = 0; //spp->getU(i) * double(rand())/RAND_MAX;
+					double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
 					spp->setU(i, u_new);
 				}
+				spp->setX(spp->xsize()-1, 0);
 			}
 			S.copyCohortsToState();
 			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");;
@@ -648,6 +678,7 @@ int main(){
 
 	}
 	
+	S.print();
 
 	fco.close();
 	fseed.close();
