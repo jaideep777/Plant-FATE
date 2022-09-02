@@ -20,7 +20,7 @@ class MovingAverager{
 	public:
 	// seed output history
 	double T = 5;
-	bool debug = true;
+	bool debug = false;
 
 	public:
 	
