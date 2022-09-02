@@ -1,5 +1,11 @@
+#ifndef PLANT_FATE_COMMUNITY_PROPERTIES_H_
+#define PLANT_FATE_COMMUNITY_PROPERTIES_H_
+
 #include <solver.h>
 
+#include <solver.h>
+
+// FIXME: move definitions to cpp
 class SpeciesProps{
 public:
 	double n_ind=0;
@@ -303,3 +309,6 @@ EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
 	lhs += rhs;
 	return lhs;
 }
+
+
+#endif

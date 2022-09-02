@@ -10,6 +10,7 @@ using namespace std;
 #include "pspm_interface.h"
 #include "trait_reader.h"
 #include "community_properties.h"
+#include "trait_evolution.h"
 
 
 vector<double> my_log_seq(double x0, double xf, int N){
