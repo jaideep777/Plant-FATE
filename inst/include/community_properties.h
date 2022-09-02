@@ -107,7 +107,7 @@ public:
 		biomass_vec.resize(S.n_species());
 		for (int k=0; k<S.n_species(); ++k)
 			biomass_vec[k] = S.integrate_x([&S,k](int i, double t){
-										      auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 										      return p.get_biomass();
 										}, t, k);
 		biomass = std::accumulate(biomass_vec.begin(), biomass_vec.end(), 0.0);
@@ -116,7 +116,7 @@ public:
 		ba_vec.resize(S.n_species());
 		for (int k=0; k<S.n_species(); ++k)
 			ba_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
-											  double D = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry.diameter;
+											  double D = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry.diameter;
 											  return M_PI*D*D/4;
 										}, t, 0.1, k);
 		ba = std::accumulate(ba_vec.begin(), ba_vec.end(), 0.0);
@@ -125,7 +125,7 @@ public:
 		canopy_area_vec.resize(S.n_species());
 		for (int k=0; k<S.n_species(); ++k)
 			canopy_area_vec[k] = S.integrate_x([&S,k](int i, double t){
-											  auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
+											  auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
 											  return p.crown_area;
 										}, t, k);
 		canopy_area = std::accumulate(canopy_area_vec.begin(), canopy_area_vec.end(), 0.0);
@@ -135,7 +135,7 @@ public:
 		height_vec.resize(S.n_species());
 		for (int k=0; k<S.n_species(); ++k)
 			height_vec[k] = S.integrate_x([&S,k](int i, double t){
-										      auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 										      return p.geometry.height;
 										}, t, k);
 										
@@ -145,48 +145,48 @@ public:
 		hmat = 0;
 		for (int k=0; k<S.n_species(); ++k)
 			hmat += S.integrate_x([&S,k](int i, double t){
-										      auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 										      return p.traits.hmat;
 										}, t, k);
 		hmat /= n_ind;
 		hmat_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k) hmat_vec[k] = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.hmat;
+		for (int k=0; k<S.n_species(); ++k) hmat_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.hmat;
 
 
 		lma = 0;
 		for (int k=0; k<S.n_species(); ++k)
 			lma += S.integrate_x([&S,k](int i, double t){
-										      auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 										      return p.traits.lma;
 										}, t, k);
 		lma /= n_ind;
 		lma_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k) lma_vec[k] = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.lma;
+		for (int k=0; k<S.n_species(); ++k) lma_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.lma;
 
 		wd = 0;
 		for (int k=0; k<S.n_species(); ++k)
 			wd += S.integrate_x([&S,k](int i, double t){
-										      auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 										      return p.traits.wood_density;
 										}, t, k);
 		wd /= n_ind;
 		wd_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k) wd_vec[k] = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.wood_density;
+		for (int k=0; k<S.n_species(); ++k) wd_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.wood_density;
 
 		p50 = 0;
 		for (int k=0; k<S.n_species(); ++k)
 			p50 += S.integrate_x([&S,k](int i, double t){
-										      auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 										      return p.traits.p50_xylem;
 										}, t, k);
 		p50 /= n_ind;
 		p50_vec.resize(S.n_species());
-		for (int k=0; k<S.n_species(); ++k) p50_vec[k] = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.p50_xylem;
+		for (int k=0; k<S.n_species(); ++k) p50_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.p50_xylem;
 
 		gs = 0;
 		for (int k=0; k<S.n_species(); ++k)
 			gs += S.integrate_x([&S,k](int i, double t){
-										      auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 										      return p.res.gs_avg * p.geometry.crown_area;
 										}, t, k);
 		gs /= canopy_area;
@@ -195,7 +195,7 @@ public:
 		vcmax_vec.resize(S.n_species());
 		for (int k=0; k<S.n_species(); ++k)
 			vcmax_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
-											  auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+											  auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 											  return p.res.vcmax_avg * p.geometry.crown_area;
 										}, t, 0.1, k);
 		vcmax = std::accumulate(vcmax_vec.begin(), vcmax_vec.end(), 0.0);
@@ -291,7 +291,7 @@ public:
 		for (int iz=0; iz<25; ++iz)
 			for (int k=0; k<S.n_species(); ++k)
 				lai_vert[iz] += S.integrate_x([&S,k,iz](int i, double t){
-									  auto& p = (static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+									  auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 									  return p.geometry.crown_area_above(iz,p.traits)*p.geometry.lai;
 								}, t, k);
 
