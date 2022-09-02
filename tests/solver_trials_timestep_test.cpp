@@ -475,7 +475,7 @@ int main(){
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
-	double t_clear = 1050;
+	double t_clear = 105000;
 	// t is years since 2000-01-01
 	double y0, yf;
 	y0 = I.getScalar("year0");
