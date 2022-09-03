@@ -201,19 +201,19 @@ int main(){
 	S.print();
 //	S.control.update_cohorts = false;
 
-	// dynamic_cast<MySpecies<PSPM_Plant>*>(S.species_vec[0])->set_traits({0.15, 670});
+	// static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[0])->set_traits({0.15, 670});
 
 	// S.print();
 
-	// for (auto spp : S.species_vec){
-	// 	for (auto m : dynamic_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-	// 		S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
-	// }
+	for (auto spp : S.species_vec){
+		for (auto m : dynamic_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
+			S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
+	}
 
-	// S.resetState(I.getScalar("year0"));
-	// S.initialize();
+	S.resetState(I.getScalar("year0"));
+	S.initialize();
 
-	// S.print();
+	S.print();
 
 	SolverIO sio;
 	sio.S = &S;

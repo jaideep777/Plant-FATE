@@ -1,11 +1,11 @@
 output_dir = "pspm_output_4"
 prefix = "lma_test"
 
-solver = "IEBT0.1_succ3_nodist_nomutants"
+solver = "IEBT0.1_succ3_nodist_nomutants_3spp"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
-n_species = 3
+n_species = 9
 n = 101
 
 seeds = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
