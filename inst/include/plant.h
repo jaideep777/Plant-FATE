@@ -68,6 +68,9 @@ class Plant{
 	void initParamsFromFile(std::string file);
 	void coordinateTraits();
 	
+	void set_traits(std::vector<double> tvec);
+	std::vector<double> get_traits();
+
 	void set_size(double x);
 
 	double get_biomass() const;

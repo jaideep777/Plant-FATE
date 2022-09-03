@@ -1,4 +1,6 @@
 #include "pspm_interface.h"
+#include "trait_evolution.h"
+#include <iomanip>
 using namespace std;
 
 typedef PSPM_Dynamic_Environment EnvUsed;
@@ -110,13 +112,16 @@ vector<double>::iterator PSPM_Plant::get_rates(vector<double>::iterator &it){
 }
 
 void PSPM_Plant::print(std::ostream &out){
-	out << traits.species_name << "\t"
-		<< "|" << traits.lma << "|\t" 
-	    << geometry.get_size() << "\t" 
-	    << rates.dsize_dt << "\t" 
-	    << geometry.lai << "\t" 
-	    << state.mortality << "\t" 
-	    << state.seed_pool << "\t" 
+	out << std::setw(10) << setprecision(3) << traits.species_name;
+	vector<double> traits_vec = get_traits();
+	for (auto e : traits_vec){
+		out << std::setw(10) << setprecision(5) << "|" << e << "| ";
+	}
+	out << std::setw(10) << setprecision(3) << geometry.get_size() 
+	    << std::setw(10) << setprecision(3) << rates.dsize_dt 
+	    << std::setw(10) << setprecision(3) << geometry.lai 
+	    << std::setw(10) << setprecision(3) << state.mortality 
+	    << std::setw(10) << setprecision(3) << state.seed_pool 
 	    ;
 }
 
@@ -130,8 +135,13 @@ double PSPM_Dynamic_Environment::projected_crown_area_above_z(double t, double z
 	double ca_above_z = 0;
 	// Loop over resident species --->
 	for (int k=0; k<S->species_vec.size(); ++k){
-		auto ca_above = [z,k,S](int i, double t){
-			auto& p = (static_cast<Species<PSPM_Plant>*>(S->species_vec[k]))->getCohort(i);
+
+		// skip mutants
+		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
+		if (!spp->isResident) continue;
+
+		auto ca_above = [z,spp](int i, double t){
+			auto& p = spp->getCohort(i);
 //				double a = p.area_leaf_above(z, p.vars.height, p.vars.area_leaf);
 			double ca_p = p.geometry.crown_area_extent_projected(z, p.traits);
 //				std::cout << "(" << i << "," << p.geometry.get_size() << ", " << p.geometry.diameter << ", " << p.geometry.height << ", " << p.u << ", " << p.geometry.crown_area << " | " << ca_p << ")" << "\n";
@@ -149,8 +159,13 @@ double PSPM_Dynamic_Environment::fapar_layer(double t, int layer, Solver *S){
 
 	double photons_abs = 0;
 	for (int k=0; k<S->species_vec.size(); ++k){
-		auto photons_absorbed_plant_layer = [layer,k,S, this](int i, double t){
-			auto& p = (static_cast<Species<PSPM_Plant>*>(S->species_vec[k]))->getCohort(i);
+		
+		// skip mutants
+		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
+		if (!spp->isResident) continue;
+
+		auto photons_absorbed_plant_layer = [layer,spp, this](int i, double t){
+			auto& p = spp->getCohort(i);
 
 			double cap_z    =            p.geometry.crown_area_above(z_star[layer], p.traits);
 			double cap_ztop = (layer>0)? p.geometry.crown_area_above(z_star[layer-1], p.traits) : 0;

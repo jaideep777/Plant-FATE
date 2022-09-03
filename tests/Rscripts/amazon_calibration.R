@@ -1,7 +1,7 @@
 output_dir = "pspm_output_4"
 prefix = "lma_test"
 
-solver = "IEBT0.1_succ3_nodist"
+solver = "IEBT0.1_succ3_nodist_nomutants"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
