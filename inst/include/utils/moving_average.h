@@ -65,12 +65,18 @@ class MovingAverager{
 		else if (t_hist.size() == 1) return f_hist.front();
 		else return area_sum/(t_hist.back()-t_hist.front());
 	}
-	
+
+	inline double get_last(){
+		if (t_hist.size() == 0) return 0;
+		else return f_hist.back();
+	}
+
 	inline void clear(){
 		area_sum = 0;
 		f_hist.clear();
 		t_hist.clear();
 		areas.clear();
+		dts.clear();
 	}
 	
 	inline void print(){
@@ -93,7 +99,7 @@ class MovingAverager{
 	}
 
 	inline void print_summary(){
-		std::cout << "MovingAverager:  t = " << t_hist.front() << " " << t_hist.back() << ", x = " << f_hist.front() << " " << f_hist.back() << ", xmean = " << get() << ", (" << t_hist.back() - t_hist.front() << ")\n";
+		std::cout << "MovingAverager:  t = " << t_hist.front() << " - " << t_hist.back() << ", x = " << f_hist.front() << " - " << f_hist.back() << ", xmean = " << get() << ", (T = " << t_hist.back() - t_hist.front() << "), npoints = " << f_hist.size() << "\n";
 	}
 
 	inline double get_exp(double c = 0){
@@ -129,26 +135,28 @@ class MovingAverager{
 	}
 
 
-	inline double get_cesaro(int nmax, double c=0){
+	inline double get_cesaro(double c=0){
 		if (t_hist.size() == 0) return 0;
 		if (t_hist.size() == 1) return f_hist.front();
 
 		// f_hist has 2 or more elements, so compute
-		nmax = std::min(int(nmax), int(f_hist.size()));
-		std::vector<double> avgs(nmax, 0);
-
 		// assert that t is equally spaced
 		auto tt = std::minmax_element(dts.begin(), dts.end());
 		double thresh = 0.01;
-		if (abs(*tt.first - *tt.second) > thresh) throw std::runtime_error("Cesaro Average requires equally spaced intervals.");
+		if (fabs(*tt.first - *tt.second) > thresh) throw std::runtime_error("Cesaro Average requires equally spaced intervals.");
+		double Dt = *tt.first;
+
+		// 
+		int nmax = f_hist.size();
+		std::vector<double> avgs(nmax, 0);
 
 		for (int n=1; n<nmax; ++n){
 			avgs[n] = 0;
 			double D = 0;
 			auto f_it = f_hist.rbegin();
 			for (int i=0; i<n; ++i, ++f_it){
-				avgs[n] += (*f_it) * exp(-c*i);
-				D += exp(-c*i);
+				avgs[n] += (*f_it) * exp(-c*i*Dt);
+				D += exp(-c*i*Dt);
 			}
 			avgs[n] /= D;
 		}
@@ -156,8 +164,8 @@ class MovingAverager{
 		double avg = 0;
 		double D = 0;
 		for (int i=1; i<nmax; ++i){
-			avg += avgs[i]*exp(-c*(i-1)); // Note avgs[0] is not defined, the first number is at index 1
-			D += exp(-c*i);
+			avg += avgs[i]*exp(-c*(i-1)*Dt); // Note avgs[0] is not defined, the first number is at index 1
+			D += exp(-c*(i-1)*Dt);
 		}
 		avg /= D;
 

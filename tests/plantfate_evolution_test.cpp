@@ -146,7 +146,7 @@ int main(){
 	E.print(0);
 	E.use_ppa = true;
 	E.update_met = true;
-	E.update_co2 = true;
+	E.update_co2 = false;
 
 	string solver_method = I.get<string>("solver");
 	Solver S(solver_method, "rk45ck");
@@ -182,7 +182,9 @@ int main(){
 		
 		MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
 		spp->trait_scalars = {0.2, 700};
-		spp->fg_dx = 0.1;
+		spp->fg_dx = 0.01;
+		spp->trait_variance = vector<double>(2, 0.1);
+		spp->r0_hist.set_interval(100);
 
 		spp->createVariants(p1);
 
@@ -231,6 +233,7 @@ int main(){
 
 	auto after_step = [&S, &seeds_hist](double t){
 		vector<double> seeds = S.newborns_out(t);
+		// cout << "t = " << fixed << setprecision(10) << t << ", Species r0s:\n";
 		for (int k=0; k<S.species_vec.size(); ++k){
 			seeds_hist[k].push(t, seeds[k]);
 			if (seeds[k] < 0){
@@ -238,7 +241,14 @@ int main(){
 				S.print();
 				seeds_hist[k].print_summary(); cout.flush();
 			}
-			S.species_vec[k]->set_inputBirthFlux(seeds_hist[k].get());
+			
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+			double r0 = seeds_hist[k].get()/S.species_vec[k]->birth_flux_in;
+			// cout << "   " << k << ": " <<  S.species_vec[k]->birth_flux_in << " --> " << seeds[k] << "/" << seeds_hist[k].get() << ", r0 = " << setprecision(8) << r0 << "\n";
+			
+			spp->set_inputBirthFlux(seeds_hist[k].get());
+			spp->r0_hist.push(t, r0);
+			// spp->r0_hist.print_summary();
 		}
 	};
 
@@ -254,10 +264,12 @@ int main(){
 	ofstream foutd(string(out_dir + "/" + I.get<string>("emgProps")).c_str());
 	ofstream fouty(string(out_dir + "/" + I.get<string>("cwmAvg")).c_str());
 	ofstream fouty_spp(string(out_dir + "/" + I.get<string>("cwmperSpecies")).c_str());
+	ofstream ftraits(string(out_dir + "/" + I.get<string>("traits")).c_str());
 	
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
+	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
 	double t_clear = 105000;
 	// t is years since 2000-01-01
 	double y0, yf;
@@ -265,7 +277,7 @@ int main(){
 	yf = I.getScalar("yearf");
 	double delta_T = I.getScalar("delta_T");
 	for (double t=y0; t <= yf; t=t+delta_T) {
-		cout << "t = " << fixed << t << "\t(";
+		cout << "stepping = " << S.current_time << "-->" << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
 
@@ -323,7 +335,22 @@ int main(){
 				  << 1/cwm.lma_vec[k]  << "\t"
 				  << cwm.p50_vec[k]  << "\n";
 		}
-	
+
+		for (int k=0; k<S.species_vec.size(); ++k){
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+			ftraits 
+			      << t << "\t"
+				  << k << "\t"
+				  << spp->isResident << "\t";
+			vector<double> v = spp->get_traits();
+			for (auto vv : v)
+			ftraits << vv << "\t";
+			ftraits << spp->r0_hist.get_last() << "\t"
+				    << spp->r0_hist.get() << "\t"
+				    << spp->r0_hist.get_exp(0.02) << "\t"
+				    << 0 << "\n"; //spp->r0_hist.get_cesaro() << "\n";
+		}
+
 		flai << t << "\t";
 		for (int i=0; i<props.lai_vert.size(); ++i) flai << props.lai_vert[i] << "\t";
 		flai << "\n";
@@ -349,6 +376,11 @@ int main(){
 			
 		sio.writeState();
 	
+		if (t > y0 + 120){
+			for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
+			for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
+		}
+
 		// clear patch after 50 year	
 		if (t >= t_clear){
 			for (auto spp : S.species_vec){
@@ -369,12 +401,13 @@ int main(){
 		fseed.flush();
 		fzst.flush();
 		fabase.flush();
+		ftraits.flush();
 //		flai.flush();
 //		fcwmt.flush();
 
 	}
 	
-	S.print();
+	//S.print();
 
 	fco.close();
 	fseed.close();
@@ -384,6 +417,7 @@ int main(){
 //	fcwmt.close();
 	foutd.close();
 	fouty.close();
+	ftraits.close();
 
 	// free memory associated
 	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 

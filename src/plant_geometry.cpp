@@ -21,7 +21,7 @@ void PlantGeometry::init(PlantParameters &par, PlantTraits &traits){
 
 	geom.eta_c = geom.zm_H - m*m*n/(geom.qm*geom.qm) * beta(2-1/n, 2*m-1) * (incbeta(2-1/n, 2*m-1, (n-1)/(m*n-1)) - (1-geom.fg)); 
 	
-	std::cout << "Init Geometry: m = " << m << ", n = " << n << ", zm/H = " << geom.zm_H << ", qm = " << geom.qm << ", eta_c = " << geom.eta_c << "\n";
+	// std::cout << "Init Geometry: m = " << m << ", n = " << n << ", zm/H = " << geom.zm_H << ", qm = " << geom.qm << ", eta_c = " << geom.eta_c << "\n";
 	
 	geom.dmat = -(traits.hmat/geom.a) * log(1-traits.fhmat);
 

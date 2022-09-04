@@ -1,7 +1,9 @@
+library(tidyverse)
+
 output_dir = "pspm_output_4"
 prefix = "lma_test"
 
-solver = "IEBT0.1_succ3_nodist_nomutants_3spp"
+solver = "IEBT0.1_succ3_nodist_wmutants_3spp"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
@@ -13,6 +15,9 @@ Zp = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
 BA = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 co = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50))
 lai_v = read.delim("lai_profile.txt", header=F, col.names = paste0("V", 1:27))
+traits = read.delim("traits.txt")
+
+
 
 par(mfcol=c(3,4), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(4,1,0))
 matplot(seeds$V1, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85), type="l",
@@ -69,6 +74,34 @@ matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=c("green3"), ylab="
 abline(h=c(40), col=scales::muted("green3"))
 
 smoothScatter(as.numeric(as.matrix((lai[ids,-1])))~as.numeric(as.matrix((dp[ids,-1]))))
+
+# 
+# par(mfcol=c(3,4), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(4,1,0))
+# for (isp in 1:n_species){
+#   traits_sp = traits %>% filter(SPP == isp) %>% filter(YEAR>1010)
+#   traits_sp %>% with(matplot(y=log(cbind(r0_last, r0_avg, r0_exp)), x=YEAR, type="l", lty=1, col=rainbow(4, end = 0.75)))
+# }
+# 
+# 
+# par(mfcol=c(3,4), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(4,1,0))
+# for (isp in 1:n_species){
+#   traits_sp = traits %>% filter(SPP == isp) %>% filter(YEAR>1010)
+#   traits_sp %>% with(matplot(y=WD, x=YEAR, type="l", lty=1, col=rainbow(4, end = 0.75)))
+# }
+  
+
+traits %>% 
+  filter(YEAR > 1120) %>% 
+  # filter(resident==T) %>% 
+  ggplot(aes(y=LMA, x=WD))+
+  theme_classic(base_size = 18)+
+  geom_point(aes(col=YEAR, size=RES), alpha=0.7)+
+  scale_color_viridis_c(direction = -1)+
+  scale_size("size_RES", range = c(0, 1.5))+
+  ylim(c(0.115, 0.125))
+#   xlim(c(450, 950))
+
+
 
 
 # matplot(y=cbind(dat$ET), x=dat$YEAR, type="l", lty=1, col=c("blue"))

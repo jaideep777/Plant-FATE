@@ -51,9 +51,8 @@ int main(){
 		cout << "t = " << i << ", Avg = " << M.get() << "\n";
 	}
 	M.print();
-	M.get_cesaro(15, 0.00);
-	M.get_cesaro(15, 0.02);
-	M.get_cesaro(20, 0.00);
+	M.get_cesaro(0.00);
+	M.get_cesaro(0.02);
 	M.get_exp(0.00);
 	M.get_exp(0.2);
 

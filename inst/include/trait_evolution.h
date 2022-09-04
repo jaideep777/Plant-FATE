@@ -3,6 +3,7 @@
 
 #include <solver.h>
 #include <vector>
+#include "utils/moving_average.h"
 
 // Extend the Species class from libpspm to allow trait evolution
 template <class Model>
@@ -13,10 +14,11 @@ class MySpecies : public Species<Model>{
 	double fg_dx = 0.001;
 	double invasion_fitness;
 	double r0;
-	std::vector<Species<Model>*> probes;
+	std::vector<MySpecies<Model>*> probes;
 	std::vector<double> fitness_gradient;
 	std::vector<double> trait_variance;
 	std::vector<double> trait_scalars;     // these scalars will be applied to fg_dx
+	MovingAverager r0_hist;
 
 	MySpecies(Model M, bool res=true);
 

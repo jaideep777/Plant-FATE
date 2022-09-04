@@ -7,6 +7,7 @@ MySpecies<Model>::MySpecies(Model M, bool res) : Species<Model>(M) {
 	invasion_fitness = 0;
 	r0 = 1;
 	isResident = res;
+	r0_hist.set_interval(200);
 }
 
 template <class Model>
@@ -38,10 +39,15 @@ void MySpecies<Model>::createVariants(Model M){
 
 template <class Model>
 void MySpecies<Model>::evolveTraits(double dt){
+	if (!isResident) return;
+
 	std::vector<double> traits_res = get_traits();
 	std::vector<double> dx(traits_res.size());
 
-	for (int i=0; i<dx.size(); ++i) dx[i] = fitness_gradient[i]*trait_variance[i]*dt;
+	for (int i=0; i<dx.size(); ++i){
+		double dx_norm = fitness_gradient[i]*trait_variance[i]*dt;
+		dx[i] = trait_scalars[i] * dx_norm;
+	}
 
 	for (int i=0; i<dx.size(); ++i) traits_res[i] += dx[i];
 	set_traits(traits_res);
@@ -55,9 +61,11 @@ void MySpecies<Model>::evolveTraits(double dt){
 
 template <class Model>
 void MySpecies<Model>::calcFitnessGradient(){
+	if (!isResident) return;
+
 	fitness_gradient.clear();
 	for (auto m : probes){
-		double grad = log(m->r0/r0) / fg_dx;
+		double grad = log(m->r0_hist.get()/r0_hist.get()) / fg_dx;
 		fitness_gradient.push_back(grad);
 		//cout << "   " << m->invasion_fitness << " " << spp->invasion_fitness << " " << *spp->fitness_gradient.rbegin() << "\n";
 	}
