@@ -4,6 +4,7 @@ MySpecies<Model>::MySpecies(Model M, bool res) : Species<Model>(M) {
 	int n = get_traits().size();
 	fitness_gradient.resize(n, 0);
 	trait_variance.resize(n, 0.01);
+	for (int i=0; i<n; ++i) trait_names.push_back("T"+i);
 	invasion_fitness = 0;
 	r0 = 1;
 	isResident = res;
