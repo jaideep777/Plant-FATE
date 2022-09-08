@@ -2,9 +2,9 @@ library(tidyverse)
 rm(list=ls())
 
 output_dir = "pspm_output_4"
-prefix = "lma_test"
+prefix = "evol_test"
 
-solver = "IEBT0.1_succ3_nodist_wmutants_3spp_wd"
+solver = "3spp_wd"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
@@ -88,18 +88,18 @@ abline(h=c(0.48, 0.66), col=scales::muted("brown"))
 matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=c("green3"), ylab="Vcmax (umol/m2/s)")
 abline(h=c(40), col=scales::muted("green3"))
 
-cprops = read.delim("cohort_props.txt")
-
-cprops %>% filter(speciesID==0) %>% filter(t > max(t)-50) %>% with(smoothScatter(lai~height))
-cprops %>% filter(speciesID==0) %>% filter(t > max(t)-50) %>% with(smoothScatter(gpp~height))
-cprops %>% filter(speciesID==0) %>% filter(t > max(t)-50) %>% with(smoothScatter(mort~height))
-
-dists = read.delim("size_distributions.txt", header=F)
-dists %>% filter(V2 == 0) %>% select(-V1, -V2, -V103) %>% as.matrix() %>% t() %>% matplot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col=rainbow(n = ncol(.), start = 0, end = 0.85, alpha = 10/ncol(.)), log="xy", ylim=c(1e-6,1e2))
-dists %>% filter(V2 == 1) %>% select(-V1, -V2, -V103) %>% as.matrix() %>% t() %>% matplot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col=rainbow(n = ncol(.), start = 0, end = 0.85, alpha = 10/ncol(.)), log="xy", ylim=c(1e-6,1e2))
-dists %>% filter(V2 == 2) %>% select(-V1, -V2, -V103) %>% as.matrix() %>% t() %>% matplot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col=rainbow(n = ncol(.), start = 0, end = 0.85, alpha = 10/ncol(.)), log="xy", ylim=c(1e-6,1e2))
-
-dists %>% filter(V2 == 2) %>% filter(V1 == 1500) %>% select(-V1, -V2, -V103) %>% as.numeric() %>% plot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col="black", log="xy", ylim=c(1e-6,1e2))
+  # cprops = read.delim("cohort_props.txt")
+  # 
+  # cprops %>% filter(speciesID==0) %>% filter(t > max(t)-50) %>% with(smoothScatter(lai~height))
+  # cprops %>% filter(speciesID==0) %>% filter(t > max(t)-50) %>% with(smoothScatter(gpp~height))
+  # cprops %>% filter(speciesID==0) %>% filter(t > max(t)-50) %>% with(smoothScatter(mort~height))
+  # 
+  # dists = read.delim("size_distributions.txt", header=F)
+  # dists %>% filter(V2 == 0) %>% select(-V1, -V2, -V103) %>% as.matrix() %>% t() %>% matplot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col=rainbow(n = ncol(.), start = 0, end = 0.85, alpha = 10/ncol(.)), log="xy", ylim=c(1e-6,1e2))
+  # dists %>% filter(V2 == 1) %>% select(-V1, -V2, -V103) %>% as.matrix() %>% t() %>% matplot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col=rainbow(n = ncol(.), start = 0, end = 0.85, alpha = 10/ncol(.)), log="xy", ylim=c(1e-6,1e2))
+  # dists %>% filter(V2 == 2) %>% select(-V1, -V2, -V103) %>% as.matrix() %>% t() %>% matplot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col=rainbow(n = ncol(.), start = 0, end = 0.85, alpha = 10/ncol(.)), log="xy", ylim=c(1e-6,1e2))
+  # 
+  # dists %>% filter(V2 == 2) %>% filter(V1 == 1500) %>% select(-V1, -V2, -V103) %>% as.numeric() %>% plot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col="black", log="xy", ylim=c(1e-6,1e2))
 
 
 
@@ -120,14 +120,12 @@ dists %>% filter(V2 == 2) %>% filter(V1 == 1500) %>% select(-V1, -V2, -V103) %>%
 
 traits %>% 
   filter(YEAR > 1120) %>% 
-  # filter(resident==T) %>% 
+  # filter(RES==T) %>% 
   ggplot(aes(y=LMA, x=WD))+
   theme_classic(base_size = 18)+
   geom_point(aes(col=YEAR, size=RES), alpha=0.7)+
   scale_color_viridis_c(direction = -1)+
-  scale_size("size_RES", range = c(0, 1.5))+
-  ylim(c(0.115, 0.125))
-#   xlim(c(450, 950))
+  scale_size("size_RES", range = c(0, 1.5))
 
 
 

@@ -3,6 +3,7 @@
 
 #include <solver.h>
 #include <trait_evolution.h>
+#include <utils/sequence.h>
 
 // FIXME: move definitions to cpp
 class SpeciesProps{
@@ -330,6 +331,235 @@ EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
 	lhs += rhs;
 	return lhs;
 }
+
+
+class SolverIO{
+	public:
+	int nspecies;
+	Solver * S;
+	vector<string> varnames = {"height", "lai", "mort", "seeds", "rgr", "gpp"};
+
+	// vector <vector<ofstream>> streams;
+	ofstream cohort_props_out;
+	ofstream size_dists_out;
+
+	ofstream fzst;
+	ofstream fco;
+	ofstream fseed;
+	ofstream fabase;
+	ofstream flai;
+	ofstream foutd;
+	ofstream fouty;
+	ofstream fouty_spp;
+	ofstream ftraits;
+
+	void openStreams(string dir, io::Initializer &I){
+
+		cohort_props_out.open(dir + "/cohort_props.txt");
+		cohort_props_out << "t\tspeciesID\tcohortID\t";
+		for (auto vname : varnames) cohort_props_out << vname << "\t";
+		cohort_props_out << endl;
+
+		size_dists_out.open(dir + "/size_distributions.txt");
+
+		// varnames.insert(varnames.begin(), "u");
+		// varnames.insert(varnames.begin(), "X");
+		
+		// for (int s=0; s < S->species_vec.size(); ++s){
+		// 	auto spp = S->species_vec[s];
+		// 	vector<ofstream> spp_streams;
+			
+		// 	for (int i=0; i<varnames.size(); ++i){
+		// 		stringstream sout;
+		// 		sout << dir << "/species_" << s << "_" << varnames[i] << ".txt";
+		// 		cout << sout.str() << endl;
+		// 		ofstream fout(sout.str().c_str());
+		// 		assert(fout);
+		// 		spp_streams.push_back(std::move(fout));
+		// 	}
+		// 	streams.push_back(std::move(spp_streams));
+		// }
+
+		fzst.open(string(dir + "/z_star.txt").c_str());
+		fco.open(string(dir + "/canopy_openness.txt").c_str());
+		fseed.open(string(dir + "/seeds.txt").c_str());
+		fabase.open(string(dir + "/basal_area.txt").c_str());
+		flai.open(string(dir + "/lai_profile.txt").c_str());
+		foutd.open(string(dir + "/" + I.get<string>("emgProps")).c_str());
+		fouty.open(string(dir + "/" + I.get<string>("cwmAvg")).c_str());
+		fouty_spp.open(string(dir + "/" + I.get<string>("cwmperSpecies")).c_str());
+		ftraits.open(string(dir + "/" + I.get<string>("traits")).c_str());
+
+		foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\n";
+		fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
+		fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
+		ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
+
+	}
+
+	void closeStreams(){
+		// for (int s=0; s<streams.size(); ++s){
+		// 	for (int j=0; j<streams[s].size(); ++j){
+		// 		streams[s][j].close();
+		// 	}
+		// }
+		cohort_props_out.close();
+		size_dists_out.close();
+		
+		fzst.close();
+		fco.close();
+		fseed.close();
+		fabase.close();
+		flai.close();
+		foutd.close();
+		fouty.close();
+		fouty_spp.close();
+		ftraits.close();
+
+	}
+
+	void writeState(double t, vector<MovingAverager>& seeds_hist, SpeciesProps& cwm, EmergentProps& props){
+		for (int s=0; s < S->species_vec.size(); ++s){
+			auto spp = (MySpecies<PSPM_Plant>*)S->species_vec[s];
+
+			// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << t << "\t";
+
+			vector<double> breaks = my_log_seq(0.01, 10, 100);
+			vector<double> dist = S->getDensitySpecies(s, breaks);
+			//cout << "here: " << breaks.size() << " " << dist.size() << endl;
+
+			if (spp->isResident){
+				size_dists_out << t << "\t" << s << "\t";
+				for (int i=0; i<100; ++i){
+					// streams[s][0] << breaks[i] << "\t";
+					// streams[s][1] << dist[i] << "\t";
+					size_dists_out << dist[i] << "\t";
+				}
+				size_dists_out << "\n";
+			}
+
+			// for (int j=0; j<spp->xsize(); ++j){
+			// 	auto& C = spp->getCohort(j);
+			// 	int is = 2;
+			// 	//streams[s][is++] << C.x << "\t";
+			// 	//streams[s][is++] << C.u << "\t";
+			// 	streams[s][is++] << C.geometry.height << "\t";
+			// 	streams[s][is++] << C.geometry.lai << "\t";
+			// 	streams[s][is++] << C.rates.dmort_dt << "\t";
+			// 	streams[s][is++] << C.state.seed_pool << "\t";
+			// 	streams[s][is++] << C.rates.rgr << "\t";
+			// 	streams[s][is++] << C.res.gpp/C.geometry.crown_area << "\t";
+
+			// }
+			
+			// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << endl; //"\n";
+		
+			if (spp->isResident){
+				for (int j=0; j<spp->xsize()-1; ++j){
+					auto& C = spp->getCohort(j);
+					cohort_props_out << t << "\t" 
+									<< s << "\t"
+									<< j << "\t"
+									<< C.geometry.height << "\t"
+									<< C.geometry.lai << "\t"
+									<< C.rates.dmort_dt << "\t"
+									<< C.state.seed_pool << "\t"
+									<< C.rates.rgr << "\t"
+									<< C.res.gpp/C.geometry.crown_area << "\t";
+					cohort_props_out << "\n";
+				}
+			}
+		}
+
+		foutd << int(t) << "\t"
+			  << (t-int(t))*365 << "\t"
+			  << props.gpp*0.5/365*1000 << "\t"
+			  << props.npp*0.5/365*1000 << "\t"
+			  << props.resp_auto*0.5/365*1000 << "\t"  // gC/m2/d
+			  << props.leaf_mass*1000*0.5 << "\t"     
+			  << props.stem_mass*1000*0.5 << "\t"
+			  << props.croot_mass*1000*0.5 << "\t"
+			  << props.froot_mass*1000*0.5 << "\t"
+			  << (props.croot_mass+props.froot_mass)*1000*0.5 << "\t" // gC/m2
+			  << cwm.gs << "\t"
+			  << props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
+			  << props.lai << "\t"
+			  << cwm.vcmax << endl;
+		
+		fouty << int(t) << "\t"
+		      << -9999  << "\t"
+		      << cwm.n_ind << "\t"
+		      << -9999  << "\t"
+		      << cwm.height  << "\t"
+		      << cwm.hmat  << "\t"
+		      << cwm.canopy_area  << "\t"   // m2/m2
+		      << cwm.ba  << "\t"            // m2/m2
+		      << cwm.biomass  << "\t"       // kg/m2
+		      << cwm.wd  << "\t"
+		      << -9999  << "\t"
+		      << 1/cwm.lma  << "\t"
+		      << cwm.p50  << endl;
+		
+		for (int k=0; k<S->species_vec.size(); ++k){
+			fouty_spp 
+			      << int(t) << "\t"
+				  << k  << "\t"
+				  << cwm.n_ind_vec[k] << "\t"
+				  << -9999  << "\t"
+				  << cwm.height_vec[k]  << "\t"
+				  << cwm.hmat_vec[k]  << "\t"
+				  << cwm.canopy_area_vec[k]  << "\t"   // m2/m2
+				  << cwm.ba_vec[k]  << "\t"            // m2/m2
+				  << cwm.biomass_vec[k]  << "\t"       // kg/m2
+				  << cwm.wd_vec[k]  << "\t"
+				  << -9999  << "\t"
+				  << 1/cwm.lma_vec[k]  << "\t"
+				  << cwm.p50_vec[k]  << "\t"
+				  << seeds_hist[k].get()  << "\n";
+		}
+
+		for (int k=0; k<S->species_vec.size(); ++k){
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
+			ftraits 
+			      << t << "\t"
+				  << k << "\t"
+				  << spp->isResident << "\t";
+			vector<double> v = spp->get_traits();
+			for (auto vv : v)
+			ftraits << vv << "\t";
+			ftraits << spp->r0_hist.get_last() << "\t"
+				    << spp->r0_hist.get() << "\t"
+				    << spp->r0_hist.get_exp(0.02) << "\t"
+				    << 0 << "\n"; //spp->r0_hist.get_cesaro() << "\n";
+		}
+
+		ftraits.flush();
+		fouty_spp.flush();
+
+		flai << t << "\t";
+		for (int i=0; i<props.lai_vert.size(); ++i) flai << props.lai_vert[i] << "\t";
+		flai << endl;
+
+		fseed << t << "\t";
+		for (int i=0; i<S->n_species(); ++i) fseed << seeds_hist[i].get() << "\t";
+		fseed << endl;
+		
+		fabase << t << "\t";
+		for (int i=0; i<S->n_species(); ++i) fabase << cwm.ba_vec[i] << "\t";
+		fabase << endl;
+		
+	
+		fzst << t << "\t";
+		for (auto z : static_cast<PSPM_Dynamic_Environment*>(S->env)->z_star) fzst << z << "\t";
+		fzst << endl;
+		
+		fco << t << "\t";
+		for (auto z : static_cast<PSPM_Dynamic_Environment*>(S->env)->canopy_openness) fco << z << "\t";
+		fco << endl;
+
+	}
+};
+
 
 
 #endif

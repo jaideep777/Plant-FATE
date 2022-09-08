@@ -178,7 +178,8 @@ void Plant::partition_biomass(double dm_dt_tot, double dm_dt_lai, Env &env){
 	bp.dmass_dt_growth = dmass_growth_dmass * dmass_dt_nonlai;
 
 	// consistency check - see that all biomass allocations add up as expected
-	assert(fabs(bp.dmass_dt_tot - (bp.dmass_dt_lai + bp.dmass_dt_lit + bp.dmass_dt_rep + bp.dmass_dt_growth)) < 1e-6);
+	double dmass_dt_allocated = bp.dmass_dt_lai + bp.dmass_dt_lit + bp.dmass_dt_rep + bp.dmass_dt_growth;
+	assert(fabs(bp.dmass_dt_tot - dmass_dt_allocated) < 1e-6);
 
 	//return {rates.dmass_dt_tot, rates.dlai_dt, rates.dsize_dt, rates.dmass_dt_lit, rates.dmass_dt_rep};
 }
