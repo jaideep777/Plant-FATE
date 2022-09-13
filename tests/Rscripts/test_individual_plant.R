@@ -58,8 +58,9 @@ abline(h=0, col="grey")
 
 
 matplot(y=cbind(dat$assim_gross/dat$crown_area,
-                dat$assim_net/dat$crown_area), 
-                x=dat$i, col=c("green3", "green4"), log="", lty=1, type="l",
+                dat$assim_net/dat$crown_area,
+                dat$assim_net/dat$assim_gross * max(dat$assim_gross/dat$crown_area)), 
+                x=dat$i, col=c("green3", "green4", scales::alpha("yellow3", 0.5)), log="", lty=1, type="l", lwd=c(1,1,3),
                 ylab="GPP, NPP", xlab="Year")
 abline(h=0, col="grey")
 
