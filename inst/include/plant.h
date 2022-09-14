@@ -17,8 +17,6 @@ class Plant{
 		//double size;
 		double mortality = 0;     // cummulative mortality
 		double seed_pool = 0;
-		double f_m = 0;
-		double f = 0; // seed pool size  // FIXME: This needs to be a species characteristic if nonlinearities come in, e.g. environmentally dependent germination
 	} state;
 	
 	// ** core rates **
@@ -104,56 +102,56 @@ class Plant{
 
 	void print();
 
-	// ** 
-	// ** Simple growth simulator for testing purposes
-	// ** - grows plant over dt with constant assimilation rate A
-	// ** 
-	template<class Env>
-	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated){
+// 	// ** 
+// 	// ** Simple growth simulator for testing purposes
+// 	// ** - grows plant over dt with constant assimilation rate A
+// 	// ** 
+// 	template<class Env>
+// 	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated){
 
-		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
-			//if (fabs(t - 2050) < 1e-5) 
-			//env.updateClimate(t);
+// 		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
+// 			//if (fabs(t - 2050) < 1e-5) 
+// 			//env.updateClimate(t);
 
-			geometry.set_lai(S[0]);
-			set_size(S[1]);
-//			this->geometry.set_state(S.begin(), traits);
-			prod = S[2];
-			litter_pool = S[3];
-			rep = S[4];
-			state.seed_pool = S[5];
-			germinated = S[6];
-			state.mortality = S[7];
+// 			geometry.set_lai(S[0]);
+// 			set_size(S[1]);
+// //			this->geometry.set_state(S.begin(), traits);
+// 			prod = S[2];
+// 			litter_pool = S[3];
+// 			rep = S[4];
+// 			state.seed_pool = S[5];
+// 			germinated = S[6];
+// 			state.mortality = S[7];
 
-			calc_demographic_rates(env, t);
+// 			calc_demographic_rates(env, t);
 			
-			dSdt[0] = rates.dlai_dt;       // lai growth rate
-//			dSdt[1] = rates.dcroot_dt;    // growth rate of coarse root biomass
-			dSdt[1] = rates.dsize_dt;    // size (diameter) growth rate
-			dSdt[2] = bp.dmass_dt_tot;	   // biomass production rate
-			dSdt[3] = bp.dmass_dt_lit;  // litter biomass growth rate
-			dSdt[4] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
-			dSdt[5] = rates.dseeds_dt_pool;
-			dSdt[6] = rates.dseeds_dt_germ;
-			dSdt[7] = rates.dmort_dt;
-		};
+// 			dSdt[0] = rates.dlai_dt;       // lai growth rate
+// //			dSdt[1] = rates.dcroot_dt;    // growth rate of coarse root biomass
+// 			dSdt[1] = rates.dsize_dt;    // size (diameter) growth rate
+// 			dSdt[2] = bp.dmass_dt_tot;	   // biomass production rate
+// 			dSdt[3] = bp.dmass_dt_lit;  // litter biomass growth rate
+// 			dSdt[4] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
+// 			dSdt[5] = rates.dseeds_dt_pool;
+// 			dSdt[6] = rates.dseeds_dt_germ;
+// 			dSdt[7] = rates.dmort_dt;
+// 		};
 
-		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated, state.mortality};
-		RK4(t, dt, S, derivs);
-		//Euler(t, dt, S, derivs);
-		geometry.set_lai(S[0]);
-		set_size(S[1]);
-//		geometry.set_state(S.begin(), traits);
-		prod = S[2];
-		litter_pool = S[3];
-		rep = S[4];
-		state.seed_pool = S[5];
-		germinated = S[6];
-		state.mortality = S[7];
-		//seeds_hist.push(t+dt, rates.dseeds_dt_germ);
-		//seeds_hist.print();
+// 		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated, state.mortality};
+// 		RK4(t, dt, S, derivs);
+// 		//Euler(t, dt, S, derivs);
+// 		geometry.set_lai(S[0]);
+// 		set_size(S[1]);
+// //		geometry.set_state(S.begin(), traits);
+// 		prod = S[2];
+// 		litter_pool = S[3];
+// 		rep = S[4];
+// 		state.seed_pool = S[5];
+// 		germinated = S[6];
+// 		state.mortality = S[7];
+// 		//seeds_hist.push(t+dt, rates.dseeds_dt_germ);
+// 		//seeds_hist.print();
 
-	}
+// 	}
 
 };
 

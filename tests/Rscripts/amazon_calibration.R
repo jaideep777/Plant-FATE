@@ -4,7 +4,7 @@ rm(list=ls())
 output_dir = "pspm_output_4"
 prefix = "evol_test"
 
-solver = "3spp_wd"
+solver = "3spp_wd1"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F

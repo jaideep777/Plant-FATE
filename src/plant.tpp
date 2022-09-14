@@ -14,7 +14,7 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	double dnpp_dL = (res_plus.npp - res.npp)/geometry.crown_area/par.dl;
 	double dgpp_dL = (res_plus.gpp - res.gpp)/geometry.crown_area/par.dl;
 	double dE_dL = (res_plus.trans - res.trans)/geometry.crown_area/par.dl;
-	double ddpsi_dL = dE_dL / (traits.K_xylem * phydro::P(env.clim.swp, traits.p50_xylem, traits.b_xylem)); // FIXME: Need proper unit conversion
+//	double ddpsi_dL = dE_dL * viscosity / (traits.K_xylem * phydro::P(env.clim.swp, traits.p50_xylem, traits.b_xylem)); // FIXME: Need proper unit conversion
 
 	double dL_dt = 0;
 	if (par.optimize_lai) dL_dt = par.response_intensity*(dnpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma);
@@ -135,9 +135,7 @@ void Plant::calc_demographic_rates(Env &env, double t){
 	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
 	rates.dmort_dt  = mortality_rate(env, t);
 
-	double fec = fecundity_rate(bp.dmass_dt_rep, env)*exp(-state.mortality);
-	state.f_m = fec;
-	state.f = fecundity_rate(bp.dmass_dt_rep, env);
+	double fec = fecundity_rate(bp.dmass_dt_rep, env);
 	rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
 	rates.dseeds_dt_germ =   state.seed_pool/par.ll_seed;   // seeds that leave seed pool proceed for germincation
 	// need to add seed decay

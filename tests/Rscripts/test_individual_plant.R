@@ -1,21 +1,16 @@
 # R script to test:
-dat = read.delim("~/codes/Plant-FATE/assim.txt")
+dat = read.delim("~/codes/Plant-FATE/assim1.txt")
 dat$leaf_area = dat$crown_area * dat$lai
 dat$heartwood_fraction = 1-dat$sapwood_fraction
 
 # par(mfrow=c(4,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
-#     
-# plot(dat$height~dat$diameter)
-# plot(dat$crown_area~I(dat$height*dat$diameter))
-# plot(dat$crown_area~dat$height)
-# plot(dat$crown_area~dat$diameter)
-# plot(dat$leaf_area~dat$crown_area)
-# plot(dat$sapwood_fraction~dat$height)
-# # plot(sqrt(4*dat$crown_area/pi)~dat$height)
-# plot(I(dat$total_rep/dat$total_prod)~dat$height)
-# plot(I(dat$total_rep/dat$total_prod)~dat$diameter)
 
-par(mfrow=c(4,3), mar=c(4,4,1,1), oma=c(1,1,1,1))
+# plot(dat$height~dat$diameter, type="l", ylab="Height", xlab="Diameter")
+# plot(dat$crown_area~I(dat$height*dat$diameter), type="l", ylab="Crown area", xlab="DH")
+# plot(I(dat$total_rep/dat$total_prod)~dat$height, type="l", ylab="Frac alloc to\nreproduction", xlab="Height")
+# plot(I(dat$total_rep/dat$total_prod)~dat$diameter, type="l", ylab="Frac alloc to\nreproduction", xlab="Diameter")
+
+par(mfrow=c(4,4), mar=c(4,6,1,1), oma=c(1,1,1,1), mgp=c(2.7,1,0))
 
 plot(dat$height~dat$i, ylab="Height", xlab="Year", type="l", lwd=2)
 plot(dat$diameter~dat$i, ylab="Diameter", xlab="Year", col="brown", type="l", lwd=2)
@@ -40,8 +35,7 @@ abline(h=0, col="grey")
 
 
 matplot(y=cbind(dat$seed_pool,
-                dat$germinated,
-                dat$germinated_avg*50), 
+                dat$germinated), 
         x=dat$i, col=c("purple2", "magenta", "pink"), log="", lty=c(1,1,1), lwd=c(1,1,2), type="l",
         ylab="Seed pools", xlab="Year")
 abline(h=0, col="grey")
@@ -61,7 +55,7 @@ matplot(y=cbind(dat$assim_gross/dat$crown_area,
                 dat$assim_net/dat$crown_area,
                 dat$assim_net/dat$assim_gross * max(dat$assim_gross/dat$crown_area)), 
                 x=dat$i, col=c("green3", "green4", scales::alpha("yellow3", 0.5)), log="", lty=1, type="l", lwd=c(1,1,3),
-                ylab="GPP, NPP", xlab="Year")
+                ylab=expression(atop("GPP, NPP", "(kg m"^"-2"*"Yr"^"-1"*")")), xlab="Year")
 abline(h=0, col="grey")
 
 matplot(y=cbind(dat$rr/dat$crown_area,
@@ -76,11 +70,25 @@ matplot(y=cbind(dat$tr/dat$crown_area,
                 ylab="Turnover", xlab="Year",
                 add=F)
 
-plot(I(dat$transpiration/dat$crown_area/1000*1000)~dat$i, type="l", col="blue", ylab="Transpitation (mm/yr)")
-plot(dat$dpsi~dat$i, type="l", col="cyan")
-plot(dat$vcmax~dat$i, type="l", col="limegreen")
+plot(I(dat$transpiration/dat$crown_area/1000*1000)~dat$i, type="l", col="blue", ylab="Transpitation\n(mm/yr)")
+
+plot(dat$dpsi~dat$i, type="l", col="cyan", ylab=expression(atop(Delta*psi, "(MPa)")), xlab="Year")
+
+plot(dat$vcmax~dat$i, type="l", col="limegreen", ylab=expression(atop(V[cmax], "("*mu*"mol m"^"-2"*"s"^"-1"*")")), xlab="Year")
 
 plot(I(dat$leaf_area/dat$crown_area)~dat$i, ylab="LAI", xlab="Year", type="l")
+
+plot(I(dat$mortality)~dat$i, ylab="Cumulative\nMortality", xlab="Year", type="l")
+
+plot(I(dat$mortality_inst)~dat$i, ylab="Instantaneous\nmortality rate", xlab="Year", type="l")
+
+matplot(y=cbind(dat$sapwood_fraction, 
+              dat$heartwood_fraction),
+        x=dat$i, 
+        ylab="Sap/Heart wood\nfraction", xlab="Year", type="l", col=c("yellowgreen", "brown4"), lty=1, lwd=1)
+
+plot(I(dat$ppfd)~dat$i, ylab="PPFD", xlab="Year", type="l", col="yellowgreen")
+
 # plot(y=(dat$height[2:2000]-dat$height[1:1999]), x=dat$i[1:1999], ylab="Height growth rate", type="l")
 
 # plot(y=(dat$diameter[2:2000]-dat$diameter[1:1999])/dat$diameter[1:1999], x=dat$i[1:1999], ylab="Diameter RGR", type="l")
@@ -88,14 +96,14 @@ plot(I(dat$leaf_area/dat$crown_area)~dat$i, ylab="LAI", xlab="Year", type="l")
 # detrend = function(x,y){
 #   mod = lm(y~x)
 #   y-fitted(mod)
-# } 
-# plot(detrend(dat$i, dat$assim_gross)~dat$i, type="l") 
+# }
+# plot(detrend(dat$i, dat$assim_gross)~dat$i, type="l")
 
 # par(mfrow=c(2,1), mar=c(4,4,1,1))
-# plot(scale((dat$assim_net/dat$crown_area)[100:200])~dat$i[100:200], type="l")
-# points(scale(dat$lai[100:200])~dat$i[100:200], type="l", col="red", lwd=3)
+# plot(scale((dat$assim_net/dat$crown_area))~dat$i, type="l")
+# points(scale(dat$lai)~dat$i, type="l", col="red", lwd=3)
 # 
-# ccf(dat$lai[201:2000], (dat$assim_net/dat$crown_area)[201:2000], lag.max=100)
+# ccf(dat$lai, (dat$assim_net/dat$crown_area), lag.max=100)
 # abline(v=0, col="red")
 # abline(v=5, col="blue")
 
