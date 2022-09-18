@@ -73,7 +73,7 @@ int main(){
 	// ~~~~~~~~~~ Create resident species ~~~~~~~~~~~~~~~~~~~~~~~~~
 	int nspp = I.getScalar("nSpecies");
 	int res = I.getScalar("resolution");
-	// bool evolveTraits = (I.get<string>("evolveTraits") == "yes")? true : false;
+	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
 	for (int i=0; i<nspp; ++i){
 		PSPM_Plant p1;
 		p1.initParamsFromFile("tests/params/p.ini");
@@ -96,7 +96,7 @@ int main(){
 		spp->trait_variance = vector<double>(2, 0.1);
 		spp->r0_hist.set_interval(100);
 
-		spp->createVariants(p1);
+		if (evolve_traits) spp->createVariants(p1);
 
 		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
 		//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
@@ -106,10 +106,12 @@ int main(){
 	}
 
 	// ~~~~~~~~~~ Create variant probes ~~~~~~~~~~~~~~~~~~~~~~~~~
-	vector<Species_Base*> species_vec_copy = S.species_vec;
-	for (auto spp : species_vec_copy){
-		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-			S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
+	if (evolve_traits) {
+		vector<Species_Base*> species_vec_copy = S.species_vec;
+		for (auto spp : species_vec_copy){
+			for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
+				S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
+		}
 	}
 
 	S.resetState(I.getScalar("year0"));
@@ -170,9 +172,11 @@ int main(){
 			
 		sio.writeState(t, seeds_hist, cwm, props);
 	
-		if (t > y0 + 120){
-			for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
-			for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
+		if (evolve_traits){
+			if (t > y0 + 120){
+				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
+				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
+			}
 		}
 
 		// clear patch after 50 year	

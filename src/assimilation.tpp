@@ -87,7 +87,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	//std::cout << "---\nCA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 	// calculate yearly averages in mol/yr	
-	// the factor 1.18 accounts for the non-linearity in the light response in the P-hydro model
+	// the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
 	double f_light_day = 1.18*env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
 	double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
 	double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
