@@ -42,8 +42,9 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		if (by_layer == true){
 			double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
 			auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
-			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
-			plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
+			double fage = 1;//les_assim_reduction_factor(res, par);
+			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * fage * ca_layer;
+			plant_assim.rleaf      += (res.vcmax*par.rd) * fage * ca_layer;
 			plant_assim.trans      += res.e * ca_layer;
 			plant_assim.dpsi_avg   += res.dpsi * ca_layer;
 			plant_assim.vcmax_avg  += res.vcmax * ca_layer;
@@ -72,8 +73,9 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	if (by_layer == false){
 		double I_top = env.clim.ppfd_max * plant_assim.c_open_avg;
 		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
-		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * ca_total;
-		plant_assim.rleaf      = (res.vcmax*par.rd) * ca_total;
+		double fage = 1;//les_assim_reduction_factor(res, par);
+		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * fage * ca_total;
+		plant_assim.rleaf      = (res.vcmax*par.rd) * fage * ca_total;
 		plant_assim.trans      = res.e * ca_total;
 		plant_assim.dpsi_avg   = res.dpsi;
 		plant_assim.vcmax_avg  = res.vcmax;
@@ -105,13 +107,14 @@ PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, 
 	plant_assim = PlantAssimilationResult(); // reset plant_assim
 
 	calc_plant_assimilation_rate(env, G, par, traits); // update plant_assim
-	   
+	les_update_lifespans(par, traits);
+
 	plant_assim.rleaf = leaf_respiration_rate(G,par,traits);      // kg yr-1  
 	plant_assim.rroot = root_respiration_rate(G, par,traits);     // kg yr-1
 	plant_assim.rstem = sapwood_respiration_rate(G, par,traits);  // kg yr-1
 	
-	plant_assim.tleaf = leaf_turnover_rate(G, par,traits);  // kg yr-1
-	plant_assim.troot = root_turnover_rate(G, par,traits);  // kg yr-1
+	plant_assim.tleaf = leaf_turnover_rate(kappa_l, G, par,traits);  // kg yr-1
+	plant_assim.troot = root_turnover_rate(kappa_r, G, par,traits);  // kg yr-1
 	
 	double A = plant_assim.gpp;
 	double R = plant_assim.rleaf + plant_assim.rroot + plant_assim.rstem;

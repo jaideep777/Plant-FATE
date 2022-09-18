@@ -26,7 +26,6 @@ struct PlantAssimilationResult{
 
 	double tleaf = 0; 
 	double troot = 0;
-	
 };
 
 class Assimilator{
@@ -35,6 +34,9 @@ class Assimilator{
 	// ~~ These are defined here rather than in local scope for debugging purposes. 
 	PlantAssimilationResult plant_assim;
 	// ~~
+
+	double kappa_l;
+	double kappa_r;
 
 	public:	
 	// **
@@ -49,6 +51,13 @@ class Assimilator{
 	template<class Env>
 	PlantAssimilationResult net_production(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
 
+
+	// ** 
+	// ** Leaf economics
+	// **
+	void   les_update_lifespans(PlantParameters &par, PlantTraits &traits);
+	double les_assim_reduction_factor(phydro::PHydroResult& res, PlantParameters &par);
+
 	// ** 
 	// ** Respiration and turnover
 	// **
@@ -57,8 +66,8 @@ class Assimilator{
 	double root_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
 	double sapwood_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
 
-	double leaf_turnover_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
-	double root_turnover_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
+	double leaf_turnover_rate(double _kappa_l, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
+	double root_turnover_rate(double _kappa_r, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
 	
 
 };

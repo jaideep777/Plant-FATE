@@ -4,6 +4,21 @@
 
 namespace plant{
 
+void Assimilator::les_update_lifespans(PlantParameters &par, PlantTraits &traits){
+	double hT = plant_assim.vcmax_avg / plant_assim.vcmax25_avg;
+	double f = 1;
+	double fac = sqrt(par.les_k1 * par.les_k2 * f * hT * plant_assim.mc_avg / (2 * par.les_u * par.les_cc));
+	
+	kappa_l = 365 * plant_assim.vcmax25_avg / (traits.lma*1e3) * fac;
+	kappa_r = 365 * plant_assim.vcmax25_avg / (traits.zeta*1e3) * fac;
+}
+
+double Assimilator::les_assim_reduction_factor(phydro::PHydroResult& res, PlantParameters &par){
+	double hT = res.vcmax / res.vcmax25;
+	double f = 1;
+	return 1 - sqrt(par.les_cc / (2 * par.les_u * res.mc * hT * f));
+}
+
 // ** 
 // ** Respiration and turnover
 // **
@@ -26,23 +41,12 @@ double Assimilator::sapwood_respiration_rate(PlantGeometry *G, PlantParameters &
 	return par.rs * G->sapwood_mass(traits)*factor1 * (plant_assim.gpp/G->crown_area/4.5);	
 }
 
-double Assimilator::leaf_turnover_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
-	double hT = plant_assim.vcmax_avg / plant_assim.vcmax25_avg;
-	double f = 1;
-	double fac = sqrt(par.les_k1 * par.les_k2 * f * hT * plant_assim.mc_avg / (2 * par.les_u * par.les_cc));
-	double kappa = plant_assim.vcmax25_avg / (traits.lma*1e3) * fac;
-	// std::cout << "vcmax / vcmax25 / ll = " << plant_assim.vcmax_avg << " / " << plant_assim.vcmax25_avg << " / " << 1.0/(kappa*365) << std::endl;
-	return G->leaf_mass(traits) * kappa * 365; // / traits.ll;	
+double Assimilator::leaf_turnover_rate(double _kappa_l, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+	return G->leaf_mass(traits) * _kappa_l; // / traits.ll;	
 }
 
-double Assimilator::root_turnover_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
-	double hT = plant_assim.vcmax_avg / plant_assim.vcmax25_avg;
-	double f = 1;
-	double fac = sqrt(par.les_k1 * par.les_k2 * f * hT * plant_assim.mc_avg / (2 * par.les_u * par.les_cc));
-	double kappa_l = plant_assim.vcmax25_avg / (traits.lma*1e3) * fac;
-	//double kappa_r = kappa_l * traits.lma/traits.zeta;
-	double kappa_r = plant_assim.vcmax25_avg / (traits.zeta*1e3) * fac;
-	return G->root_mass(traits) * kappa_r * 365; // / par.lr;
+double Assimilator::root_turnover_rate(double _kappa_r, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+	return G->root_mass(traits) * _kappa_r; // / par.lr;
 }
 
 

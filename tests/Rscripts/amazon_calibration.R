@@ -1,14 +1,14 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_4"
-prefix = "evol_test"
+output_dir = "pspm_output_5_les"
+prefix = "les"
 
-solver = "3spp_wd1"
+solver = "tau_only"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
-n_species = 9
+n_species = 100
 n = 101
 
 # seeds1 = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
@@ -36,8 +36,16 @@ matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type=
         las=1, xlab="Time (years)", ylab="Z*")
 matplot(co$V1, co[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Io")
+matplot(y=1:24, x=t(-lai_v[,3:26]+lai_v[,2:25]), lty=1, col=rainbow(n = 1000, start = 0, end = 0.85, alpha=0.05), type="l",
+        las=1, xlab="Leaf area density", ylab="Height")
 matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = 1000, start = 0, end = 0.85, alpha=0.05), type="l",
         las=1, xlab="Cumulative LAI", ylab="Height")
+
+
+plot(dat$LAI~dat$YEAR, type="l", col="red", ylim=c(0,max(dat$LAI,6.5)))
+abline(h=c(5.3, 6.2), col=scales::muted("red"))
+abline(h=c(3.5), col=scales::muted("grey100"))
+
 
 BA = dat2 %>% select(YEAR, PID, BA) %>% spread(value = "BA", key = "PID")
 matplot(BA$YEAR, cbind(BA[,-1], rowSums(BA[,-1], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species, start = 0, end = 0.85), "black"), type="l",
@@ -68,9 +76,6 @@ abline(h=31.29, col="grey40")
 # smoothScatter(as.numeric(as.matrix(mp[ids,-1]))~as.numeric(as.matrix(log(1000*rgr[ids,-1]*dp[ids,-1]))), xlim=c(0,0.2))
 
 
-plot(dat$LAI~dat$YEAR, type="l", col="red", ylim=c(0,max(dat$LAI,6.5)))
-abline(h=c(5.3, 6.2), col=scales::muted("red"))
-abline(h=c(3.5), col=scales::muted("grey100"))
 
 matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP (kgC/m2/yr")
 abline(h=c(3,3.5), col=scales::muted("green4"))
@@ -102,7 +107,7 @@ abline(h=c(40), col=scales::muted("green3"))
   # dists %>% filter(V2 == 2) %>% filter(V1 == 1500) %>% select(-V1, -V2, -V103) %>% as.numeric() %>% plot(x=exp(seq(log(0.01), log(10), length.out=100)), y=., type="l", lty=1, col="black", log="xy", ylim=c(1e-6,1e2))
 
 
-
+  
 # 
 # par(mfcol=c(3,4), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(4,1,0))
 # for (isp in 1:n_species){
@@ -131,3 +136,17 @@ traits %>%
 
 
 # matplot(y=cbind(dat$ET), x=dat$YEAR, type="l", lty=1, col=c("blue"))
+
+
+dat2 %>% select(YEAR, PID, BA) %>% 
+  left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
+  filter(YEAR > 1120) %>% 
+  # filter(RES==T) %>% 
+  ggplot(aes(y=LMA, x=WD))+
+  theme_classic(base_size = 18)+
+  geom_point(aes(col=BA, size=RES), alpha=0.7)+
+  scale_color_viridis_c(direction = -1)+
+  scale_size("size_RES", range = c(0, 1.5))
+
+
+
