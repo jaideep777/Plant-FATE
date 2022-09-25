@@ -4,13 +4,14 @@
 
 namespace plant{
 
-void Assimilator::les_update_lifespans(PlantParameters &par, PlantTraits &traits){
+void Assimilator::les_update_lifespans(double lai, PlantParameters &par, PlantTraits &traits){
 	double hT = plant_assim.vcmax_avg / plant_assim.vcmax25_avg;
 	double f = 1;
 	double fac = sqrt(par.les_k1 * par.les_k2 * f * hT * plant_assim.mc_avg / (2 * par.les_u * par.les_cc));
 	
 	kappa_l = 365 * plant_assim.vcmax25_avg / (traits.lma*1e3) * fac;
-	kappa_r = 365 * plant_assim.vcmax25_avg / (traits.zeta*1e3) * fac;
+	kappa_r = 365 * plant_assim.vcmax25_avg / (traits.zeta*1e3) * fac * 2;
+	//kappa_r = kappa_l * (par.les_cc/lai - 1) / (traits.zeta / traits.lma);
 }
 
 double Assimilator::les_assim_reduction_factor(phydro::PHydroResult& res, PlantParameters &par){

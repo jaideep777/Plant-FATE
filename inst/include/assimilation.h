@@ -55,7 +55,7 @@ class Assimilator{
 	// ** 
 	// ** Leaf economics
 	// **
-	void   les_update_lifespans(PlantParameters &par, PlantTraits &traits);
+	void   les_update_lifespans(double lai, PlantParameters &par, PlantTraits &traits);
 	double les_assim_reduction_factor(phydro::PHydroResult& res, PlantParameters &par);
 
 	// ** 

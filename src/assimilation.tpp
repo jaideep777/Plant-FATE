@@ -107,7 +107,7 @@ PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, 
 	plant_assim = PlantAssimilationResult(); // reset plant_assim
 
 	calc_plant_assimilation_rate(env, G, par, traits); // update plant_assim
-	les_update_lifespans(par, traits);
+	les_update_lifespans(G->lai, par, traits);
 
 	plant_assim.rleaf = leaf_respiration_rate(G,par,traits);      // kg yr-1  
 	plant_assim.rroot = root_respiration_rate(G, par,traits);     // kg yr-1

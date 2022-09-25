@@ -1,10 +1,10 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_5_les"
+output_dir = "pspm_output_6"
 prefix = "les"
 
-solver = "tau_only"
+solver = "full1"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
@@ -84,10 +84,10 @@ abline(h=c(1.31), col=scales::muted("green3"))
 matplot(y=cbind(dat$GS), x=dat$YEAR, type="l", lty=1, col=c("cyan3"))
 abline(h=c(0.16), col=scales::muted("cyan3"))
 
-matplot(y=cbind(dat$CL+dat$CW)/1e3, x=dat$YEAR, type="l", lty=1, col=c("yellow3"), ylab="AGB (kg/m2)")
+matplot(y=cbind(dat$CL+dat$CW)/1e3, x=dat$YEAR, type="l", lty=1, col=c("yellow3"), ylab="AGB (kgC/m2)")
 abline(h=c(16.9, 20.7), col=scales::muted("yellow3"))
 
-matplot(y=cbind(dat$CFR)/1e3, x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR (kg/m2)", ylim=c(0, max(dat$CFR/1e3,0.7)))
+matplot(y=cbind(dat$CFR)/1e3, x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR (kgC/m2)", ylim=c(0, max(dat$CFR/1e3,0.7)))
 abline(h=c(0.48, 0.66), col=scales::muted("brown"))
 
 matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=c("green3"), ylab="Vcmax (umol/m2/s)")

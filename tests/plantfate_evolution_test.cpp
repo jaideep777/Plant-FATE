@@ -52,7 +52,7 @@ int main(){
 	E.print(0);
 	E.use_ppa = true;
 	E.update_met = true;
-	E.update_co2 = false;
+	E.update_co2 = true;
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
 	string solver_method = I.get<string>("solver");

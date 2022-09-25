@@ -93,7 +93,10 @@ class LifeHistoryOptimizer{
 			<< "total_prod" << "\t"
 			<< "litter_mass" << "\t"
 			<< "mortality" << "\t"
-			<< "mortality_inst" << "\n";
+			<< "mortality_inst" << "\t"
+			<< "leaf_lifespan" << "\t"
+			<< "fineroot_lifespan" << "\t" 
+			<< "\n";
 	}
 
 	void printState(double t, ostream& lfout){
@@ -126,7 +129,10 @@ class LifeHistoryOptimizer{
 			 << prod << "\t"
 			 << litter_pool << "\t"
 			 << P.state.mortality << "\t"
-			 << P.rates.dmort_dt << "\n";
+			 << P.rates.dmort_dt << "\t"
+			 << 1/P.assimilator.kappa_l << "\t"
+			 << 1/P.assimilator.kappa_r << "\t"
+			 "\n";
 	}
 
 	void set_state(vector<double>::iterator it){

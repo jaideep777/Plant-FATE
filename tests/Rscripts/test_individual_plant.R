@@ -80,14 +80,21 @@ plot(I(dat$leaf_area/dat$crown_area)~dat$i, ylab="LAI", xlab="Year", type="l")
 
 plot(I(dat$mortality)~dat$i, ylab="Cumulative\nMortality", xlab="Year", type="l")
 
-plot(I(dat$mortality_inst)~dat$i, ylab="Instantaneous\nmortality rate", xlab="Year", type="l")
+plot(I(dat$mortality_inst[dat$diameter<0.5])~dat$diameter[dat$diameter<0.5], ylab="Instantaneous\nmortality rate", xlab="Diameter", type="l")
 
 matplot(y=cbind(dat$sapwood_fraction, 
               dat$heartwood_fraction),
         x=dat$i, 
         ylab="Sap/Heart wood\nfraction", xlab="Year", type="l", col=c("yellowgreen", "brown4"), lty=1, lwd=1)
 
-plot(I(dat$ppfd)~dat$i, ylab="PPFD", xlab="Year", type="l", col="yellowgreen")
+# plot(I(dat$ppfd)~dat$i, ylab="PPFD", xlab="Year", type="l", col="yellowgreen")
+
+matplot(y=(cbind(dat$leaf_lifespan, 
+                dat$fineroot_lifespan)),
+        x=dat$height, 
+        ylab="Leaf/fine root\nlifespan", xlab="Height", type="l", col=c("yellowgreen", "brown4"), lty=1, lwd=1)
+
+# plot(dat$leaf_lifespan~dat$height)
 
 # plot(y=(dat$height[2:2000]-dat$height[1:1999]), x=dat$i[1:1999], ylab="Height growth rate", type="l")
 
