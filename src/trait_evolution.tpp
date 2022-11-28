@@ -34,6 +34,7 @@ void MySpecies<Model>::createVariants(Model M){
 		m->set_traits(traits_mutant);
 		m->isResident = false;
 		m->probes.clear(); // mutants dont have probes
+		m->species_name += "_probe" + std::to_string(i);
 		probes.push_back(m);
 	}
 }
@@ -75,6 +76,7 @@ void MySpecies<Model>::calcFitnessGradient(){
 
 template <class Model>
 void MySpecies<Model>::print_extra(){
+	std::cout << "Name: " << species_name << "\n";
 	std::cout << "Resident: " << ((isResident)? "Yes" : "No") << "\n";
 	std::cout << "Probes: ";
 	for (auto x : probes) std::cout << x << " ";

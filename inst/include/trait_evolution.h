@@ -10,6 +10,7 @@
 template <class Model>
 class MySpecies : public Species<Model>{
 	public:
+	std::string species_name;
 	bool isResident = true;
 
 	double fg_dx = 0.001;

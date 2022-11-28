@@ -91,6 +91,7 @@ int main(){
 		p1.set_size(0.01);
 		
 		MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
+		spp->species_name = Tr.species[i].species_name;
 		spp->trait_scalars = {0.2, 700};
 		spp->fg_dx = 0.01;
 		spp->trait_variance = vector<double>(2, 0.1);
