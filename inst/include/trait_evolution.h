@@ -21,6 +21,7 @@ class MySpecies : public Species<Model>{
 	std::vector<double> trait_scalars;     // these scalars will be applied to fg_dx
 	std::vector<std::string> trait_names;
 	
+	MovingAverager seeds_hist;
 	MovingAverager r0_hist;
 
 	MySpecies(Model M, bool res=true);

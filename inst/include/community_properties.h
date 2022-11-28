@@ -418,9 +418,9 @@ class SolverIO{
 
 	}
 
-	void writeState(double t, vector<MovingAverager>& seeds_hist, SpeciesProps& cwm, EmergentProps& props){
+	void writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		for (int s=0; s < S->species_vec.size(); ++s){
-			auto spp = (MySpecies<PSPM_Plant>*)S->species_vec[s];
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[s]);
 
 			// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << t << "\t";
 
@@ -501,6 +501,7 @@ class SolverIO{
 		      << cwm.p50  << endl;
 		
 		for (int k=0; k<S->species_vec.size(); ++k){
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
 			fouty_spp 
 			      << int(t) << "\t"
 				  << k  << "\t"
@@ -515,7 +516,7 @@ class SolverIO{
 				  << -9999  << "\t"
 				  << 1/cwm.lma_vec[k]  << "\t"
 				  << cwm.p50_vec[k]  << "\t"
-				  << seeds_hist[k].get()  << "\n";
+				  << spp->seeds_hist.get()  << "\n";
 		}
 
 		for (int k=0; k<S->species_vec.size(); ++k){
@@ -541,7 +542,7 @@ class SolverIO{
 		flai << endl;
 
 		fseed << t << "\t";
-		for (int i=0; i<S->n_species(); ++i) fseed << seeds_hist[i].get() << "\t";
+		for (int i=0; i<S->n_species(); ++i) fseed << static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[i])->seeds_hist.get() << "\t";
 		fseed << endl;
 		
 		fabase << t << "\t";

@@ -19,12 +19,12 @@ inline double runif(double rmin=0, double rmax=1){
 }
 
 
-void calc_r0(double t, Solver& S, vector<MovingAverager>& seeds_hist){
+void calc_r0(double t, Solver& S){
 	for (int k=0; k<S.species_vec.size(); ++k){
 		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-		double r0 = seeds_hist[k].get()/S.species_vec[k]->birth_flux_in;
+		double r0 = spp->seeds_hist.get()/spp->birth_flux_in;
 		
-		spp->set_inputBirthFlux(seeds_hist[k].get());
+		spp->set_inputBirthFlux(spp->seeds_hist.get());
 		spp->r0_hist.push(t, r0);
 		// spp->r0_hist.print_summary();
 	}
@@ -96,6 +96,8 @@ int main(){
 		spp->trait_variance = vector<double>(2, 0.1);
 		spp->r0_hist.set_interval(100);
 
+		spp->seeds_hist.set_interval(I.getScalar("T_seed_rain_avg"));
+
 		if (evolve_traits) spp->createVariants(p1);
 
 		// Add resident species to solver
@@ -132,24 +134,25 @@ int main(){
 
 
 	// ~~~~~~~~~~ Set up seed rain calculation ~~~~~~~~~~~~~~~~~~~~~~~~~
-	double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
-	vector<MovingAverager> seeds_hist(S.species_vec.size());
-	for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg);
+	// double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+	// vector<MovingAverager> seeds_hist(S.species_vec.size());
+	// for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg);
 
-	auto after_step = [&S, &seeds_hist](double t){
+	auto after_step = [&S](double t){
 		vector<double> seeds = S.newborns_out(t);
 		// cout << "t = " << fixed << setprecision(10) << t << ", Species r0s:\n";
 		for (int k=0; k<S.species_vec.size(); ++k){
-			seeds_hist[k].push(t, seeds[k]);
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+			spp->seeds_hist.push(t, seeds[k]);
 			if (seeds[k] < 0){
 				cout << "seeds[" << k << "] = " << seeds[k] << endl;
 				S.print();
-				seeds_hist[k].print_summary(); cout.flush();
+				spp->seeds_hist.print_summary(); cout.flush();
 			}
 			// cout << "   " << k << ": " <<  S.species_vec[k]->birth_flux_in << " --> " << seeds[k] << "/" << seeds_hist[k].get() << ", r0 = " << setprecision(8) << r0 << "\n";
 		}
 
-		calc_r0(t, S, seeds_hist);
+		calc_r0(t, S);
 	};
 
 //	ofstream fout("fmu_PlantFATE.txt");
@@ -177,7 +180,7 @@ int main(){
 		cwm.update(t, S);
 		props.update(t, S);
 			
-		sio.writeState(t, seeds_hist, cwm, props);
+		sio.writeState(t, cwm, props);
 	
 		if (evolve_traits){
 			if (t > y0 + 120){
