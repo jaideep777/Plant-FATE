@@ -98,21 +98,28 @@ int main(){
 
 		if (evolve_traits) spp->createVariants(p1);
 
+		// Add resident species to solver
 		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
 		//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
-		
+
+		// Add variants (probes) to solver
+		if (evolve_traits){
+			for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
+				S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
+		}
+
 		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
 		//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0
 	}
 
-	// ~~~~~~~~~~ Create variant probes ~~~~~~~~~~~~~~~~~~~~~~~~~
-	if (evolve_traits) {
-		vector<Species_Base*> species_vec_copy = S.species_vec;
-		for (auto spp : species_vec_copy){
-			for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-				S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
-		}
-	}
+	// // ~~~~~~~~~~ Create variant probes ~~~~~~~~~~~~~~~~~~~~~~~~~
+	// if (evolve_traits) {
+	// 	vector<Species_Base*> species_vec_copy = S.species_vec;
+	// 	for (auto spp : species_vec_copy){
+	// 		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
+	// 			S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
+	// 	}
+	// }
 
 	S.resetState(I.getScalar("year0"));
 	S.initialize();
@@ -191,7 +198,7 @@ int main(){
 				spp->setX(spp->xsize()-1, 0);
 			}
 			S.copyCohortsToState();
-			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");;
+			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");
 			t_clear = t + fmin(t_int, 1000);
 		}
 		

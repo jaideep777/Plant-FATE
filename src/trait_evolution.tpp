@@ -3,6 +3,7 @@ template <class Model>
 MySpecies<Model>::MySpecies(Model M, bool res) : Species<Model>(M) {
 	int n = get_traits().size();
 	fitness_gradient.resize(n, 0);
+	trait_scalars.resize(n,1);
 	trait_variance.resize(n, 0.01);
 	for (int i=0; i<n; ++i) trait_names.push_back("T"+i);
 	invasion_fitness = 0;
@@ -46,7 +47,7 @@ void MySpecies<Model>::evolveTraits(double dt){
 	std::vector<double> dx(traits_res.size());
 
 	for (int i=0; i<dx.size(); ++i){
-		double dx_norm = fitness_gradient[i]*trait_variance[i]*dt;
+		double dx_norm = fitness_gradient[i]*trait_variance[i]*dt; // Landes equation for normalized trait
 		dx[i] = trait_scalars[i] * dx_norm;
 	}
 

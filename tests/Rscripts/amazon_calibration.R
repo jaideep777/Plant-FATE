@@ -1,10 +1,10 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_amz"
-prefix = "ELE"
+output_dir = "pspm_output"
+prefix = "AMB"
   
-solver = "HD"
+solver = "LD"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
@@ -16,10 +16,10 @@ Zp = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
 # BA1 = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 co = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50))
 lai_v = read.delim("lai_profile.txt", header=F, col.names = paste0("V", 1:27))
-traits = read.delim("traits_ELE_HD.txt")
+traits = read.delim("traits_AMB_LD.txt")
 
-dat = read.delim("AmzFACE_D_PFATE_ELE_HD.txt")
-dat2 = read.delim("AmzFACE_Y_PFATE_ELE_HD.txt")
+dat = read.delim("AmzFACE_D_PFATE_AMB_LD.txt")
+dat2 = read.delim("AmzFACE_Y_PFATE_AMB_LD.txt")
 
 
 par(mfcol=c(3,4), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(4,1,0))
