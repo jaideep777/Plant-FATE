@@ -127,6 +127,8 @@ int main(){
 	S.resetState(I.getScalar("year0"));
 	S.initialize();
 
+//	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+
 	S.print();
 
 	SolverIO sio;
@@ -188,6 +190,12 @@ int main(){
 				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
 				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
 			}
+		}
+
+		if (int(t) % 10 == 0){
+			cout << "shuffling...\n";
+			std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+			S.copyCohortsToState();
 		}
 
 		// clear patch after 50 year	
