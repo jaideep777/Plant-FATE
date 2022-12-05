@@ -30,6 +30,20 @@ void calc_r0(double t, Solver& S){
 	}
 }
 
+void removeSpeciesAndProbes(Solver* S, MySpecies<PSPM_Plant>* spp){
+	// delete species probes and remove their pointers from solver
+	for (auto p : spp->probes){ // probes vector is not modified in the loop, so we can use it directly to iterate
+		delete p;               // this will delete the object, but the pointer p and its copy in the solver remain
+		S->removeSpecies(p);    // this will remove its pointer from the solver
+	}
+
+	// delete the resident itself and remove its pointer from solver
+	delete spp;
+	S->removeSpecies(spp);
+
+	// update state vector
+	S->copyCohortsToState();
+}
 
 int main(){
 
@@ -190,6 +204,19 @@ int main(){
 				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
 				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
 			}
+		}
+
+		// Remove dead species
+		if (t > 1050){
+			vector<MySpecies<PSPM_Plant>*> toRemove;
+			for (int k=0; k<S.species_vec.size(); ++k){
+				auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+				if (spp->isResident){
+					if (cwm.n_ind_vec[k] < 1e-6) toRemove.push_back(spp);
+				}
+			}
+			for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
+			S.copyCohortsToState();
 		}
 
 		if (int(t) % 10 == 0){
