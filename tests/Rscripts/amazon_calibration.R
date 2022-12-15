@@ -8,7 +8,6 @@ solver = "LD"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
-n_species = 15
 n = 101
 
 # seeds1 = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
@@ -21,7 +20,9 @@ traits = read.delim("traits_AMB_LD.txt")
 dat = read.delim("AmzFACE_D_PFATE_AMB_LD.txt")
 dat2 = read.delim("AmzFACE_Y_PFATE_AMB_LD.txt")
 
-
+n_species = length(unique(dat2$PID))
+n_year = length(unique(dat2$YEAR))
+  
 par(mfcol=c(3,4), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(4,1,0))
 seeds = dat2 %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID")
 matplot(seeds$YEAR, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85), type="l",
@@ -36,9 +37,9 @@ matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type=
         las=1, xlab="Time (years)", ylab="Z*")
 matplot(co$V1, co[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Io")
-matplot(y=1:24, x=t(-lai_v[,3:26]+lai_v[,2:25]), lty=1, col=rainbow(n = 1000, start = 0, end = 0.85, alpha=0.05), type="l",
+matplot(y=1:24, x=t(-lai_v[,3:26]+lai_v[,2:25]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
         las=1, xlab="Leaf area density", ylab="Height")
-matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = 1000, start = 0, end = 0.85, alpha=0.05), type="l",
+matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
         las=1, xlab="Cumulative LAI", ylab="Height")
 
 
@@ -122,23 +123,21 @@ abline(h=c(40), col=scales::muted("green3"))
 #   traits_sp %>% with(matplot(y=WD, x=YEAR, type="l", lty=1, col=rainbow(4, end = 0.75)))
 # }
   
-
-traits %>% 
-  filter(YEAR > 1120) %>% 
+p1 = traits %>% 
+  filter(YEAR > 1050) %>% 
   # filter(RES==T) %>% 
   ggplot(aes(y=LMA, x=WD))+
   theme_classic(base_size = 18)+
-  geom_point(aes(col=YEAR, size=RES), alpha=0.7)+
+  geom_point(aes(col=YEAR, size=RES), alpha=0.4)+
   scale_color_viridis_c(direction = -1)+
   scale_size("size_RES", range = c(0, 1.5))
-
 
 
   
 # matplot(y=cbind(dat$ET), x=dat$YEAR, type="l", lty=1, col=c("blue"))
   
 
-dat2 %>% select(YEAR, PID, BA) %>% 
+p2 = dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
   filter(YEAR > 1120) %>% 
   # filter(RES==T) %>% 
@@ -148,5 +147,5 @@ dat2 %>% select(YEAR, PID, BA) %>%
   scale_color_viridis_c(direction = -1)+
   scale_size("size_RES", range = c(0, 1.5))
 
-
+cowplot::plotgrid(p1,p2, align="hv")
 

@@ -12,6 +12,7 @@ class MySpecies : public Species<Model>{
 	public:
 	std::string species_name;
 	bool isResident = true;
+	double t_introduction = 0;
 
 	double fg_dx = 0.001;
 	double invasion_fitness;

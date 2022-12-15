@@ -45,6 +45,52 @@ void removeSpeciesAndProbes(Solver* S, MySpecies<PSPM_Plant>* spp){
 	S->copyCohortsToState();
 }
 
+void addSpeciesAndProbes(Solver *S, string params_file, io::Initializer &I, double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
+	int res = I.getScalar("resolution");
+	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
+	double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+
+	PSPM_Plant p1;
+	p1.initParamsFromFile(params_file);
+	p1.traits.species_name = species_name;
+	p1.traits.lma = lma;
+	p1.traits.wood_density = wood_density;
+	p1.traits.hmat = hmat;
+	p1.traits.p50_xylem = p50_xylem; // runif(-3.5,-0.5);
+	
+	p1.coordinateTraits();
+
+	((plant::Plant*)&p1)->print();
+	
+	//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
+	p1.set_size(0.01);
+	
+	MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
+	spp->species_name = species_name;
+	spp->trait_scalars = {0.2, 700};
+	spp->fg_dx = 0.01;
+	spp->trait_variance = vector<double>(2, 0.1);
+	spp->r0_hist.set_interval(100);
+	spp->t_introduction = t;
+
+	spp->seeds_hist.set_interval(T_seed_rain_avg);
+
+	if (evolve_traits) spp->createVariants(p1);
+
+	// Add resident species to solver
+	S->addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
+	//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
+
+	// Add variants (probes) to solver
+	if (evolve_traits){
+		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
+			S->addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
+	}
+
+	S->copyCohortsToState();
+}
+
+
 int main(){
 
 	// ~~~~~~~~~~ Read Paramaters ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,59 +130,19 @@ int main(){
 	Tr.readFromFile(I.get<string>("traitsFile"));
 	Tr.print();
 
-	// ~~~~~~~~~~ Create resident species ~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~ Create initial resident species pool from traits file ~~~~
 	int nspp = I.getScalar("nSpecies");
-	int res = I.getScalar("resolution");
+	// int res = I.getScalar("resolution");
 	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
 	for (int i=0; i<nspp; ++i){
-		PSPM_Plant p1;
-		p1.initParamsFromFile("tests/params/p.ini");
-		p1.traits.species_name = Tr.species[i].species_name;
-		p1.traits.lma = Tr.species[i].lma;
-		p1.traits.wood_density = Tr.species[i].wood_density;
-		p1.traits.hmat = Tr.species[i].hmat;
-		p1.traits.p50_xylem = Tr.species[i].p50_xylem; // runif(-3.5,-0.5);
-		
-		p1.coordinateTraits();
-
-		((plant::Plant*)&p1)->print();
-		
-		//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
-		p1.set_size(0.01);
-		
-		MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
-		spp->species_name = Tr.species[i].species_name;
-		spp->trait_scalars = {0.2, 700};
-		spp->fg_dx = 0.01;
-		spp->trait_variance = vector<double>(2, 0.1);
-		spp->r0_hist.set_interval(100);
-
-		spp->seeds_hist.set_interval(I.getScalar("T_seed_rain_avg"));
-
-		if (evolve_traits) spp->createVariants(p1);
-
-		// Add resident species to solver
-		S.addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
-		//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
-
-		// Add variants (probes) to solver
-		if (evolve_traits){
-			for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-				S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
-		}
-
-		//	S.addSpecies(vector<double>(1, p1.geometry.get_size()), &spp, 3, 1);
-		//S.get_species(0)->set_bfin_is_u0in(true);	// say that input_birth_flux is u0
+		addSpeciesAndProbes(&S, paramsFile, I,
+		                    I.getScalar("year0"), 
+		                    Tr.species[i].species_name, 
+		                    Tr.species[i].lma, 
+		                    Tr.species[i].wood_density, 
+		                    Tr.species[i].hmat, 
+		                    Tr.species[i].p50_xylem);
 	}
-
-	// // ~~~~~~~~~~ Create variant probes ~~~~~~~~~~~~~~~~~~~~~~~~~
-	// if (evolve_traits) {
-	// 	vector<Species_Base*> species_vec_copy = S.species_vec;
-	// 	for (auto spp : species_vec_copy){
-	// 		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-	// 			S.addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
-	// 	}
-	// }
 
 	S.resetState(I.getScalar("year0"));
 	S.initialize();
@@ -207,22 +213,34 @@ int main(){
 		}
 
 		// Remove dead species
-		if (t > 1050){
-			vector<MySpecies<PSPM_Plant>*> toRemove;
-			for (int k=0; k<S.species_vec.size(); ++k){
-				auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-				if (spp->isResident){
-					if (cwm.n_ind_vec[k] < 1e-6) toRemove.push_back(spp);
-				}
+		vector<MySpecies<PSPM_Plant>*> toRemove;
+		for (int k=0; k<S.species_vec.size(); ++k){
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+			if (spp->isResident){
+				if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
 			}
-			for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
-			S.copyCohortsToState();
 		}
+		for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
+		//S.copyCohortsToState();
 
+		// Shuffle species in the species vector -- just for debugging
 		if (int(t) % 10 == 0){
 			cout << "shuffling...\n";
 			std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
 			S.copyCohortsToState();
+		}
+
+		// Invasion by a random new species
+		if (int(t) % 300 == 0){
+			cout << "**** Invasion ****\n";
+			addSpeciesAndProbes(&S, paramsFile, I,
+			                    t, 
+			                    "spp_t"+to_string(t), 
+			                    runif(0.05, 0.25),    //Tr.species[i].lma, 
+			                    runif(300, 900),   //Tr.species[i].wood_density, 
+			                    runif(2, 35),      //Tr.species[i].hmat, 
+			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
+			);
 		}
 
 		// clear patch after 50 year	
