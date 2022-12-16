@@ -68,7 +68,7 @@ void MySpecies<Model>::calcFitnessGradient(){
 
 	fitness_gradient.clear();
 	for (auto m : probes){
-		double grad = log(m->r0_hist.get()/r0_hist.get()) / fg_dx;
+		double grad = (m->r0_hist.get()-r0_hist.get()) / fg_dx;
 		fitness_gradient.push_back(grad);
 		//cout << "   " << m->invasion_fitness << " " << spp->invasion_fitness << " " << *spp->fitness_gradient.rbegin() << "\n";
 	}

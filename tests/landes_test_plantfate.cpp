@@ -134,15 +134,15 @@ int main(){
 	int nspp = I.getScalar("nSpecies");
 	// int res = I.getScalar("resolution");
 	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
-	for (int i=0; i<nspp; ++i){
+//	for (int i=0; i<nspp; ++i){
 		addSpeciesAndProbes(&S, paramsFile, I,
 		                    I.getScalar("year0"), 
-		                    Tr.species[i].species_name, 
-		                    Tr.species[i].lma, 
-		                    Tr.species[i].wood_density, 
-		                    Tr.species[i].hmat, 
-		                    Tr.species[i].p50_xylem);
-	}
+		                    "test_species", //Tr.species[i].species_name, 
+		                    0.12, //Tr.species[i].lma, 
+		                    500, //Tr.species[i].wood_density, 
+		                    25, //Tr.species[i].hmat, 
+		                    -1.5); //Tr.species[i].p50_xylem);
+//	}
 
 	S.resetState(I.getScalar("year0"));
 	S.initialize();
@@ -160,7 +160,6 @@ int main(){
 	// double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 	// vector<MovingAverager> seeds_hist(S.species_vec.size());
 	// for (auto& M : seeds_hist) M.set_interval(T_seed_rain_avg);
-
 	double timestep = I.getScalar("timestep");
 	auto after_step = [&S, timestep](double t){
 		vector<double> seeds = S.newborns_out(t);
@@ -189,7 +188,7 @@ int main(){
 	// t is years since 2000-01-01
 	double y0, yf;
 	y0 = I.getScalar("year0");
-	yf = I.getScalar("yearf");
+	yf = 2000; //I.getScalar("yearf");
 	double delta_T = I.getScalar("delta_T");
 	for (double t=y0; t <= yf; t=t+delta_T) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
@@ -197,9 +196,11 @@ int main(){
 		cout << ")" << endl;
 
 		S.step_to(t, after_step);
+
+		// S.step_to(t); //, after_step);
 		// if (t > y0) after_step(t);
-		// if (t > y0) calc_r0(t, S, seeds_hist);
-		//S.print(); cout.flush();
+		// if (t > y0) calc_r0(t, delta_T, S);
+		// //S.print(); cout.flush();
 
 		cwm.update(t, S);
 		props.update(t, S);
@@ -213,52 +214,52 @@ int main(){
 			}
 		}
 
-		// Remove dead species
-		vector<MySpecies<PSPM_Plant>*> toRemove;
-		for (int k=0; k<S.species_vec.size(); ++k){
-			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-			if (spp->isResident){
-				if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
-			}
-		}
-		for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
-		//S.copyCohortsToState();
+		// // Remove dead species
+		// vector<MySpecies<PSPM_Plant>*> toRemove;
+		// for (int k=0; k<S.species_vec.size(); ++k){
+		// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+		// 	if (spp->isResident){
+		// 		if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+		// 	}
+		// }
+		// for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
+		// //S.copyCohortsToState();
 
-		// Shuffle species in the species vector -- just for debugging
-		if (int(t) % 10 == 0){
-			cout << "shuffling...\n";
-			std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-			S.copyCohortsToState();
-		}
+		// // Shuffle species in the species vector -- just for debugging
+		// if (int(t) % 10 == 0){
+		// 	cout << "shuffling...\n";
+		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+		// 	S.copyCohortsToState();
+		// }
 
-		// Invasion by a random new species
-		if (int(t) % 300 == 0){
-			cout << "**** Invasion ****\n";
-			addSpeciesAndProbes(&S, paramsFile, I,
-			                    t, 
-			                    "spp_t"+to_string(t), 
-			                    runif(0.05, 0.25),    //Tr.species[i].lma, 
-			                    runif(300, 900),   //Tr.species[i].wood_density, 
-			                    runif(2, 35),      //Tr.species[i].hmat, 
-			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
-			);
-		}
+		// // Invasion by a random new species
+		// if (int(t) % 300 == 0){
+		// 	cout << "**** Invasion ****\n";
+		// 	addSpeciesAndProbes(&S, paramsFile, I,
+		// 	                    t, 
+		// 	                    "spp_t"+to_string(t), 
+		// 	                    runif(0.05, 0.25),    //Tr.species[i].lma, 
+		// 	                    runif(300, 900),   //Tr.species[i].wood_density, 
+		// 	                    runif(2, 35),      //Tr.species[i].hmat, 
+		// 	                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
+		// 	);
+		// }
 
-		// clear patch after 50 year	
-		if (t >= t_clear){
-			for (auto spp : S.species_vec){
-				for (int i=0; i<spp->xsize(); ++i){
-					auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
-					p.geometry.lai = p.par.lai0;
-					double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
-					spp->setU(i, u_new);
-				}
-				spp->setX(spp->xsize()-1, 0);
-			}
-			S.copyCohortsToState();
-			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");
-			t_clear = t + fmin(t_int, 1000);
-		}
+		// // clear patch after 50 year	
+		// if (t >= t_clear){
+		// 	for (auto spp : S.species_vec){
+		// 		for (int i=0; i<spp->xsize(); ++i){
+		// 			auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
+		// 			p.geometry.lai = p.par.lai0;
+		// 			double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
+		// 			spp->setU(i, u_new);
+		// 		}
+		// 		spp->setX(spp->xsize()-1, 0);
+		// 	}
+		// 	S.copyCohortsToState();
+		// 	double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");
+		// 	t_clear = t + fmin(t_int, 1000);
+		// }
 		
 	}
 	

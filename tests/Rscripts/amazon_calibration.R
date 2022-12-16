@@ -4,7 +4,7 @@ rm(list=ls())
 output_dir = "pspm_output"
 prefix = "AMB"
   
-solver = "LD"
+solver = "LD_1spp"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
@@ -127,7 +127,7 @@ p1 = traits %>%
   filter(YEAR > 1050) %>% 
   # filter(RES==T) %>% 
   ggplot(aes(y=LMA, x=WD))+
-  theme_classic(base_size = 18)+
+  theme_classic(base_size = 12)+
   geom_point(aes(col=YEAR, size=RES), alpha=0.4)+
   scale_color_viridis_c(direction = -1)+
   scale_size("size_RES", range = c(0, 1.5))
@@ -142,10 +142,11 @@ p2 = dat2 %>% select(YEAR, PID, BA) %>%
   filter(YEAR > 1120) %>% 
   # filter(RES==T) %>% 
   ggplot(aes(y=LMA, x=WD))+
-  theme_classic(base_size = 18)+
+  theme_classic(base_size = 12)+
   geom_point(aes(col=BA, size=RES), alpha=0.7)+
   scale_color_viridis_c(direction = -1)+
   scale_size("size_RES", range = c(0, 1.5))
 
-cowplot::plotgrid(p1,p2, align="hv")
-
+print(
+cowplot::plot_grid(p1,p2, align="hv")
+)
