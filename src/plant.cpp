@@ -3,21 +3,6 @@ using namespace std;
 
 namespace plant{
 
-//Plant::Plant(){
-//	assimilator = new Assimilator();
-//	geometry = new PlantGeometry();
-//}
-
-//Plant::~Plant(){
-//	delete assimilator;
-//	delete geometry;
-//}
-
-//Plant::Plant(const Plant& p) {  
-//	assimilator = new Assimilator(*p.assimilator);
-//	geometry = new PlantGeometry(*p.geometry);
-//}
-
 
 void Plant::initParamsFromFile(std::string file){
 	par.initFromFile(file);

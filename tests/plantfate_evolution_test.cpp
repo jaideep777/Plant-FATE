@@ -78,13 +78,13 @@ void addSpeciesAndProbes(Solver *S, string params_file, io::Initializer &I, doub
 	if (evolve_traits) spp->createVariants(p1);
 
 	// Add resident species to solver
-	S->addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
+	S->addSpecies(res, 0.01, 10, true, spp, 2, 1e-3);
 	//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 
 	// Add variants (probes) to solver
 	if (evolve_traits){
 		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-			S->addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
+			S->addSpecies(res, 0.01, 10, true, m, 2, 1e-3);
 	}
 
 	S->copyCohortsToState();
@@ -197,15 +197,19 @@ int main(){
 		cout << ")" << endl;
 
 		S.step_to(t, after_step);
+
+		// debug: r0 calc can be done here, it should give approx identical result compared to when r0_calc is dont in preCompute
+		// S.step_to(t); //, after_step);
 		// if (t > y0) after_step(t);
-		// if (t > y0) calc_r0(t, S, seeds_hist);
-		//S.print(); cout.flush();
+		// if (t > y0) calc_r0(t, delta_T, S);
+		// //S.print(); cout.flush();
 
 		cwm.update(t, S);
 		props.update(t, S);
 			
 		sio.writeState(t, cwm, props);
 	
+		// evolve traits
 		if (evolve_traits){
 			if (t > y0 + 120){
 				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();

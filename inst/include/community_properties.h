@@ -337,7 +337,7 @@ class SolverIO{
 	public:
 	int nspecies;
 	Solver * S;
-	vector<string> varnames = {"height", "lai", "mort", "seeds", "rgr", "gpp"};
+	vector<string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
 
 	// vector <vector<ofstream>> streams;
 	ofstream cohort_props_out;
@@ -463,7 +463,7 @@ class SolverIO{
 									<< C.geometry.height << "\t"
 									<< C.geometry.lai << "\t"
 									<< C.rates.dmort_dt << "\t"
-									<< C.state.seed_pool << "\t"
+									<< C.rates.dseeds_dt << "\t"
 									<< C.rates.rgr << "\t"
 									<< C.res.gpp/C.geometry.crown_area << "\t";
 					cohort_props_out << "\n";
