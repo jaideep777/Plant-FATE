@@ -337,7 +337,7 @@ class SolverIO{
 	public:
 	int nspecies;
 	Solver * S;
-	vector<string> varnames = {"height", "lai", "mort", "seeds", "rgr", "gpp"};
+	vector<string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
 
 	// vector <vector<ofstream>> streams;
 	ofstream cohort_props_out;
@@ -345,8 +345,8 @@ class SolverIO{
 
 	ofstream fzst;
 	ofstream fco;
-	ofstream fseed;
-	ofstream fabase;
+	// ofstream fseed;   // not using these 2 because they are not insensitive to order of species
+	// ofstream fabase;
 	ofstream flai;
 	ofstream foutd;
 	ofstream fouty;
@@ -382,8 +382,8 @@ class SolverIO{
 
 		fzst.open(string(dir + "/z_star.txt").c_str());
 		fco.open(string(dir + "/canopy_openness.txt").c_str());
-		fseed.open(string(dir + "/seeds.txt").c_str());
-		fabase.open(string(dir + "/basal_area.txt").c_str());
+		// fseed.open(string(dir + "/seeds.txt").c_str());
+		// fabase.open(string(dir + "/basal_area.txt").c_str());
 		flai.open(string(dir + "/lai_profile.txt").c_str());
 		foutd.open(string(dir + "/" + I.get<string>("emgProps")).c_str());
 		fouty.open(string(dir + "/" + I.get<string>("cwmAvg")).c_str());
@@ -408,8 +408,8 @@ class SolverIO{
 		
 		fzst.close();
 		fco.close();
-		fseed.close();
-		fabase.close();
+		// fseed.close();
+		// fabase.close();
 		flai.close();
 		foutd.close();
 		fouty.close();
@@ -418,9 +418,9 @@ class SolverIO{
 
 	}
 
-	void writeState(double t, vector<MovingAverager>& seeds_hist, SpeciesProps& cwm, EmergentProps& props){
+	void writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		for (int s=0; s < S->species_vec.size(); ++s){
-			auto spp = (MySpecies<PSPM_Plant>*)S->species_vec[s];
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[s]);
 
 			// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << t << "\t";
 
@@ -458,12 +458,12 @@ class SolverIO{
 				for (int j=0; j<spp->xsize()-1; ++j){
 					auto& C = spp->getCohort(j);
 					cohort_props_out << t << "\t" 
-									<< s << "\t"
+									<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
 									<< j << "\t"
 									<< C.geometry.height << "\t"
 									<< C.geometry.lai << "\t"
 									<< C.rates.dmort_dt << "\t"
-									<< C.state.seed_pool << "\t"
+									<< C.rates.dseeds_dt << "\t"
 									<< C.rates.rgr << "\t"
 									<< C.res.gpp/C.geometry.crown_area << "\t";
 					cohort_props_out << "\n";
@@ -501,9 +501,10 @@ class SolverIO{
 		      << cwm.p50  << endl;
 		
 		for (int k=0; k<S->species_vec.size(); ++k){
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
 			fouty_spp 
 			      << int(t) << "\t"
-				  << k  << "\t"
+				  << spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 				  << cwm.n_ind_vec[k] << "\t"
 				  << -9999  << "\t"
 				  << cwm.height_vec[k]  << "\t"
@@ -515,14 +516,14 @@ class SolverIO{
 				  << -9999  << "\t"
 				  << 1/cwm.lma_vec[k]  << "\t"
 				  << cwm.p50_vec[k]  << "\t"
-				  << seeds_hist[k].get()  << "\n";
+				  << spp->seeds_hist.get()  << "\n";
 		}
 
 		for (int k=0; k<S->species_vec.size(); ++k){
 			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
 			ftraits 
 			      << t << "\t"
-				  << k << "\t"
+				  << spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 				  << spp->isResident << "\t";
 			vector<double> v = spp->get_traits();
 			for (auto vv : v)
@@ -540,13 +541,14 @@ class SolverIO{
 		for (int i=0; i<props.lai_vert.size(); ++i) flai << props.lai_vert[i] << "\t";
 		flai << endl;
 
-		fseed << t << "\t";
-		for (int i=0; i<S->n_species(); ++i) fseed << seeds_hist[i].get() << "\t";
-		fseed << endl;
+		// // FIXME: Delete this
+		// fseed << t << "\t";
+		// for (int i=0; i<S->n_species(); ++i) fseed << static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[i])->seeds_hist.get() << "\t";
+		// fseed << endl;
 		
-		fabase << t << "\t";
-		for (int i=0; i<S->n_species(); ++i) fabase << cwm.ba_vec[i] << "\t";
-		fabase << endl;
+		// fabase << t << "\t";
+		// for (int i=0; i<S->n_species(); ++i) fabase << cwm.ba_vec[i] << "\t";
+		// fabase << endl;
 		
 	
 		fzst << t << "\t";

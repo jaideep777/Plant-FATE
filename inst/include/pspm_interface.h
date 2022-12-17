@@ -12,8 +12,8 @@ class PSPM_Plant : public plant::Plant {
 	
 	double t_birth = 0;
 
-	std::vector<std::string> varnames = {"name", "|lma|", "D", "g", "lai", "mort", "seeds"}; // header corresponding to the print function below
-	std::vector<std::string> statevarnames = {"lai", "mort", "seedpool"};                 // header corresponding to state output
+	std::vector<std::string> varnames = {"name", "|lma|", "| WD |", "D", "g", "lai", "mort", "seeds"}; // header corresponding to the print function below
+	std::vector<std::string> statevarnames = {"lai", "mort"};  // header corresponding to state output
 
 	int nrc = 0; // number of evals of compute_vars_phys() - derivative computations actually done by plant
 	int ndc = 0; // number of evals of mortality_rate() - derivative computations requested by solver

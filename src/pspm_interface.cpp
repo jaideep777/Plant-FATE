@@ -17,6 +17,7 @@ void PSPM_Plant::set_size(double _x){
 	Plant::set_size(_x); // since Plant already has a set_size()! Keeping this overridden function for completeness. 
 }
 
+// This gives initial density of stages of the tree (established seedlings and thereafter)
 double PSPM_Plant::init_density(double x, void * _env, double input_seed_rain){
 //	EnvUsed * env = (EnvUsed*)_env;
 //	compute_vars_phys(*env);
@@ -52,10 +53,10 @@ void PSPM_Plant::afterStep(double x, double t, void * _env){
 	//seeds_hist.print_summary();
 }
 
-
+// Probability that a fresh seed survives to become a seedling
 double PSPM_Plant::establishmentProbability(double t, void * _env){
 	EnvUsed * env = (EnvUsed*)_env;
-	return p_survival_germination(*env);
+	return p_survival_dispersal(env) * p_survival_germination(*env);
 }
 
 
@@ -74,16 +75,19 @@ double PSPM_Plant::birthRate(double x, double t, void * _env){
 //		return seeds_hist.get(); // birth rate is moving average of rate of germinating seeds over successional cycles
 //	}          
 //	else{
-		return rates.dseeds_dt_germ;       // birth rate is instantaneous rate of germinating seeds 
+		return rates.dseeds_dt;       // fecundity rate is instantaneous rate of seed production 
 //	}
 }
 
+// FIXME: This is used for initialization of every new cohort, not just the initial ones!
+// So this must be consistent with init_density()
+// Therefore needs size as input
 void PSPM_Plant::init_state(double t, void * _env){
 	//set_size(x);	
 	EnvUsed * env = (EnvUsed*)_env;
 	geometry.lai = par.lai0;
-	state.mortality = -log(p_survival_germination(*env)); ///env->patch_survival(t));    // mortality
-	state.seed_pool = 0; // viable seeds
+	state.mortality = -log(establishmentProbability(t, env)); ///env->patch_survival(t));    // mortality // TODO: Verify! This is supposed to be cumulative mortality starting from the fresh seed stage until seedling stage
+//	state.seed_pool = 0; // viable seeds
 	t_birth = t;			// set cohort's birth time to current time
 	//vars.mortality = 0; // only for single plant testrun
 }
@@ -91,7 +95,7 @@ void PSPM_Plant::init_state(double t, void * _env){
 vector<double>::iterator PSPM_Plant::set_state(vector<double>::iterator &it){
 	geometry.lai       = *it++;
 	state.mortality    = *it++;
-	state.seed_pool    = *it++;
+//	state.seed_pool    = *it++;
 	//vars.fecundity = viable_seeds; // only for single plant test run
 	return it;
 }
@@ -99,7 +103,7 @@ vector<double>::iterator PSPM_Plant::set_state(vector<double>::iterator &it){
 vector<double>::iterator PSPM_Plant::get_state(vector<double>::iterator &it){
 	*it++ = geometry.lai;
 	*it++ = state.mortality;
-	*it++ = state.seed_pool;
+//	*it++ = state.seed_pool;
 	return it;
 }
 
@@ -107,13 +111,13 @@ vector<double>::iterator PSPM_Plant::get_rates(vector<double>::iterator &it){
 
 	*it++ = rates.dlai_dt;	// lai
 	*it++ = rates.dmort_dt; // mortality
-	*it++ = rates.dseeds_dt_pool; // seed pool size
+//	*it++ = rates.dseeds_dt_pool; // seed pool size
 	return it;
 }
 
 void PSPM_Plant::print(std::ostream &out){
 	out << std::setw(10) << setprecision(3) << traits.species_name;
-	vector<double> traits_vec = get_traits();
+	vector<double> traits_vec = get_evolvableTraits();
 	for (auto e : traits_vec){
 		out << std::setw(10) << setprecision(5) << "|" << e << "| ";
 	}
@@ -121,7 +125,7 @@ void PSPM_Plant::print(std::ostream &out){
 	    << std::setw(10) << setprecision(3) << rates.dsize_dt 
 	    << std::setw(10) << setprecision(3) << geometry.lai 
 	    << std::setw(10) << setprecision(3) << state.mortality 
-	    << std::setw(10) << setprecision(3) << state.seed_pool 
+	    << std::setw(10) << setprecision(3) << rates.dseeds_dt 
 	    ;
 }
 

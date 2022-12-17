@@ -96,7 +96,7 @@ double PlantGeometry::dreproduction_dmass(PlantParameters &par, PlantTraits &tra
 // ** 
 double PlantGeometry::dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTraits &traits){
 	double l2m = crown_area * (traits.lma + traits.zeta); 
-	double dm_dt_lai = std::min(dL_dt * l2m, dmass_dt_max);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
+	double dm_dt_lai = std::min(dL_dt * l2m, dmass_dt_max);  // biomass change resulting from LAI change. Here complete coordination between fine roots and leaves is assumed: fine roots also get shed with LAI. 
 	dL_dt = dm_dt_lai / l2m;
 	return dm_dt_lai;
 }
