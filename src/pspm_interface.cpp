@@ -117,7 +117,7 @@ vector<double>::iterator PSPM_Plant::get_rates(vector<double>::iterator &it){
 
 void PSPM_Plant::print(std::ostream &out){
 	out << std::setw(10) << setprecision(3) << traits.species_name;
-	vector<double> traits_vec = get_traits();
+	vector<double> traits_vec = get_evolvableTraits();
 	for (auto e : traits_vec){
 		out << std::setw(10) << setprecision(5) << "|" << e << "| ";
 	}

@@ -59,8 +59,8 @@ class Plant{
 	void initParamsFromFile(std::string file);
 	void coordinateTraits();
 	
-	void set_traits(std::vector<double> tvec);
-	std::vector<double> get_traits();
+	void set_evolvableTraits(std::vector<double> tvec);
+	std::vector<double> get_evolvableTraits();
 
 	void set_size(double x);
 
