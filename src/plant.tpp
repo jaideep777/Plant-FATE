@@ -24,7 +24,7 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	
 	// calculate and constrain rate of LAI change
 	double max_alloc_lai = par.max_alloc_lai * _dmass_dt_tot; // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
-	bp.dmass_dt_lai = geometry.dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
+	bp.dmass_dt_lai = geometry.dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  
 
 	return dL_dt;
 }
