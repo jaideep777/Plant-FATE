@@ -5,22 +5,24 @@ MySpecies<Model>::MySpecies(Model M, bool res) : Species<Model>(M) {
 	fitness_gradient.resize(n, 0);
 	trait_scalars.resize(n,1);
 	trait_variance.resize(n, 0.01);
-	for (int i=0; i<n; ++i) trait_names.push_back("T"+i);
+	for (int i=0; i<n; ++i) trait_names.push_back("T"+std::to_string(i));
 	invasion_fitness = 0;
 	r0 = 1;
 	isResident = res;
 	r0_hist.set_interval(200);
 }
 
+
 template <class Model>
 void MySpecies<Model>::set_traits(std::vector<double> tvec){
-	this->boundaryCohort.set_traits(tvec);
-	for (auto& c : this->cohorts) c.set_traits(tvec);
+	this->boundaryCohort.set_evolvableTraits(tvec);
+	for (auto& c : this->cohorts) c.set_evolvableTraits(tvec);
 }
+
 
 template <class Model>
 std::vector<double> MySpecies<Model>::get_traits(){
-	return this->boundaryCohort.get_traits();
+	return this->boundaryCohort.get_evolvableTraits();
 }
 
 
@@ -62,6 +64,7 @@ void MySpecies<Model>::evolveTraits(double dt){
 	}
 }
 
+
 template <class Model>
 void MySpecies<Model>::calcFitnessGradient(){
 	if (!isResident) return;
@@ -73,6 +76,7 @@ void MySpecies<Model>::calcFitnessGradient(){
 		//cout << "   " << m->invasion_fitness << " " << spp->invasion_fitness << " " << *spp->fitness_gradient.rbegin() << "\n";
 	}
 }
+
 
 template <class Model>
 void MySpecies<Model>::print_extra(){

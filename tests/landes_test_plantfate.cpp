@@ -78,13 +78,13 @@ void addSpeciesAndProbes(Solver *S, string params_file, io::Initializer &I, doub
 	if (evolve_traits) spp->createVariants(p1);
 
 	// Add resident species to solver
-	S->addSpecies(res, 0.01, 10, true, spp, 3, 1e-3);
+	S->addSpecies(res, 0.01, 10, true, spp, 2, 1e-3);
 	//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 
 	// Add variants (probes) to solver
 	if (evolve_traits){
 		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-			S->addSpecies(res, 0.01, 10, true, m, 3, 1e-3);
+			S->addSpecies(res, 0.01, 10, true, m, 2, 1e-3);
 	}
 
 	S->copyCohortsToState();

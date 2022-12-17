@@ -17,14 +17,14 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 //	double ddpsi_dL = dE_dL * viscosity / (traits.K_xylem * phydro::P(env.clim.swp, traits.p50_xylem, traits.b_xylem)); // FIXME: Need proper unit conversion
 
 	double dL_dt = 0;
-	if (par.optimize_lai) dL_dt = par.response_intensity*(dnpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma);
+	if (par.optimize_lai) dL_dt = par.response_intensity*(dnpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma); // FIXME: This condition can be applied to the whole block
 	//std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
 	
 	if (lai_curr < 0.1) dL_dt = 0;  // limit to prevent LAI going negative
 	
 	// calculate and constrain rate of LAI change
 	double max_alloc_lai = par.max_alloc_lai * _dmass_dt_tot; // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
-	bp.dmass_dt_lai = geometry.dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
+	bp.dmass_dt_lai = geometry.dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  
 
 	return dL_dt;
 }
@@ -116,7 +116,7 @@ double Plant::mortality_rate(Env &env, double t){
 
 template<class Env>
 double Plant::fecundity_rate(double _dmass_dt_rep, Env &env){
-	return _dmass_dt_rep/(4*traits.seed_mass);
+	return _dmass_dt_rep/(4*traits.seed_mass); // factor 4 accounts for ancillary costs of seed production, e.g. dispersal/protective structures
 }
 
 template<class Env>
@@ -132,13 +132,13 @@ void Plant::calc_demographic_rates(Env &env, double t){
 	partition_biomass(bp.dmass_dt_tot, bp.dmass_dt_lai, env); 
 
 	// set core rates
-	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
+	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env); // also sets rates.rgr
 	rates.dmort_dt  = mortality_rate(env, t);
 
 	double fec = fecundity_rate(bp.dmass_dt_rep, env);
-	rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
-	rates.dseeds_dt_germ =   state.seed_pool/par.ll_seed;   // seeds that leave seed pool proceed for germincation
-	// need to add seed decay
+	// rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
+	// rates.dseeds_dt_germ =   state.seed_pool/par.ll_seed;   // seeds that leave seed pool proceed for germincation
+	rates.dseeds_dt = fec;
 }
 
 

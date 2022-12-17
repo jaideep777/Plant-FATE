@@ -32,7 +32,7 @@ class LifeHistoryOptimizer{
 
 	double rep;
 	double litter_pool;
-	double germinated;
+	double seeds;
 	double prod;
 
 	public:
@@ -40,7 +40,7 @@ class LifeHistoryOptimizer{
 	void init(){
 		rep = 0;
 		litter_pool = 0;
-		germinated = 0;
+		seeds = 0;
 		prod = 0;
 
 		C = FixedEnvironment();
@@ -51,15 +51,17 @@ class LifeHistoryOptimizer{
 		C.canopy_openness = {1, exp(-0.5*1.8), exp(-0.5*3.5), exp(-0.5*5.5)};
 		C.n_layers = C.z_star.size()-1;
 
+		// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
 		P = plant::Plant();
 		P.initParamsFromFile("tests/params/p.ini");
 		P.geometry.set_lai(1);
 		P.set_size(0.01);
-		P.state.mortality = -log(P.p_survival_germination(C));
+		// Simulation below starts at sedeling stage. So account for survival until seedling stage
+		P.state.mortality = -log(P.p_survival_dispersal(C)*P.p_survival_germination(C)); // p{fresh seed is still alive after germination} = p{it survives dispersal}*p{it survives germination}
 
 		double total_prod = P.get_biomass();
 		cout << "Starting biomass = " << total_prod << "\n";
-		cout << "Mortality during germination = " << P.state.mortality << "\n";
+		cout << "Mortality until seedling stage = " << P.state.mortality << "\n";
 
 	}
 
@@ -87,8 +89,8 @@ class LifeHistoryOptimizer{
 			<< "coarse_root_mass" << "\t"
 			<< "total_mass" << "\t"
 			<< "total_rep" << "\t"
-			<< "seed_pool" << "\t"
-			<< "germinated" << "\t"
+			// << "seed_pool" << "\t"
+			// << "germinated" << "\t"
 			<< "fitness" << "\t"
 			<< "total_prod" << "\t"
 			<< "litter_mass" << "\t"
@@ -123,9 +125,9 @@ class LifeHistoryOptimizer{
 			 << P.geometry.coarse_root_mass(P.traits) << "\t"	
 			 << P.get_biomass() << "\t"
 			 << rep << "\t"
-			 << P.state.seed_pool << "\t"
-			 << germinated << "\t"
-			 << germinated << "\t"
+			//  << P.state.seed_pool << "\t"
+			//  << germinated << "\t"
+			 << seeds << "\t"
 			 << prod << "\t"
 			 << litter_pool << "\t"
 			 << P.state.mortality << "\t"
@@ -141,8 +143,8 @@ class LifeHistoryOptimizer{
 		prod = *it++;
 		litter_pool = *it++;
 		rep = *it++;
-		P.state.seed_pool = *it++;
-		germinated = *it++;
+//		P.state.seed_pool = *it++;
+		seeds = *it++;
 		P.state.mortality = *it++;
 	}
 
@@ -152,8 +154,8 @@ class LifeHistoryOptimizer{
 		*it++ = P.bp.dmass_dt_tot;	   // biomass production rate
 		*it++ = P.bp.dmass_dt_lit;  // litter biomass growth rate
 		*it++ = P.bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
-		*it++ = P.rates.dseeds_dt_pool;
-		*it++ = P.rates.dseeds_dt_germ;
+//		*it++ = P.rates.dseeds_dt_pool;
+		*it++ = P.rates.dseeds_dt;
 		*it++ = P.rates.dmort_dt;
 	}
 
@@ -167,14 +169,14 @@ class LifeHistoryOptimizer{
 			
 			// Override Plant-FATE fecundity calculations 
 			// We need to explicitly include plant mortality here for fitness calcs
-			double fec = P.fecundity_rate(P.bp.dmass_dt_rep, C) * exp(-P.state.mortality);
-			P.rates.dseeds_dt_pool =  -P.state.seed_pool/P.par.ll_seed  +  fec * P.p_survival_dispersal(C);  // seeds that survive dispersal enter seed pool
-			P.rates.dseeds_dt_germ =   P.state.seed_pool/P.par.ll_seed;   // seeds that leave seed pool proceed for germincation
+			double fec = P.fecundity_rate(P.bp.dmass_dt_rep, C);
+			P.rates.dseeds_dt =  fec * exp(-P.state.mortality);  // Fresh seeds produced = fecundity rate * p{plant is alive}
+			// P.rates.dseeds_dt_germ =   P.state.seed_pool/P.par.ll_seed;   // seeds that leave seed pool proceed for germincation
 
 			get_rates(dSdt.begin());
 		};
 
-		std::vector<double> S = {P.geometry.lai, P.geometry.get_size(), prod, litter_pool, rep, P.state.seed_pool, germinated, P.state.mortality};
+		std::vector<double> S = {P.geometry.lai, P.geometry.get_size(), prod, litter_pool, rep, seeds, P.state.mortality};
 		RK4(t, dt, S, derivs);
 		//Euler(t, dt, S, derivs);
 		set_state(S.begin());
@@ -201,7 +203,7 @@ class LifeHistoryOptimizer{
 		for (double t=2000; t<=2500; t=t+dt){
 			grow_for_dt(t, dt);
 		}
-		return germinated;
+		return seeds;
 	}
 
 };
