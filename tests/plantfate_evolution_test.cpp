@@ -18,7 +18,7 @@ inline double runif(double rmin=0, double rmax=1){
 	return rmin + (rmax-rmin)*r;
 }
 
-
+// FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
 void calc_r0(double t, double dt, Solver& S){
 	for (int k=0; k<S.species_vec.size(); ++k){
 		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
@@ -226,7 +226,6 @@ int main(){
 			}
 		}
 		for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
-		//S.copyCohortsToState();
 
 		// Shuffle species in the species vector -- just for debugging
 		if (int(t) % 10 == 0){
