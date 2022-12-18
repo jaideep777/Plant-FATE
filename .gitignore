@@ -43,3 +43,5 @@ tags
 
 pspm_output/*
 .DS_Store
+docs
+.Rbuildignore
