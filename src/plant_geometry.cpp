@@ -46,8 +46,13 @@ double PlantGeometry::zm(){
 	return geom.zm_H * height;
 } 
 
-// projected crown area including gaps, for PPA
-// = r(z)^2 = r0^2 q(z)^2 = (Ac/qm^2) q(z)^2 = Ac (q(z)/qm)^2
+
+/// @brief         Projected crown area including gaps, for PPA
+/// @param z       height from the ground, z
+/// @param traits  Plant traits
+/// @return        Projected crown area \f$A_{cp}\f$
+/// @details       \f[A_{cp} = \pi r(z)^2 = \pi r_0^2 q(z)^2 = (A_c/q_m^2) q(z)^2 = A_c (q(z)/q_m)^2\f]
+/// @ingroup       ppa_module
 double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits){
 	if (z >= zm()){
 		double fq = q(z)/geom.qm;
@@ -58,6 +63,10 @@ double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits)
 	}
 }
 	
+/// @brief         Actual crown area above z, i.e., excluding area coved by gaps
+/// @param z       height from the ground, z
+/// @param traits  Plant traits
+/// @return        Crown area
 double PlantGeometry::crown_area_above(double z, PlantTraits &traits){
 	if (z == 0) return crown_area; // shortcut because z=0 is used often
 

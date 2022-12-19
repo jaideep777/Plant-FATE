@@ -9,6 +9,10 @@
 
 namespace plant{
 
+/// \defgroup physiology Physiology
+/// \brief    This is a collection of classes which implement the core physiology of the plants in Plant-FATE.
+
+/// \ingroup physiology
 class Plant{
 	public:
 	// ** core state variables **
@@ -59,8 +63,11 @@ class Plant{
 	void initParamsFromFile(std::string file);
 	void coordinateTraits();
 	
+	/// @addtogroup trait_evolution
+	/// @{
 	void set_evolvableTraits(std::vector<double> tvec);
 	std::vector<double> get_evolvableTraits();
+	/// @}
 
 	void set_size(double x);
 
@@ -73,6 +80,8 @@ class Plant{
 	template<class Env>
 	void partition_biomass(double dm_dt_tot, double dm_dt_lai, Env &env);
 
+	/// @addtogroup libpspm_interface
+	/// @{
 	// demographics
 	template<class Env>
 	double size_growth_rate(double _dmass_dt_growth, Env &env);
@@ -85,6 +94,7 @@ class Plant{
 
 	template<class Env>
 	void calc_demographic_rates(Env &env, double t);
+	/// @}
 
 	template<class Env>
 	double p_survival_germination(Env &env);

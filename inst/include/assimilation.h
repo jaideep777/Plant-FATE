@@ -8,6 +8,7 @@
 
 namespace plant{
 
+/// \ingroup physiology
 struct PlantAssimilationResult{
 	double gpp = 0;
 	double npp = 0;
@@ -28,6 +29,7 @@ struct PlantAssimilationResult{
 	double troot = 0;
 };
 
+/// \ingroup physiology
 class Assimilator{
 	public:
 	// ~~ Last calculated values of rates

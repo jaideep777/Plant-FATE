@@ -7,6 +7,19 @@
 #include "utils/moving_average.h"
 
 // Extend the Species class from libpspm to allow trait evolution
+
+/// @defgroup trait_evolution Trait Evolution
+/// @brief   This is a collection of all classes and variables that are used in the 
+///          evolutionary algorithm. 
+///
+///          Any changes to the algorithm or to the evolving traits will 
+///          typically require changes in these variables.
+
+/// @ingroup trait_evolution
+/// @brief   This classes extends the Species class provided by the solver
+///          to implement the evolutionary algorithm.
+/// @tparam  Model 'Model' represents an individual plant which is used as a
+///          prototype to construct the indiviuals in the species.
 template <class Model>
 class MySpecies : public Species<Model>{
 	public:

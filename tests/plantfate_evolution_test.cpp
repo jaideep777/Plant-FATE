@@ -18,7 +18,37 @@ inline double runif(double rmin=0, double rmax=1){
 	return rmin + (rmax-rmin)*r;
 }
 
+
+/// @brief     Calculate seed output of all species
+/// @param t   Current time 
+/// @param S   Solver
+/// @ingroup   trait_evolution
+/// @details   Species seed output rate is defined as,  
+///            \f[S = \int_{x_b}^{x_m}{f(s)u(s)ds}\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
+void calc_seed_output(double t, Solver& S){
+	vector<double> seeds = S.newborns_out(t);
+	// cout << "t = " << fixed << setprecision(10) << t << ", Species r0s:\n";
+	for (int k=0; k<S.species_vec.size(); ++k){
+		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+		spp->seeds_hist.push(t, seeds[k]);
+		if (seeds[k] < 0){
+			cout << "seeds[" << k << "] = " << seeds[k] << endl;
+			S.print();
+			spp->seeds_hist.print_summary(); cout.flush();
+		}
+		// cout << "   " << k << ": " <<  S.species_vec[k]->birth_flux_in << " --> " << seeds[k] << "/" << seeds_hist[k].get() << ", r0 = " << setprecision(8) << r0 << "\n";
+	}
+}
+
+
 // FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
+/// @brief     Calculate growth rates of all species and update seed input
+/// @param t   Current time 
+/// @param dt  timestep over which growth rate is to be calculated
+/// @param S   Solver
+/// @ingroup   trait_evolution
+/// @details   Species growth rate is defined from the seed perspective, i.e., 
+///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
 void calc_r0(double t, double dt, Solver& S){
 	for (int k=0; k<S.species_vec.size(); ++k){
 		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
@@ -163,19 +193,7 @@ int main(){
 
 	double timestep = I.getScalar("timestep");
 	auto after_step = [&S, timestep](double t){
-		vector<double> seeds = S.newborns_out(t);
-		// cout << "t = " << fixed << setprecision(10) << t << ", Species r0s:\n";
-		for (int k=0; k<S.species_vec.size(); ++k){
-			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-			spp->seeds_hist.push(t, seeds[k]);
-			if (seeds[k] < 0){
-				cout << "seeds[" << k << "] = " << seeds[k] << endl;
-				S.print();
-				spp->seeds_hist.print_summary(); cout.flush();
-			}
-			// cout << "   " << k << ": " <<  S.species_vec[k]->birth_flux_in << " --> " << seeds[k] << "/" << seeds_hist[k].get() << ", r0 = " << setprecision(8) << r0 << "\n";
-		}
-
+		calc_seed_output(t, S);
 		calc_r0(t, timestep, S);
 	};
 
@@ -217,35 +235,35 @@ int main(){
 			}
 		}
 
-		// Remove dead species
-		vector<MySpecies<PSPM_Plant>*> toRemove;
-		for (int k=0; k<S.species_vec.size(); ++k){
-			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-			if (spp->isResident){
-				if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
-			}
-		}
-		for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
+		// // Remove dead species
+		// vector<MySpecies<PSPM_Plant>*> toRemove;
+		// for (int k=0; k<S.species_vec.size(); ++k){
+		// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+		// 	if (spp->isResident){
+		// 		if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+		// 	}
+		// }
+		// for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
 
-		// Shuffle species in the species vector -- just for debugging
-		if (int(t) % 10 == 0){
-			cout << "shuffling...\n";
-			std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-			S.copyCohortsToState();
-		}
+		// // Shuffle species in the species vector -- just for debugging
+		// if (int(t) % 10 == 0){
+		// 	cout << "shuffling...\n";
+		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+		// 	S.copyCohortsToState();
+		// }
 
-		// Invasion by a random new species
-		if (int(t) % 300 == 0){
-			cout << "**** Invasion ****\n";
-			addSpeciesAndProbes(&S, paramsFile, I,
-			                    t, 
-			                    "spp_t"+to_string(t), 
-			                    runif(0.05, 0.25),    //Tr.species[i].lma, 
-			                    runif(300, 900),   //Tr.species[i].wood_density, 
-			                    runif(2, 35),      //Tr.species[i].hmat, 
-			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
-			);
-		}
+		// // Invasion by a random new species
+		// if (int(t) % 300 == 0){
+		// 	cout << "**** Invasion ****\n";
+		// 	addSpeciesAndProbes(&S, paramsFile, I,
+		// 	                    t, 
+		// 	                    "spp_t"+to_string(t), 
+		// 	                    runif(0.05, 0.25),    //Tr.species[i].lma, 
+		// 	                    runif(300, 900),   //Tr.species[i].wood_density, 
+		// 	                    runif(2, 35),      //Tr.species[i].hmat, 
+		// 	                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
+		// 	);
+		// }
 
 		// clear patch after 50 year	
 		if (t >= t_clear){

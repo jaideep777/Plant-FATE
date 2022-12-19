@@ -429,7 +429,7 @@ class SolverIO{
 			//cout << "here: " << breaks.size() << " " << dist.size() << endl;
 
 			if (spp->isResident){
-				size_dists_out << t << "\t" << s << "\t";
+				size_dists_out << t << "\t" << spp->species_name << "\t";
 				for (int i=0; i<100; ++i){
 					// streams[s][0] << breaks[i] << "\t";
 					// streams[s][1] << dist[i] << "\t";

@@ -7,6 +7,7 @@
 
 namespace plant{
 
+/// \ingroup physiology
 class PlantTraits{
 	public:
 	std::string species_name = "Tectona grandis";
@@ -55,6 +56,7 @@ class PlantTraits{
 };
 
 
+/// \ingroup physiology
 class PlantParameters{
 	public:
 	// **

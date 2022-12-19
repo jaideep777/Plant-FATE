@@ -79,6 +79,7 @@ double PSPM_Plant::birthRate(double x, double t, void * _env){
 //	}
 }
 
+
 // FIXME: This is used for initialization of every new cohort, not just the initial ones!
 // So this must be consistent with init_density()
 // Therefore needs size as input
@@ -115,6 +116,11 @@ vector<double>::iterator PSPM_Plant::get_rates(vector<double>::iterator &it){
 	return it;
 }
 
+
+/// @brief      Print out evolvable traits and other important variables of the plant in a single line
+/// @param out  stream to print to. 
+/// @ingroup    trait_evolution 
+/// @details    This function is called by the solver when printing a species. 
 void PSPM_Plant::print(std::ostream &out){
 	out << std::setw(10) << setprecision(3) << traits.species_name;
 	vector<double> traits_vec = get_evolvableTraits();
@@ -134,7 +140,16 @@ void PSPM_Plant::print(std::ostream &out){
 // ********** PSPM_Dynamic_Environment **********************
 // **********************************************************
 
-
+/// @ingroup    ppa_module
+/// @brief      Calculate the total crown area above height z, contributed by all individuals of the resident species.
+/// @param t    Time in current timestep.
+/// @param z    distance from the ground
+/// @param S    Pointer to the Solver being used.
+/// @return     Total crown area above z
+/// @details    The crown area above z from all individuals of species `k` is calculated as \f[A_k = \int_{x_b}^{x_m}{A_{cp}(s)u(s)ds},\f]
+///             where \f$A_{cp}\f$ is the projected crown area at height z, including area covered by gaps. This is
+///             calculated by the function plant::PlantGeometry::crown_area_extent_projected.  
+///             The total crown area above z is the \f[A = \sum_k {A_k}\f]
 double PSPM_Dynamic_Environment::projected_crown_area_above_z(double t, double z, Solver *S){
 	double ca_above_z = 0;
 	// Loop over resident species --->
@@ -158,7 +173,7 @@ double PSPM_Dynamic_Environment::projected_crown_area_above_z(double t, double z
 	return ca_above_z;	
 }
 
-
+/// @ingroup    ppa_module
 double PSPM_Dynamic_Environment::fapar_layer(double t, int layer, Solver *S){
 
 	double photons_abs = 0;
@@ -185,19 +200,26 @@ double PSPM_Dynamic_Environment::fapar_layer(double t, int layer, Solver *S){
 	return photons_abs;
 }
 
-//// This function must do any necessary precomputations to facilitate evalEnv()
-//// Therefore, this should calculate env for all X when it is a function of X
-//// In such a case, the solver's SubdivisionSpline can be ussed
-//// Note: The state vector in the solver will not be updated until the RK step is completed. 
-//// Hence, explicitly pass the state to this function.
-//// ~
-//// Also this is the only function that exposes the state vector, so if desired, the state vector 
-//// can be saved from here and reused in other rate functions (using createIterators_state())
-//// ~
-//// TODO: In Solver, add a add_iAttribute() function, that will calculate some individual 
-//// level attributes from x, which can be reused if required. E.g., in Plant, we can add leaf_area
-//// as an iAttribute. iAttributes can be mapped to integers, say using enums
-//// Alternatively, switch to Indiviudual class as a template parameter for solver
+
+/// @brief        Solver interface for updating the environment from the given state.
+/// @param t      Time in current timestep.
+/// @param S      Pointer to the Solver being used, provided for computing state integrals. The Solver provides this via a `this` reference. 
+/// @param _S     Iterator to the `state` vector used by the ODE solver.
+/// @param _dSdt  Iterator to the `rates` vector used by the ODE solver.
+/// @ingroup      ppa_module
+/// @details 
+/// This function must perform a complete update of the Environment, 
+/// including any species or individual specific differences in the env. 
+/// If Env is a function of E(x), the solver's SubdivisionSpline can be used to store E(x).
+///
+/// This function receives the updated state vector from the Solver's ODE stepper,
+/// from which the complete system state can be retrieved.
+/// This is the only function to which the Solver exposes the state vector, so if desired, the state vector 
+/// can be saved from here and reused in other rate functions.
+/// 
+/// Interface to the rates vector can be used for computing the rates of ODE-based environmental 
+/// variables if any such have been added as system variables - e.g., species-level seed pools can be implemented 
+/// through this mechanism. 
 void PSPM_Dynamic_Environment::computeEnv(double t, Solver *S, std::vector<double>::iterator _S, std::vector<double>::iterator _dSdt){
 	updateClimate(t);
 
@@ -241,6 +263,7 @@ void PSPM_Dynamic_Environment::computeEnv(double t, Solver *S, std::vector<doubl
 		
 	}
 	else{
+		throw std::runtime_error("Only PPA mode is implemented currently. Set use_ppa to true");
 //			auto canopy_openness = [S, t, this](double z){
 //				double kI = 0.5;
 

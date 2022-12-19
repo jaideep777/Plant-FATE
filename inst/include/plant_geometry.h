@@ -7,6 +7,7 @@
 
 namespace plant{
 
+/// \ingroup physiology
 class PlantGeometry{
 	public:
 	struct{
