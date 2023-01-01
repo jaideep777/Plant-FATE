@@ -118,10 +118,10 @@ public:
 		biomass_vec.resize(S.n_species(), 0);
 		for (int k=0; k<S.n_species(); ++k)
 			if (isResident(S.species_vec[k]))
-			biomass_vec[k] = S.integrate_x([&S,k](int i, double t){
+			biomass_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
 										      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 										      return p.get_biomass();
-										}, t, k);
+										}, t, 0.1, k);
 		biomass = std::accumulate(biomass_vec.begin(), biomass_vec.end(), 0.0);
 
 		ba_vec.clear();

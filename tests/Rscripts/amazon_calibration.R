@@ -4,10 +4,10 @@ rm(list=ls())
 output_dir = "pspm_output"
 prefix = "ELE"
   
-solver = "HD"
+solver = "HD"#_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
-plot_to_file = F
+plot_to_file = T
 
 # seeds1 = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 Zp = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
@@ -24,10 +24,10 @@ x = exp(seq(log(0.01), log(10), length.out=100))
 n_species = length(unique(dat2$PID))
 n_year = length(unique(dat2$YEAR))
   
-par(mfcol=c(3,4), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(4,1,0), las=1)
+par(mfcol=c(3,5), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(3.2,1,0), las=1)
 seeds = dat2 %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID")
 matplot(seeds$YEAR, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85, alpha = 0.5), type="l",
-        las=1, xlab="Time (years)", ylab="Species Seed output", log="")
+        las=1, xlab="Time (years)", ylab="Species Seed\noutput", log="")
 mtext(line=0.5, side=3, text=solver)
 
 # matplot(seeds1$V1, seeds1[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85), type="l",
@@ -80,29 +80,67 @@ abline(h=c(5.3, 6.2), col=scales::muted("red"))
 
 
 
-matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP (kgC/m2/yr)", xlab="Time (years)")
+matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC/m2/yr)", xlab="Time (years)")
 abline(h=c(3,3.5), col=scales::muted("green4"))
 abline(h=c(1.31), col=scales::muted("green3"))
 
-matplot(y=cbind(dat$GS), x=dat$YEAR, type="l", lty=1, col=c("cyan3"), ylab="Stomatal conductance (mol/m2/s)", xlab="Time (years)")
+matplot(y=cbind(dat$GS), x=dat$YEAR, type="l", lty=1, col=c("cyan3"), ylab="Stomatal conductance\n(mol/m2/s)", xlab="Time (years)")
 abline(h=c(0.16), col=scales::muted("cyan3"))
 
 agb = cbind(dat$CL+dat$CW)/1e3
-matplot(y=agb, x=dat$YEAR, type="l", lty=1, col=c("yellow3"), ylim=c(0,max(agb)), ylab="AGB (kgC/m2)", xlab = "Time (years)")
+matplot(y=agb, x=dat$YEAR, type="l", lty=1, col=c("yellow3"), ylim=c(0,max(agb)), ylab="AGB\n(kgC/m2)", xlab = "Time (years)")
 abline(h=c(16.9, 20.7), col=scales::muted("yellow3"))
 
-matplot(y=cbind(dat$CFR)/1e3, x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR (kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
+matplot(y=cbind(dat$CFR)/1e3, x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR\n(kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
 abline(h=c(0.48, 0.66), col=scales::muted("brown"))
 
-matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=c("green3"), ylab="Vcmax (umol/m2/s)", xlab="Time (years)")
+matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=c("green3"), ylab="Vcmax\n(umol/m2/s)", xlab="Time (years)")
 abline(h=c(40), col=scales::muted("green3"))
 
-matplot(y=cbind(as.numeric(colMeans(filter(dist, V1>1100 & V1<2000)[, -c(1,2)], na.rm = T)),
-                as.numeric(colMeans(filter(dist, V1>2100 & V1<3000)[, -c(1,2)], na.rm = T))
-                )*1e-2*1e4, 
-        x=x, type="l", log="xy", lty=1, col=c("black", "brown"), 
-        xlim=c(0.01, 2), ylim=c(1e-4, 200), ylab="Density (stems/cm/ha)", xlab="Diameter (m)")
+# To get avg size distribution, sum over species and average over years
+names(dist)[1:2] = c("YEAR", "SPP")
+dist_amb = dist %>% filter(YEAR>1100 & YEAR<2000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
+dist_ele = dist %>% filter(YEAR>2100 & YEAR<3000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
+# matplot(y=cbind(as.numeric(colMeans(filter(dist, V1>1100 & V1<2000)[, -c(1,2)], na.rm = T)),
+#                 as.numeric(colMeans(filter(dist, V1>2100 & V1<3000)[, -c(1,2)], na.rm = T))
+#                 )*1e-2*1e4, 
+#         x=x, type="l", log="y", lty=1, col=c("black", "brown"), 
+#         xlim=c(0.01, 2), ylim=c(1e-4, 200), ylab="Density (stems/cm/ha)", xlab="Diameter (m)")
+matplot(y=cbind(as.numeric(dist_amb[gtools::mixedsort(names(dist_amb))][-1]),
+                as.numeric(dist_ele[gtools::mixedsort(names(dist_ele))][-1])
+                )*1e-2*1e4, # Convert stems m-1 m-2 --> stems cm-1 ha-1
+        x=x, type="l", log="y", lty=1, col=c("black", "brown"), 
+        xlim=c(0.01, 1.2), ylim=c(1e-4, 1000), ylab="Density\n(stems/cm/ha)", xlab="Diameter (m)", las=0)
 
+abline(v=1, col=scales::alpha("red", 0.2))
+
+xobs = c(15,25,35,45,55,65,75,85,95,105)/100
+# Data for Manaus from https://link.springer.com/article/10.1007/s00442-004-1598-z 
+yobs=c(350.5221340921042,
+  132.41927918860426,
+  62.62503296462008,
+  29.61724892214378,
+  15.095996574802413,
+  5.702923697662178,
+  2.3219542502889836,
+  1.5968055466971947,
+  0.7006940913385968,
+  0.5597156879584093)/10
+points(yobs~xobs, col=scales::alpha("blue", 0.5))
+
+traits_obs = read.csv(file = "../../tests/data/Amz_trait_filled_HD.csv")
+
+traits_obs %>% select(Leaf.LMA..g.m2., Total.BasalArea_2017.cm2.) %>% drop_na %>% slice_head(n = 100) %>% with(density(x =Leaf.LMA..g.m2., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.02), las=0, main="", xlab="LMA")
+dat2 %>% select(YEAR, PID, BA) %>% 
+  left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
+  filter(YEAR == 2000) %>% 
+  with(density(x =LMA*1000, weights=BA/sum(BA))) %>% points(col="red", type="l")
+
+traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% slice_head(n = 100) %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.005), las=0, main="", xlab="Wood density")
+dat2 %>% select(YEAR, PID, BA) %>% 
+  left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
+  filter(YEAR == 2000) %>% 
+  with(density(x =WD, weights=BA/sum(BA))) %>% points(col="red", type="l")
 
 
   # cprops = read.delim("cohort_props.txt")
@@ -150,19 +188,37 @@ p1 = traits %>%
 
 p2 = dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
-  filter(YEAR > 1120) %>% 
+  filter(YEAR > 1120 & YEAR < 2000) %>% 
   # filter(RES==T) %>% 
   ggplot(aes(y=LMA, x=WD))+
   theme_classic(base_size = 12)+
-  geom_point(aes(col=BA, size=RES), alpha=0.7)+
+  geom_point(aes(col=BA*1e4, size=RES), alpha=0.7)+
   scale_color_viridis_c(direction = -1)+
-  scale_size("size_RES", range = c(0, 1.5))
+  scale_size("size_RES", range = c(0, 1.5))+
+  labs(col="BA", size=NULL)
 
-# print(
-# cowplot::plot_grid(p1,p2, align="hv")
-# )
+p3 = dat2 %>% select(YEAR, PID, BA) %>% 
+  left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
+  filter(YEAR > 2120 & YEAR < 3000) %>% 
+  # filter(RES==T) %>% 
+  ggplot(aes(y=LMA, x=WD))+
+  theme_classic(base_size = 12)+
+  geom_point(aes(col=BA*1e4, size=RES), alpha=0.7)+
+  scale_color_viridis_c(direction = -1)+
+  scale_size("size_RES", range = c(0, 1.5))+
+  labs(col="BA", size=NULL)
+
+p4 = traits_obs[1:100,] %>%  
+  ggplot(aes(y=Leaf.LMA..g.m2., x=meanWoodDensity..g.cm3.))+
+  theme_classic(base_size = 12)+
+  geom_point(aes(col=Total.BasalArea_2017.cm2./1e4), alpha=0.7)+
+  scale_color_viridis_c(direction = -1)+
+  scale_size("size_RES", range = c(0, 1.5))+
+  labs(col="BA", size=NULL)
 
 
-
+print(
+cowplot::plot_grid(p2,p3,p4, align="hv")
+)
 
 
