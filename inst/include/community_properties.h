@@ -20,17 +20,17 @@ public:
 	double gs=0;
 	double vcmax=0;
 	
-	vector<double> n_ind_vec;
-	vector<double> biomass_vec;
-	vector<double> ba_vec;
-	vector<double> canopy_area_vec;
-	vector<double> height_vec;
-	vector<double> vcmax_vec;
+	std::vector<double> n_ind_vec;
+	std::vector<double> biomass_vec;
+	std::vector<double> ba_vec;
+	std::vector<double> canopy_area_vec;
+	std::vector<double> height_vec;
+	std::vector<double> vcmax_vec;
 	
-	vector<double> lma_vec;
-	vector<double> p50_vec;
-	vector<double> hmat_vec;
-	vector<double> wd_vec;
+	std::vector<double> lma_vec;
+	std::vector<double> p50_vec;
+	std::vector<double> hmat_vec;
+	std::vector<double> wd_vec;
 	
 	void resize(int n){
 		n_ind_vec.resize(n);
@@ -244,7 +244,7 @@ public:
 	double croot_mass=0;
 	double froot_mass=0;
 	
-	vector <double> lai_vert;
+	std::vector <double> lai_vert;
 
 	
 	EmergentProps & operator /= (double s){
@@ -338,9 +338,9 @@ class SolverIO{
 	public:
 	int nspecies;
 	Solver * S;
-	vector<string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
+	std::vector<string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
 
-	// vector <vector<ofstream>> streams;
+	// std::vector <std::vector<ofstream>> streams;
 	ofstream cohort_props_out;
 	ofstream size_dists_out;
 
@@ -368,7 +368,7 @@ class SolverIO{
 		
 		// for (int s=0; s < S->species_vec.size(); ++s){
 		// 	auto spp = S->species_vec[s];
-		// 	vector<ofstream> spp_streams;
+		// 	std::vector<ofstream> spp_streams;
 			
 		// 	for (int i=0; i<varnames.size(); ++i){
 		// 		stringstream sout;
@@ -425,8 +425,8 @@ class SolverIO{
 
 			// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << t << "\t";
 
-			vector<double> breaks = my_log_seq(0.01, 10, 100);
-			vector<double> dist = S->getDensitySpecies(s, breaks);
+			std::vector<double> breaks = my_log_seq(0.01, 10, 100);
+			std::vector<double> dist = S->getDensitySpecies(s, breaks);
 			//cout << "here: " << breaks.size() << " " << dist.size() << endl;
 
 			if (spp->isResident){
@@ -526,7 +526,7 @@ class SolverIO{
 			      << t << "\t"
 				  << spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 				  << spp->isResident << "\t";
-			vector<double> v = spp->get_traits();
+			std::vector<double> v = spp->get_traits();
 			for (auto vv : v)
 			ftraits << vv << "\t";
 			ftraits << spp->r0_hist.get_last() << "\t"
