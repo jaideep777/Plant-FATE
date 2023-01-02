@@ -4,10 +4,14 @@ rm(list=ls())
 output_dir = "pspm_output"
 prefix = "ELE"
   
-solver = "HD"#_old_params"
+solver = "HD_gold"#_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = T
+
+add_band = function(){
+  polygon(x=c(2000,3000,3000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
+}
 
 # seeds1 = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 Zp = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
@@ -29,6 +33,7 @@ seeds = dat2 %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID
 matplot(seeds$YEAR, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85, alpha = 0.5), type="l",
         las=1, xlab="Time (years)", ylab="Species Seed\noutput", log="")
 mtext(line=0.5, side=3, text=solver)
+add_band()
 
 # matplot(seeds1$V1, seeds1[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85), type="l",
 #         las=1, xlab="Time (years)", ylab="Species Seed output", log="")
@@ -38,10 +43,11 @@ BA = dat2 %>% select(YEAR, PID, BA) %>% spread(value = "BA", key = "PID")
 matplot(BA$YEAR, cbind(BA[,-1], rowSums(BA[,-1], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species, start = 0, end = 0.85), "black"), type="l",
         las=1, xlab="Time (years)", ylab="Basal area", log="")
 abline(h=31.29, col="grey40")
-
+add_band()
 
 matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
         las=1, xlab="Time (years)", ylab="Z*")
+add_band()
 # matplot(co$V1, co[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
 #         las=1, xlab="Time (years)", ylab="Io")
 matplot(y=1:24, x=t(-lai_v[,3:26]+lai_v[,2:25]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
@@ -52,6 +58,7 @@ matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = n_year, start = 0, end
 
 plot(dat$LAI~dat$YEAR, type="l", col="red", ylim=c(0,max(dat$LAI,6.5)), xlab="Time (years)", ylab="Total LAI")
 abline(h=c(5.3, 6.2), col=scales::muted("red"))
+add_band()
 # abline(h=c(3.5), col=scales::muted("grey100"))
 
 
@@ -83,19 +90,24 @@ abline(h=c(5.3, 6.2), col=scales::muted("red"))
 matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC/m2/yr)", xlab="Time (years)")
 abline(h=c(3,3.5), col=scales::muted("green4"))
 abline(h=c(1.31), col=scales::muted("green3"))
+add_band()
 
 matplot(y=cbind(dat$GS), x=dat$YEAR, type="l", lty=1, col=c("cyan3"), ylab="Stomatal conductance\n(mol/m2/s)", xlab="Time (years)")
 abline(h=c(0.16), col=scales::muted("cyan3"))
+add_band()
 
 agb = cbind(dat$CL+dat$CW)/1e3
 matplot(y=agb, x=dat$YEAR, type="l", lty=1, col=c("yellow3"), ylim=c(0,max(agb)), ylab="AGB\n(kgC/m2)", xlab = "Time (years)")
 abline(h=c(16.9, 20.7), col=scales::muted("yellow3"))
+add_band()
 
 matplot(y=cbind(dat$CFR)/1e3, x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR\n(kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
 abline(h=c(0.48, 0.66), col=scales::muted("brown"))
+add_band()
 
 matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=c("green3"), ylab="Vcmax\n(umol/m2/s)", xlab="Time (years)")
 abline(h=c(40), col=scales::muted("green3"))
+add_band()
 
 # To get avg size distribution, sum over species and average over years
 names(dist)[1:2] = c("YEAR", "SPP")
@@ -130,13 +142,13 @@ points(yobs~xobs, col=scales::alpha("blue", 0.5))
 
 traits_obs = read.csv(file = "../../tests/data/Amz_trait_filled_HD.csv")
 
-traits_obs %>% select(Leaf.LMA..g.m2., Total.BasalArea_2017.cm2.) %>% drop_na %>% slice_head(n = 100) %>% with(density(x =Leaf.LMA..g.m2., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.02), las=0, main="", xlab="LMA")
+traits_obs %>% select(Leaf.LMA..g.m2., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Leaf.LMA..g.m2., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.02), las=0, main="", xlab="LMA")
 dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
   filter(YEAR == 2000) %>% 
   with(density(x =LMA*1000, weights=BA/sum(BA))) %>% points(col="red", type="l")
 
-traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% slice_head(n = 100) %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.005), las=0, main="", xlab="Wood density")
+traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.005), las=0, main="", xlab="Wood density")
 dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
   filter(YEAR == 2000) %>% 

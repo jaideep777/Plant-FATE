@@ -79,6 +79,11 @@ double PlantGeometry::crown_area_above(double z, PlantTraits &traits){
 	}
 }
 
+double PlantGeometry::diameter_at_height(double z, PlantTraits &traits){
+	double as_z = crown_area_above(z, traits)/geom.c;
+	double a_z  = as_z/sapwood_fraction;
+	return sqrt(4*a_z/M_PI);
+}
 
 // **
 // ** Biomass partitioning

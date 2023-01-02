@@ -57,7 +57,8 @@ class PlantGeometry{
 
 	double crown_area_extent_projected(double z, PlantTraits &traits);
 	double crown_area_above(double z, PlantTraits &traits);
-
+	
+	double diameter_at_height(double z, PlantTraits &traits);
 	
 	// **
 	// ** Biomass partitioning

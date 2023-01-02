@@ -129,7 +129,8 @@ public:
 		for (int k=0; k<S.n_species(); ++k)
 			if (isResident(S.species_vec[k]))
 			ba_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
-											  double D = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry.diameter;
+											  auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+											  double D = p.geometry.diameter_at_height(1.3, p.traits);
 											  return M_PI*D*D/4;
 										}, t, 0.1, k);
 		ba = std::accumulate(ba_vec.begin(), ba_vec.end(), 0.0);
