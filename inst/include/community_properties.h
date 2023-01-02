@@ -2,8 +2,9 @@
 #define PLANT_FATE_COMMUNITY_PROPERTIES_H_
 
 #include <solver.h>
-#include <trait_evolution.h>
-#include <utils/sequence.h>
+#include "pspm_interface.h"
+#include "trait_evolution.h"
+#include "utils/sequence.h"
 
 // FIXME: move definitions to cpp
 class SpeciesProps{
@@ -338,28 +339,28 @@ class SolverIO{
 	public:
 	int nspecies;
 	Solver * S;
-	std::vector<string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
+	std::vector<std::string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
 
-	// std::vector <std::vector<ofstream>> streams;
-	ofstream cohort_props_out;
-	ofstream size_dists_out;
+	// std::vector <std::vector<std::ofstream>> streams;
+	std::ofstream cohort_props_out;
+	std::ofstream size_dists_out;
 
-	ofstream fzst;
-	ofstream fco;
-	// ofstream fseed;   // not using these 2 because they are not insensitive to order of species
-	// ofstream fabase;
-	ofstream flai;
-	ofstream foutd;
-	ofstream fouty;
-	ofstream fouty_spp;
-	ofstream ftraits;
+	std::ofstream fzst;
+	std::ofstream fco;
+	// std::ofstream fseed;   // not using these 2 because they are not insensitive to order of species
+	// std::ofstream fabase;
+	std::ofstream flai;
+	std::ofstream foutd;
+	std::ofstream fouty;
+	std::ofstream fouty_spp;
+	std::ofstream ftraits;
 
-	void openStreams(string dir, io::Initializer &I){
+	void openStreams(std::string dir, io::Initializer &I){
 
 		cohort_props_out.open(dir + "/cohort_props.txt");
 		cohort_props_out << "t\tspeciesID\tcohortID\t";
 		for (auto vname : varnames) cohort_props_out << vname << "\t";
-		cohort_props_out << endl;
+		cohort_props_out << std::endl;
 
 		size_dists_out.open(dir + "/size_distributions.txt");
 
@@ -368,28 +369,28 @@ class SolverIO{
 		
 		// for (int s=0; s < S->species_vec.size(); ++s){
 		// 	auto spp = S->species_vec[s];
-		// 	std::vector<ofstream> spp_streams;
+		// 	std::vector<std::ofstream> spp_streams;
 			
 		// 	for (int i=0; i<varnames.size(); ++i){
-		// 		stringstream sout;
+		// 		std::stringstream sout;
 		// 		sout << dir << "/species_" << s << "_" << varnames[i] << ".txt";
 		// 		cout << sout.str() << endl;
-		// 		ofstream fout(sout.str().c_str());
+		// 		std::ofstream fout(sout.str().c_str());
 		// 		assert(fout);
 		// 		spp_streams.push_back(std::move(fout));
 		// 	}
 		// 	streams.push_back(std::move(spp_streams));
 		// }
 
-		fzst.open(string(dir + "/z_star.txt").c_str());
-		fco.open(string(dir + "/canopy_openness.txt").c_str());
-		// fseed.open(string(dir + "/seeds.txt").c_str());
-		// fabase.open(string(dir + "/basal_area.txt").c_str());
-		flai.open(string(dir + "/lai_profile.txt").c_str());
-		foutd.open(string(dir + "/" + I.get<string>("emgProps")).c_str());
-		fouty.open(string(dir + "/" + I.get<string>("cwmAvg")).c_str());
-		fouty_spp.open(string(dir + "/" + I.get<string>("cwmperSpecies")).c_str());
-		ftraits.open(string(dir + "/" + I.get<string>("traits")).c_str());
+		fzst.open(std::string(dir + "/z_star.txt").c_str());
+		fco.open(std::string(dir + "/canopy_openness.txt").c_str());
+		// fseed.open(std::string(dir + "/seeds.txt").c_str());
+		// fabase.open(std::string(dir + "/basal_area.txt").c_str());
+		flai.open(std::string(dir + "/lai_profile.txt").c_str());
+		foutd.open(std::string(dir + "/" + I.get<std::string>("emgProps")).c_str());
+		fouty.open(std::string(dir + "/" + I.get<std::string>("cwmAvg")).c_str());
+		fouty_spp.open(std::string(dir + "/" + I.get<std::string>("cwmperSpecies")).c_str());
+		ftraits.open(std::string(dir + "/" + I.get<std::string>("traits")).c_str());
 
 		foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\n";
 		fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
@@ -485,7 +486,7 @@ class SolverIO{
 			  << cwm.gs << "\t"
 			  << props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
 			  << props.lai << "\t"
-			  << cwm.vcmax << endl;
+			  << cwm.vcmax << std::endl;
 		
 		fouty << int(t) << "\t"
 		      << -9999  << "\t"
@@ -499,7 +500,7 @@ class SolverIO{
 		      << cwm.wd  << "\t"
 		      << -9999  << "\t"
 		      << 1/cwm.lma  << "\t"
-		      << cwm.p50  << endl;
+		      << cwm.p50  << std::endl;
 		
 		for (int k=0; k<S->species_vec.size(); ++k){
 			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
@@ -540,7 +541,7 @@ class SolverIO{
 
 		flai << t << "\t";
 		for (int i=0; i<props.lai_vert.size(); ++i) flai << props.lai_vert[i] << "\t";
-		flai << endl;
+		flai << std::endl;
 
 		// // FIXME: Delete this
 		// fseed << t << "\t";
@@ -554,11 +555,11 @@ class SolverIO{
 	
 		fzst << t << "\t";
 		for (auto z : static_cast<PSPM_Dynamic_Environment*>(S->env)->z_star) fzst << z << "\t";
-		fzst << endl;
+		fzst << std::endl;
 		
 		fco << t << "\t";
 		for (auto z : static_cast<PSPM_Dynamic_Environment*>(S->env)->canopy_openness) fco << z << "\t";
-		fco << endl;
+		fco << std::endl;
 
 	}
 };
