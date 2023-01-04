@@ -17,7 +17,7 @@ void Assimilator::les_update_lifespans(double lai, PlantParameters &par, PlantTr
 double Assimilator::les_assim_reduction_factor(phydro::PHydroResult& res, PlantParameters &par){
 	double hT = res.vcmax / res.vcmax25;
 	double f = 1;
-	return 1 - sqrt(par.les_cc / (2 * par.les_u * res.mc * hT * f));
+	return 1 - sqrt(par.les_k1 * par.les_k2 * par.les_cc / (2 * par.les_u * res.mc * hT * f));
 }
 
 // ** 

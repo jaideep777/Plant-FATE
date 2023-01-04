@@ -10,23 +10,23 @@ namespace plant{
 
 /// \ingroup physiology
 struct PlantAssimilationResult{
-	double gpp = 0;
-	double npp = 0;
-	double trans = 0;
+	double gpp = 0;          ///< Gross plant-level production [kg-biomass yr-1] 
+	double npp = 0;          ///< Net plant-level production [kg-biomass yr-1]
+	double trans = 0;        ///< Transpiration [kg-h2o yr-1]
 
-	double dpsi_avg = 0;
-	double vcmax_avg = 0;
-	double vcmax25_avg = 0;
-	double mc_avg = 0;
-	double gs_avg = 0;
-	double c_open_avg = 0;
+	double dpsi_avg = 0;     ///< Soil-leaf water potential difference \f$\Delta\psi\f$
+	double vcmax_avg = 0;    ///< Crown-area weighted average Vcmax across canopy layers [umol m-2 s-1] 
+	double vcmax25_avg = 0;  ///< Average Vcmax at 25 degC [umol m-2 s-1] 
+	double mc_avg = 0;       ///< \f$m_c = (\chi c_a - \Gamma^*)/(\chi c_a + K_M) \f$
+	double gs_avg = 0;       ///< Crown-area weighted average stomatal conductance across canopy layers
+	double c_open_avg = 0;   ///< Crown-area weighted average canopy opennness experience by the plant
 
-	double rleaf = 0;
-	double rroot = 0;
-	double rstem = 0;
+	double rleaf = 0;        ///< Leaf dark respiration rate [kg-biomass yr-1]
+	double rroot = 0;        ///< Fine root respiration rate [kg-biomass yr-1]
+	double rstem = 0;        ///< Sapwood respiration rate (excluding coarse root) [kg-biomass yr-1]
 
-	double tleaf = 0; 
-	double troot = 0;
+	double tleaf = 0;        ///< Leaf turnover rate [kg-biomass yr-1]
+	double troot = 0;        ///< Fine root turnover rate [kg-biomass yr-1]
 };
 
 /// \ingroup physiology

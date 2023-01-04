@@ -12,10 +12,10 @@ class PlantGeometry{
 	public:
 	struct{
 		// geometry traits
-		double m, n;    // crown shape paramaters
-		double a;       // height-diameter allometry
-		double c;       // crown area allometry
-		double fg;      // upper canopy gap fraction
+		double m, n;    ///< crown shape paramaters
+		double a;       ///< height-diameter allometry
+		double c;       ///< crown area allometry
+		double fg;      ///< upper canopy gap fraction
 		
 		// Precomputed Geometric parameters
 		double eta_c;
@@ -29,15 +29,15 @@ class PlantGeometry{
 
 	public:
 	// current state
-	double lai;          // leaf area index 
-	double diameter;     // basal diameter
+	double lai;          ///< Crown leaf area index 
+	double diameter;     ///< basal diameter (diameter at ground level)
 
 	// variables calculated from state variables
-	double height;                       // height
-	double crown_area;                   // crown area
-	double sapwood_fraction;             // fraction of stem that is sapwood
-	double functional_xylem_fraction;    // fraction of funcitonal xylem in sapwood
-	double rooting_depth;                // rooting depth, calculated from coarse root biomass
+	double height;                       ///< Plant height
+	double crown_area;                   ///< Crown area
+	double sapwood_fraction;             ///< Fraction of stem that is sapwood
+	double functional_xylem_fraction;    ///< Fraction of funcitonal xylem in sapwood
+	double rooting_depth;                ///< Rooting depth, calculated from coarse root biomass
 
 	// ode-based calculations of sapwood and heartwood (for debug)
 	double sap_frac_ode = 1;
