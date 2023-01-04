@@ -1,7 +1,6 @@
 #ifndef PLANT_FATE_COMMUNITY_PROPERTIES_H_
 #define PLANT_FATE_COMMUNITY_PROPERTIES_H_
 
-#include <solver.h>
 #include "pspm_interface.h"
 #include "trait_evolution.h"
 #include "utils/sequence.h"

@@ -66,9 +66,19 @@ class MovingAverager{
 		else return area_sum/(t_hist.back()-t_hist.front());
 	}
 
+	inline double get_first(){
+		if (t_hist.size() == 0) return 0;
+		else return f_hist.front();
+	}
+
 	inline double get_last(){
 		if (t_hist.size() == 0) return 0;
 		else return f_hist.back();
+	}
+
+	inline double get_interval(){
+		if (t_hist.size() == 0) return 0;
+		else return (t_hist.back()-t_hist.front());
 	}
 
 	inline void clear(){
