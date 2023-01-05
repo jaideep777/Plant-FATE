@@ -42,9 +42,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		if (by_layer == true){
 			double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
 			auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
-			double fage = les_assim_reduction_factor(res, par);
-			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * fage * ca_layer;
-			plant_assim.rleaf      += (res.vcmax*par.rd) * fage * ca_layer;
+			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
+			plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
 			plant_assim.trans      += res.e * ca_layer;
 			plant_assim.dpsi_avg   += res.dpsi * ca_layer;
 			plant_assim.vcmax_avg  += res.vcmax * ca_layer;
@@ -73,9 +72,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	if (by_layer == false){
 		double I_top = env.clim.ppfd_max * plant_assim.c_open_avg;
 		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
-		double fage = les_assim_reduction_factor(res, par);
-		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * fage * ca_total;
-		plant_assim.rleaf      = (res.vcmax*par.rd) * fage * ca_total;
+		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * ca_total;
+		plant_assim.rleaf      = (res.vcmax*par.rd) * ca_total;
 		plant_assim.trans      = res.e * ca_total;
 		plant_assim.dpsi_avg   = res.dpsi;
 		plant_assim.vcmax_avg  = res.vcmax;

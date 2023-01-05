@@ -96,8 +96,8 @@ run_tests: $(TEST_RUNS)
 $(TEST_RUNS): tests/%.run : tests/%.test
 	@echo "~~~~~~~~~~~~~~~ $< ~~~~~~~~~~~~~~~~" >> log.txt
 	@time ./$< #>> log.txt && \
-#		printf "%b" "\033[0;32m[PASS]\033[m" ": $* \n"  || \
-#		printf "%b" "\033[1;31m[FAIL]\033[m" ": $* \n"
+		printf "%b" "\033[0;32m[PASS]\033[m" ": $* \n"  || \
+		printf "%b" "\033[1;31m[FAIL]\033[m" ": $* \n"
 
 $(TEST_OBJECTS): tests/%.o : tests/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@

@@ -47,12 +47,10 @@ double PlantGeometry::zm(){
 } 
 
 
-/// @brief         Projected crown area including gaps, for PPA
-/// @param z       height from the ground, z
-/// @param traits  Plant traits
-/// @return        Projected crown area \f$A_{cp}\f$
-/// @details       \f[A_{cp} = \pi r(z)^2 = \pi r_0^2 q(z)^2 = (A_c/q_m^2) q(z)^2 = A_c (q(z)/q_m)^2\f]
-/// @ingroup       ppa_module
+/// @details   This is the total area that can  
+///            be potentially occupied by leaves, including the area that currently consists of gaps. 
+///            \f[A_{cp} = \pi r(z)^2 = \pi r_0^2 q(z)^2 = (A_c/q_m^2) q(z)^2 = A_c (q(z)/q_m)^2\f]
+/// @ingroup   ppa_module
 double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits){
 	if (z >= zm()){
 		double fq = q(z)/geom.qm;
@@ -63,10 +61,9 @@ double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits)
 	}
 }
 	
-/// @brief         Actual crown area above z, i.e., excluding area coved by gaps
-/// @param z       height from the ground, z
-/// @param traits  Plant traits
-/// @return        Crown area
+/// @details This is the area within
+///          the potential crown that is actually occupied by leaves  
+/// @ingroup ppa_module
 double PlantGeometry::crown_area_above(double z, PlantTraits &traits){
 	if (z == 0) return crown_area; // shortcut because z=0 is used often
 
@@ -169,12 +166,11 @@ void PlantGeometry::set_lai(double _l){
 	lai = _l;
 }
 
-
+/// @details Sets the following properties: diameter, height, crown area, sapwood fraction 
 void PlantGeometry::set_size(double _x, PlantTraits &traits){
 	diameter = _x;
 	height = traits.hmat * (1 - exp(-geom.a*diameter/traits.hmat));
 	crown_area = geom.pic_4a * height * diameter;
-	//leaf_area = crown_area * lai;
 	sapwood_fraction = height / (diameter * geom.a);	
 }
 

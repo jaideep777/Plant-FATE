@@ -62,43 +62,43 @@ double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 template<class Env>
 double Plant::mortality_rate(Env &env, double t){
 	double D = geometry.diameter;
-	double dDs = par.mS0*exp(-rates.rgr*par.mS); //-log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
-	double dDd = exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
-//	std::cout << "H = " << geometry.height << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
-	//return par.mI + par.mD*dDd*(1+dDs);
+// 	double dDs = par.mS0*exp(-rates.rgr*par.mS); //-log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
+// 	double dDd = exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
+// //	std::cout << "H = " << geometry.height << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
+// 	//return par.mI + par.mD*dDd*(1+dDs);
 
-//	double wd = (traits.wood_density/1000);
-//	double dI = exp(-5);
-//	double mu_rgr = exp(-par.mS*rates.rgr);
-//	double mu_d   = exp(-0.3*log(D) + 0.1*D - 1.48*wd*wd);
-//	return dI*(mu_d + mu_rgr);
+// //	double wd = (traits.wood_density/1000);
+// //	double dI = exp(-5);
+// //	double mu_rgr = exp(-par.mS*rates.rgr);
+// //	double mu_d   = exp(-0.3*log(D) + 0.1*D - 1.48*wd*wd);
+// //	return dI*(mu_d + mu_rgr);
 	
-//	double wd = (traits.wood_density/1000);
-//	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
-//	return mu_d;
+// //	double wd = (traits.wood_density/1000);
+// //	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
+// //	return mu_d;
 	double mu = 0;
 	
-	double r = par.c0 + 
-	            par.cL*log(res.c_open_avg*100) + 
-	            par.clnD*log(D*1000) + 
-				par.cD*(D*1000) + 
-	            par.cG*log(rates.rgr*D*1000) + 
-	        //    par.cWD*(traits.wood_density - par.cWD0)+
-			   par.cS0*exp(-res.npp/1);
+// 	double r = par.c0 + 
+// 	            par.cL*log(res.c_open_avg*100) + 
+// 	            par.clnD*log(D*1000) + 
+// 				par.cD*(D*1000) + 
+// 	            par.cG*log(rates.rgr*D*1000) + 
+// 	        //    par.cWD*(traits.wood_density - par.cWD0)+
+// 			   par.cS0*exp(-res.npp/1);
 	
-	// Adding Hydraulic Mortality function to overall mortality rate
-//	double c = 2;
-//	double h = c*(1-pow(0.5,((env.inst_swp(t)/(3*traits.p50_xylem)))));
-//	//fmuh << env.inst_swp(t) << "\t" << h << "\t";
-//	
-//	
-//	mu += h;
-	mu += 1/(1+exp(-(r)));
-	//fmuh << mu << "\n";
+// 	// Adding Hydraulic Mortality function to overall mortality rate
+// //	double c = 2;
+// //	double h = c*(1-pow(0.5,((env.inst_swp(t)/(3*traits.p50_xylem)))));
+// //	//fmuh << env.inst_swp(t) << "\t" << h << "\t";
+// //	
+// //	
+// //	mu += h;
+// 	mu += 1/(1+exp(-(r)));
+// 	//fmuh << mu << "\n";
 
 	mu = par.m_gamma*pow(traits.wood_density/600, -1.8392) + 
 	     par.m_alpha*pow(traits.wood_density/600, -1.1493)*exp(-par.m_beta * rates.rgr*D*100) +
-		 par.cD0*pow(D,1.3) + 
+		 par.cD0*pow(D, 1.3) + 
 		 par.cD1*exp(-D/0.01);
 
 	assert(mu>=0);
