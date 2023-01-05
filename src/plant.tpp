@@ -98,7 +98,7 @@ double Plant::mortality_rate(Env &env, double t){
 
 	mu = par.m_gamma*pow(traits.wood_density/600, -1.8392) + 
 	     par.m_alpha*pow(traits.wood_density/600, -1.1493)*exp(-par.m_beta * rates.rgr*D*100) +
-		 par.cD0*pow(D,1.2) + 
+		 par.cD0*pow(D,1.3) + 
 		 par.cD1*exp(-D/0.01);
 
 	assert(mu>=0);

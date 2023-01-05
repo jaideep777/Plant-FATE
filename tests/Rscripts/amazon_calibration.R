@@ -7,11 +7,11 @@ prefix = "ELE"
 solver = "HD"#_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
-plot_to_file = F
-plot_trait_space = F
+plot_to_file = T
+plot_trait_space = T
 
 add_band = function(){
-  polygon(x=c(2000,3000,3000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
+  polygon(x=c(2000,5000,5000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
 }
 
 add_hband = function(ylim, col=scales::alpha("grey30",0.2)){
@@ -54,7 +54,7 @@ add_band()
 BA = dat2 %>% select(YEAR, PID, BA) %>% spread(value = "BA", key = "PID")
 matplot(BA$YEAR, cbind(BA[,-1], rowSums(BA[,-1], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species, start = 0, end = 0.85), "black"), type="l",
         las=1, xlab="Time (years)", ylab="Basal area", log="")
-add_hband(c(31.29, 31.555), col="grey30")
+add_hband(c(31.29, 31.29*1.02))
 add_band()
 
 matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
