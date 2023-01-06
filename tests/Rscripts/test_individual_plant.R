@@ -93,6 +93,9 @@ matplot(y=(cbind(dat$leaf_lifespan,
         x=dat$height, 
         ylab="Leaf/fine root\nlifespan", xlab="Height", type="l", col=c("yellowgreen", "brown4"), lty=1, lwd=1)
 
+
+# plot(y=2+(dat$rl+dat$rr+dat$rs)/dat$tl,x=dat$i)
+
 # plot(dat$leaf_lifespan~dat$height)
 
 # plot(y=(dat$height[2:2000]-dat$height[1:1999]), x=dat$i[1:1999], ylab="Height growth rate", type="l")

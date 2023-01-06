@@ -243,6 +243,7 @@ public:
 	double stem_mass=0;
 	double croot_mass=0;
 	double froot_mass=0;
+	double cc_est=0;
 	
 	std::vector <double> lai_vert;
 
@@ -312,6 +313,10 @@ public:
 		froot_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.root_mass(p->traits);});
 		gs = (trans*55.55/365/86400)/1.6/(static_cast<PSPM_Dynamic_Environment*>(S.env)->clim.vpd/1.0325e5);
 		//     ^ convert kg/m2/yr --> mol/m2/s
+
+		double tleaf_comm = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.tleaf;});
+		double troot_comm = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.troot;});
+		cc_est = (tleaf_comm + troot_comm + resp_auto)/tleaf_comm;
 
 		// LAI vertical profile
 		lai_vert.clear();
@@ -391,7 +396,7 @@ class SolverIO{
 		fouty_spp.open(std::string(dir + "/" + I.get<std::string>("cwmperSpecies")).c_str());
 		ftraits.open(std::string(dir + "/" + I.get<std::string>("traits")).c_str());
 
-		foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\n";
+		foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\n";
 		fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 		fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
 		ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
@@ -485,7 +490,8 @@ class SolverIO{
 			  << cwm.gs << "\t"
 			  << props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
 			  << props.lai << "\t"
-			  << cwm.vcmax << std::endl;
+			  << cwm.vcmax << "\t"
+			  << props.cc_est << std::endl;
 		
 		fouty << int(t) << "\t"
 		      << -9999  << "\t"

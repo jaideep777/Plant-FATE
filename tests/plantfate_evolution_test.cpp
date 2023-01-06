@@ -98,7 +98,7 @@ void addSpeciesAndProbes(Solver *S, string params_file, io::Initializer &I, doub
 	MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
 	spp->species_name = species_name;
 	spp->trait_scalars = {0.2, 700};
-	spp->fg_dx = 0.01;
+	// spp->fg_dx = 0.01;
 	spp->trait_variance = vector<double>(2, 0.1);
 	spp->r0_hist.set_interval(100);
 	spp->t_introduction = t;

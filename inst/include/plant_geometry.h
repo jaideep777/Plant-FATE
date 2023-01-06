@@ -14,6 +14,7 @@ namespace plant{
 ///          crown area, leaf area, biomass, etc) are calculated from these two.
 class PlantGeometry{
 	public:
+	/// @brief Traits that control dimensional scaling
 	struct{
 		// geometry traits
 		double m, n;    ///< crown shape paramaters
@@ -22,13 +23,13 @@ class PlantGeometry{
 		double fg;      ///< upper canopy gap fraction
 		
 		// Precomputed Geometric parameters
-		double eta_c;
-		double pic_4a;
-		double zm_H;
-		double qm;
+		double eta_c;   ///< Stem taper coefficient
+		double pic_4a;  ///< \f$\pi c / (4a)\f$
+		double zm_H;    ///< \f$z_m / H\f$
+		double qm;      ///< \f$q(z_m)\f$
 
 		// allocation
-		double dmat;    // diameter at reproductive maturity
+		double dmat;    ///< Diameter at reproductive maturity, calculated as diameter when H = `fhmat x` hmat
 	} geom;
 
 	public:
@@ -77,7 +78,7 @@ class PlantGeometry{
 	/// @}
 
 
-	/// LAI model that describes the rate of change of leaf mass attributed to changes in LAI
+	/// Rate of change of leaf mass due to change in LAI
 	double dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTraits &traits);
 
 

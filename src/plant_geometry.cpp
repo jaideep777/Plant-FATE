@@ -101,14 +101,17 @@ double PlantGeometry::dreproduction_dmass(PlantParameters &par, PlantTraits &tra
 	return par.a_f1 / (1.0 + exp(par.a_f2 * (1.0 - diameter / geom.dmat))); 
 }
 
-
-// **
-// ** LAI model
-// ** 
+/// @param  dL_dt Desired LAI increment 
+/// @param  dmass_dt_max Maximum allowed biomass increment resulting from LAI change 
+/// @details Given the LAI change (dL_dt) and the maximum allowed mass increment (dmass_dt_max), this function calculates
+///          the mass increment (of leaves and fine roots) needed to achive the specified LAI increment. If this exceeds the maximum 
+///          allowed mass increment, then mass increment is set to dmass_dt_max and dL_dt is revised accordingly. 
+///          Complete coordination between fine roots and leaves is assumed. Thus, both leaves and fine roots need to increase for increasing LAI, 
+///          and both are simultaneously shed if LAI decreases.
 double PlantGeometry::dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTraits &traits){
-	double l2m = crown_area * (traits.lma + traits.zeta); 
-	double dm_dt_lai = std::min(dL_dt * l2m, dmass_dt_max);  // biomass change resulting from LAI change. Here complete coordination between fine roots and leaves is assumed: fine roots also get shed with LAI. 
-	dL_dt = dm_dt_lai / l2m;
+	double l2m = crown_area * (traits.lma + traits.zeta);    // biomass required to support a unit LAI
+	double dm_dt_lai = std::min(dL_dt * l2m, dmass_dt_max);  // biomass change resulting from LAI change. 
+	dL_dt = dm_dt_lai / l2m;   // Revise dL_dt, in case dm_lai_dt was capped at the maximum
 	return dm_dt_lai;
 }
 
