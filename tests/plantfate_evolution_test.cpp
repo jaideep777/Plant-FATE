@@ -197,7 +197,6 @@ int main(){
 		calc_r0(t, timestep, S);
 	};
 
-//	ofstream fout("fmu_PlantFATE.txt");
 
 	SpeciesProps cwm;
 	EmergentProps props; 
