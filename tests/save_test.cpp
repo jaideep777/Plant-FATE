@@ -210,7 +210,8 @@ int main(){
 	y0 = I.getScalar("year0");
 	yf = I.getScalar("yearf");
 	double delta_T = I.getScalar("delta_T");
-	for (double t=y0; t <= yf; t=t+delta_T) {
+	double t;
+	for (t=y0; t <= 1200; t=t+delta_T) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
@@ -284,6 +285,111 @@ int main(){
 		
 	}
 	
+
+	for (int i=0; i<S.species_vec.size(); ++i){
+		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[i]);
+		cout << "Testing trait equality for species " << i << "\n";
+		for (int j=0; j<spp->xsize(); ++j) {
+			// spp->getCohort(j).traits.save(cout);
+			assert(spp->getCohort(j).traits == spp->getCohort(-1).traits);
+		}
+	}
+	cout << "Trait equality test PASSED\n";
+
+	ofstream fout("species_save.txt");
+	for (int i=0; i<1; ++i){
+		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[i]);
+		spp->save(fout);
+	}
+	fout.close();
+
+	ifstream fin("species_save.txt");
+	PSPM_Plant p;
+	MySpecies<PSPM_Plant> new_spp(p);
+	new_spp.restore(fin, paramsFile);
+
+	ofstream fout1("species_restored.txt");
+	new_spp.save(fout1);
+	fout1.close();
+
+	return 0;
+
+	for (; t <= yf; t=t+delta_T) {
+		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
+		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
+		cout << ")" << endl;
+
+		S.step_to(t, after_step);
+
+		// debug: r0 calc can be done here, it should give approx identical result compared to when r0_calc is dont in preCompute
+		// S.step_to(t); //, after_step);
+		// if (t > y0) after_step(t);
+		// if (t > y0) calc_r0(t, delta_T, S);
+		// //S.print(); cout.flush();
+
+		cwm.update(t, S);
+		props.update(t, S);
+			
+		sio.writeState(t, cwm, props);
+	
+		// evolve traits
+		if (evolve_traits){
+			if (t > y0 + 120){
+				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
+				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
+			}
+		}
+
+		// // Remove dead species
+		// vector<MySpecies<PSPM_Plant>*> toRemove;
+		// for (int k=0; k<S.species_vec.size(); ++k){
+		// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+		// 	if (spp->isResident){
+		// 		if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+		// 	}
+		// }
+		// for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
+
+		// // Shuffle species in the species vector -- just for debugging
+		// if (int(t) % 10 == 0){
+		// 	cout << "shuffling...\n";
+		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+		// 	S.copyCohortsToState();
+		// }
+
+		// // Invasion by a random new species
+		// if (int(t) % 300 == 0){
+		// 	cout << "**** Invasion ****\n";
+		// 	addSpeciesAndProbes(&S, paramsFile, I,
+		// 	                    t, 
+		// 	                    "spp_t"+to_string(t), 
+		// 	                    runif(0.05, 0.25),    //Tr.species[i].lma, 
+		// 	                    runif(300, 900),   //Tr.species[i].wood_density, 
+		// 	                    runif(2, 35),      //Tr.species[i].hmat, 
+		// 	                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
+		// 	);
+		// }
+
+		// clear patch after 50 year	
+		if (t >= t_clear){
+			for (auto spp : S.species_vec){
+				for (int i=0; i<spp->xsize(); ++i){
+					auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
+					p.geometry.lai = p.par.lai0;
+					double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
+					spp->setU(i, u_new);
+				}
+				spp->setX(spp->xsize()-1, 0);
+			}
+			S.copyCohortsToState();
+			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");
+			t_clear = t + fmin(t_int, 1000);
+		}
+		
+	}
+	
+
+
 	//S.print();
 	sio.closeStreams();
 

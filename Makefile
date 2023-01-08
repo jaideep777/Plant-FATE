@@ -18,7 +18,7 @@ INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -isystem $(ROOT_DIR)/phydro/inst/L
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags
-CPPFLAGS = -O3 -g -pg -std=c++11 -Wall -Wextra
+CPPFLAGS = -O3 -g -pg -std=c++17 -Wall -Wextra
 LDFLAGS =  -g -pg
 
 ## -Weffc++

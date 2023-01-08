@@ -4,6 +4,7 @@
 #include <solver.h>
 #include <vector>
 #include <string>
+#include <io_utils.h>
 #include "utils/moving_average.h"
 
 // Extend the Species class from libpspm to allow trait evolution
@@ -54,6 +55,10 @@ class MySpecies : public Species<Model>{
 	void evolveTraits(double dt);
 
 	void print_extra();
+
+	void save(std::ofstream &fout);
+	void restore(std::ifstream &fin, std::string params_file);
+
 };
 
 #include "trait_evolution.tpp"

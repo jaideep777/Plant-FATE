@@ -95,3 +95,76 @@ void MySpecies<Model>::print_extra(){
 	for (auto x : trait_scalars) std::cout << x << " ";
 	std::cout << "\n";     // these scalars will be applied to fg_dx
 }
+
+template <class Model>
+void MySpecies<Model>::save(std::ofstream &fout){
+	fout << "MySpecies::v1\n";
+	
+	// save species-level data
+	fout << std::make_tuple(
+		      fg_dx
+			, std::quoted(species_name)
+			, isResident
+			, t_introduction
+			, invasion_fitness
+			, r0);
+	fout << '\n';
+
+	// // probes are written by name, rather than by pointer (obviously!)
+	// // FIXME: maybe this probes map should be written by solver (not species)
+	// fout << probes.size() << " | ";
+	// for (auto m : probes) fout << std::quoted(m->species_name) << ' ';
+	// fout << '\n';
+
+	fout << fitness_gradient
+	     << trait_variance
+		 << trait_scalars
+		 << trait_names;  // trait names dont contain whitespaces, so safe to write this way
+	
+	// MovingAverager seeds_hist;
+	// MovingAverager r0_hist;
+	seeds_hist.save(fout);
+	r0_hist.save(fout);
+
+	// save traits from boundary cohort
+	this->getCohort(-1).traits.save(fout); 
+
+	Species<Model>::save(fout);
+}
+
+
+template <class Model>
+void MySpecies<Model>::restore(std::ifstream &fin, std::string params_file){
+	std::string s; fin >> s; // discard version number
+	
+	// restore species-level data
+	fin >> fg_dx
+		>> std::quoted(species_name)
+		>> isResident
+		>> t_introduction
+		>> invasion_fitness
+		>> r0;
+
+	// int n;
+	// fin >> n >> s; // s will have " | "
+	// probes.resize(n, nullptr);
+	// for (int i=0; i<n; ++i) fin >> s; // discarding probe names for now, need to save somewhere
+	
+	fin >> fitness_gradient
+	    >> trait_variance
+		>> trait_scalars
+		>> trait_names;
+
+	// moving averagers go here
+	seeds_hist.restore(fin);
+	r0_hist.restore(fin);
+
+	// Create a Model object and restore all individual properties to this object
+	// This will be used to copy-construct the species
+	auto& C = this->getCohort(-1);
+	C.initParamsFromFile(params_file);
+	C.traits.restore(fin);
+
+	Species<Model>::restore(fin);
+}
+

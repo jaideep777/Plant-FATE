@@ -59,6 +59,8 @@ class PSPM_Plant : public plant::Plant {
 
 	void print(std::ostream &out = std::cout);
 
+	void save(std::ostream &fout);
+	void restore(std::istream &fin);
 };
 
 /// @ingroup  libpspm_interface

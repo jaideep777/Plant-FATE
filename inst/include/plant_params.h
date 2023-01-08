@@ -4,6 +4,7 @@
 #include "utils/initializer.h"
 #include <cmath>
 #include <string>
+#include <io_utils.h>
 
 namespace plant{
 
@@ -28,7 +29,7 @@ class PlantTraits{
 	double b_xylem;         ///< Shape parameter of leaf vulnerabilty curve [-]
 	
 
-	// variable (plastic) traits
+	// traits set via coordination
 	public:
 	double ll;              ///< leaf-longevity (as a function of LMA and environment)
 	double p50_leaf;        ///< Leaf hydraulic vulnerability [MPa] (calculated from Xylem P50)
@@ -52,7 +53,61 @@ class PlantTraits{
 		b_leaf = I.getScalar("b_leaf");	
 		b_xylem = I.getScalar("b_xylem");	
 	}
-	
+
+	// Just for debugging purposes - to check if 2 plants have the same traits
+	bool operator == (const PlantTraits& rhs) const {
+		return 
+		  (this->lma	== rhs.lma &&
+		   this->zeta	== rhs.zeta &&
+		   this->fcr	== rhs.fcr &&
+		   this->hmat	== rhs.hmat &&
+		   this->fhmat	== rhs.fhmat &&
+		   this->seed_mass	== rhs.seed_mass &&
+		   this->wood_density	== rhs.wood_density &&
+		   this->p50_xylem	== rhs.p50_xylem &&
+		   this->K_leaf	== rhs.K_leaf &&
+		   this->K_xylem	== rhs.K_xylem &&
+		   this->b_leaf	== rhs.b_leaf &&
+		   this->b_xylem	== rhs.b_xylem);
+	}
+
+	void save(std::ostream &fout){
+		fout << "Traits::v1 ";
+		fout << std::quoted(species_name) << ' ';
+		fout << std::make_tuple(
+					  lma
+					, zeta        
+					, fcr         
+					, hmat        
+					, fhmat       
+					, seed_mass   
+					, wood_density
+					, p50_xylem   
+					, K_leaf      
+					, K_xylem     
+					, b_leaf      
+					, b_xylem
+					);
+		fout << '\n';
+	}
+
+	void restore(std::istream &fin){
+		std::string s; fin >> s; // discard version number
+		fin >> std::quoted(species_name);
+		fin >> lma
+			>> zeta        
+			>> fcr         
+			>> hmat        
+			>> fhmat       
+			>> seed_mass   
+			>> wood_density
+			>> p50_xylem   
+			>> K_leaf      
+			>> K_xylem     
+			>> b_leaf      
+			>> b_xylem;
+	}
+
 };
 
 

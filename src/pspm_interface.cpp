@@ -136,6 +136,14 @@ void PSPM_Plant::print(std::ostream &out){
 }
 
 
+void PSPM_Plant::save(std::ostream &fout){
+}
+
+void PSPM_Plant::restore(std::istream &fin){
+}
+
+
+
 // **********************************************************
 // ********** PSPM_Dynamic_Environment **********************
 // **********************************************************

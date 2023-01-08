@@ -52,6 +52,7 @@ class MovingAverager{
 				area_sum -= areas.front();
 				f_hist.pop_front();
 				t_hist.pop_front();
+				dts.pop_front();
 				areas.pop_front();
 			}
 			else{
@@ -186,6 +187,52 @@ class MovingAverager{
 		}
 
 		return avg;
+	}
+
+	void save(std::ofstream &fout){
+		fout << "MovingAverager::v1\n";
+
+		fout << area_sum << ' '
+		     << T << '\n';
+		
+		fout << areas.size() << " | "; 
+		for (auto x : areas) fout << x << ' '; 
+		fout << '\n';
+
+		fout << dts.size() << " | "; 
+		for (auto x : dts) fout << x << ' '; 
+		fout << '\n';
+
+		fout << f_hist.size() << " | "; 
+		for (auto x : f_hist) fout << x << ' '; 
+		fout << '\n';
+
+		fout << t_hist.size() << " | "; 
+		for (auto x : t_hist) fout << x << ' '; 
+		fout << '\n';
+		
+	}
+
+	void restore(std::ifstream &fin){
+		std::string s; fin >> s; // discard version number
+
+		fin >> area_sum
+		    >> T;
+		
+		int n;
+		double x;
+
+		fin >> n >> s; 
+		for (int i=0; i<n; ++i) {fin >> x; areas.push_back(x);}
+
+		fin >> n >> s; 
+		for (int i=0; i<n; ++i) {fin >> x; dts.push_back(x);}
+
+		fin >> n >> s; 
+		for (int i=0; i<n; ++i) {fin >> x; f_hist.push_back(x);}
+
+		fin >> n >> s; 
+		for (int i=0; i<n; ++i) {fin >> x; t_hist.push_back(x);}
 	}
 
 };
