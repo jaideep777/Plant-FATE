@@ -132,6 +132,8 @@ void PSPM_Plant::print(std::ostream &out){
 	    << std::setw(10) << setprecision(3) << geometry.lai 
 	    << std::setw(10) << setprecision(3) << state.mortality 
 	    << std::setw(10) << setprecision(3) << rates.dseeds_dt 
+	    << std::setw(10) << setprecision(3) << par.a 
+	    << std::setw(10) << setprecision(3) << par.c 
 	    ;
 }
 

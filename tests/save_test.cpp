@@ -180,30 +180,12 @@ int main(){
 
 	// std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
 
-	// S.print();
-
-	// saveState(&S, paramsFile);
-	// for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
-	// S.species_vec.clear();
-	// S.print();
-
-	// S = Solver(solver_method, "rk45ck");
-	// S.control.abm_n0 = 20;
-    // S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
-	// S.control.ifmu_centered_grids = false; //true;
-	// S.control.ifmu_order = 1;
-	// S.control.ebt_ucut = 1e-7;
-    // S.use_log_densities = true;
-	// S.setEnvironment(&E);
-
-	// restoreState(&S, paramsFile);
-	// S.print();
 
 	SolverIO sio;
 	sio.S = &S;
 	sio.openStreams(out_dir, I);
 
-	saveState(&S, paramsFile);
+	// saveState(&S, paramsFile);
 
 	// ~~~~~~~~~~ Set up seed rain calculation ~~~~~~~~~~~~~~~~~~~~~~~~~
 	// double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
@@ -264,12 +246,12 @@ int main(){
 		// }
 		// for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
 
-		// // Shuffle species in the species vector -- just for debugging
-		// if (int(t) % 10 == 0){
-		// 	cout << "shuffling...\n";
-		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-		// 	S.copyCohortsToState();
-		// }
+		// Shuffle species in the species vector -- just for debugging
+		if (int(t) % 10 == 0){
+			cout << "shuffling...\n";
+			std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+			S.copyCohortsToState();
+		}
 
 		// // Invasion by a random new species
 		// if (int(t) % 300 == 0){
@@ -303,48 +285,27 @@ int main(){
 	}
 	
 
-	// for (int i=0; i<S.species_vec.size(); ++i){
-	// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[i]);
-	// 	cout << "Testing trait equality for species " << i << "\n";
-	// 	for (int j=0; j<spp->xsize(); ++j) {
-	// 		// spp->getCohort(j).traits.save(cout);
-	// 		assert(spp->getCohort(j).traits == spp->getCohort(-1).traits);
-	// 	}
-	// }
-	// cout << "Trait equality test PASSED\n";
+	cout << " ---------------------- Solver before save ---------------------\n";
+	S.print();
 
-	// ofstream fout("species_save.txt");
-	// for (int i=0; i<1; ++i){
-	// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[i]);
-	// 	spp->save(fout);
-	// }
-	// fout.close();
-
-	// ifstream fin("species_save.txt");
-	// PSPM_Plant p;
-	// MySpecies<PSPM_Plant> new_spp(p);
-	// new_spp.restore(fin);//, paramsFile);
-
-	// ofstream fout1("species_restored.txt");
-	// new_spp.save(fout1);
-	// fout1.close();
 
 	saveState(&S, paramsFile);
 	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
 	S.species_vec.clear();
 	S.print();
 
-	// S = Solver(solver_method, "rk45ck");
-	// S.control.abm_n0 = 20;
-    // S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
-	// S.control.ifmu_centered_grids = false; //true;
-	// S.control.ifmu_order = 1;
-	// S.control.ebt_ucut = 1e-7;
-    // S.use_log_densities = true;
-	// S.setEnvironment(&E);
+	S = Solver(solver_method, "rk45ck");
+	S.control.abm_n0 = 20;
+    S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
+	S.control.ifmu_centered_grids = false; //true;
+	S.control.ifmu_order = 1;
+	S.control.ebt_ucut = 1e-7;
+    S.use_log_densities = true;
+	S.setEnvironment(&E);
 //	sio.S = &S;
 
 	restoreState(&S, paramsFile);
+	cout << " ---------------------- Solver after restore ---------------------\n";
 	S.print();
 
 
@@ -384,12 +345,12 @@ int main(){
 		// }
 		// for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
 
-		// // Shuffle species in the species vector -- just for debugging
-		// if (int(t) % 10 == 0){
-		// 	cout << "shuffling...\n";
-		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-		// 	S.copyCohortsToState();
-		// }
+		// Shuffle species in the species vector -- just for debugging
+		if (int(t) % 10 == 0){
+			cout << "shuffling...\n";
+			std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+			S.copyCohortsToState();
+		}
 
 		// // Invasion by a random new species
 		// if (int(t) % 300 == 0){

@@ -21,7 +21,8 @@ class PSPM_Plant : public plant::Plant {
 	
 	/// @ingroup trait_evolution
 	/// @brief   Variable names to print in the header corresponding to the output of PSPM_Plant::print.
-	std::vector<std::string> varnames = {"name", "|lma|", "| WD |", "D", "g", "lai", "mort", "seeds"}; // header corresponding to the print function below
+	// FIXME: Make this static?
+	std::vector<std::string> varnames = {"name", "|lma|", "| WD |", "D", "g", "lai", "mort", "seeds", "a", "c"}; // header corresponding to the print function below
 
 	std::vector<std::string> statevarnames = {"lai", "mort"};  // header corresponding to state output (not used currently)
 
