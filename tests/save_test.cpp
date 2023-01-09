@@ -428,7 +428,9 @@ int main(){
 
 // evolveTraits    yes
 
+// saveEndState    yes
 // savedState      pf_saved_state.txt
+// savedConfig     pf_saved_config.ini
 
 // > SCALARS
 // # ** 
