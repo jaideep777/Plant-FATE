@@ -39,6 +39,7 @@ void saveState(Solver *S, string configfilename){
 }
 
 void restoreState(Solver * S, string configfilename){
+	// FIXME: restoreState should take data file name and not config file name!
 	io::Initializer I(configfilename);
 	I.readFile();
 	string outdir   = I.get<string>("outDir") + "/" + I.get<string>("exptName");
@@ -87,6 +88,7 @@ void restoreState(Solver * S, string configfilename){
 	vector<Species_Base*> spp_proto;
 	for (int i=0; i<spp_names.size(); ++i){
 		auto spp = new MySpecies<PSPM_Plant>(p);
+		spp->configfile_for_restore = configfilename; // set config file that MySpecies will use to restore cohorts FIXME: Maybe this can be prevented by simply writing parameters only once? - but configfile will be needed even after continuation for inserting new species (immigration)
 		spp_proto.push_back(static_cast<Species_Base*>(spp));
 	}
 

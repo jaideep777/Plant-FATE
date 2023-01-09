@@ -132,7 +132,7 @@ void MySpecies<Model>::restore(std::ifstream &fin){
 	std::string s; fin >> s; // discard version number
 	assert(s == "MySpecies<T>::v1");
 
-	std::string params_file = "tests/params/p.ini"; // FIXME: How to get this params file?
+	if (configfile_for_restore == "") throw std::runtime_error("Config file has not been set");
 
 	// restore species-level data
 	fin >> fg_dx
@@ -154,7 +154,7 @@ void MySpecies<Model>::restore(std::ifstream &fin){
 	// Create a Model object and restore all individual properties to this object
 	// This will be used to copy-construct the species
 	auto& C = this->getCohort(-1);
-	C.initParamsFromFile(params_file);  // FIXME: How to get this params file?
+	C.initParamsFromFile(configfile_for_restore);  
 	C.traits.restore(fin);
 	C.coordinateTraits();
 	C.traits.save(std::cout); std::cout.flush();

@@ -42,6 +42,10 @@ class MySpecies : public Species<Model>{
 	MovingAverager seeds_hist;
 	MovingAverager r0_hist;
 
+	public: 
+	/*NO_SAVE_RESTORE*/ std::string configfile_for_restore = "";  // Dont output this variable in save/restore. This is set by restoreState() to provide the saved config file for recreating cohorts  
+
+	public:
 	MySpecies(Model M, bool res=true);
 
 	void set_traits(std::vector<double> tvec);
