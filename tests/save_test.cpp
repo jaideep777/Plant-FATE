@@ -130,10 +130,13 @@ int main(){
 	I.readFile();
 	string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
 	string command = "mkdir -p " + out_dir;
-	string command2 = "cp " + paramsFile + " " + out_dir + "/saved_config.ini";
+	string command2 = "cp " + paramsFile + " " + out_dir + "/p.ini";
 	int sysresult;
 	sysresult = system(command.c_str());
 	sysresult = system(command2.c_str());
+
+	string state_outfile  = out_dir + "/" + I.get<string>("savedState");
+	string config_outfile = out_dir + "/" + I.get<string>("savedConfig");
 
 	// ~~~~~~~~~~ Set up environment ~~~~~~~~~~~~~~~~~~~~~~~~~
 	PSPM_Dynamic_Environment E;
@@ -289,7 +292,7 @@ int main(){
 	S.print();
 
 
-	saveState(&S, paramsFile);
+	saveState(&S, state_outfile, config_outfile, paramsFile);
 	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
 	S.species_vec.clear();
 	S.print();
@@ -304,7 +307,7 @@ int main(){
 	S.setEnvironment(&E);
 //	sio.S = &S;
 
-	restoreState(&S, paramsFile);
+	restoreState(&S, state_outfile, config_outfile);
 	cout << " ---------------------- Solver after restore ---------------------\n";
 	S.print();
 

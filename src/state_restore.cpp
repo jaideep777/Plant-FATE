@@ -1,15 +1,18 @@
 #include "state_restore.h"
 using namespace std;
 
-void saveState(Solver *S, string configfilename){
-	// save config file and get filename of saved state
-	io::Initializer I(configfilename);
-	I.readFile();
-	string outdir   = I.get<string>("outDir") + "/" + I.get<string>("exptName");
-	string filename = outdir + "/" + I.get<string>("savedState");
+void saveState(Solver *S, string state_outfile, string config_outfile, string params_file){
 
-	ofstream fout(filename.c_str());
-	if (!fout) throw runtime_error("Could not open file for saving state: "+filename);
+	cout << "Saving state to: " << state_outfile << '\n';
+	cout << "Saving config to: " << config_outfile << '\n';
+
+	// save config file and get filename of saved state
+	string command = "cp " + params_file + " " + config_outfile;
+	int sysresult = system(command.c_str());
+
+	// open file for writing state
+	ofstream fout(state_outfile.c_str());
+	if (!fout) throw runtime_error("Could not open file for saving state: "+state_outfile);
 
 	fout << setprecision(12);
 	// core state writing
@@ -38,15 +41,14 @@ void saveState(Solver *S, string configfilename){
 	fout.close();
 }
 
-void restoreState(Solver * S, string configfilename){
-	// FIXME: restoreState should take data file name and not config file name!
-	io::Initializer I(configfilename);
-	I.readFile();
-	string outdir   = I.get<string>("outDir") + "/" + I.get<string>("exptName");
-	string filename = outdir + "/" + I.get<string>("savedState");
 
-	ifstream fin(filename.c_str());
-	if (!fin) throw runtime_error("Could not open file for restoring state: "+filename);
+void restoreState(Solver * S, string state_infile, string config_infile){
+
+	cout << "Restoring state from: " << state_infile << '\n';
+	cout << "Restoring config from: " << config_infile << '\n';
+
+	ifstream fin(state_infile.c_str());
+	if (!fin) throw runtime_error("Could not open file for restoring state: "+state_infile);
 
 	string s; fin >> s;  // discard version number
 
@@ -88,7 +90,7 @@ void restoreState(Solver * S, string configfilename){
 	vector<Species_Base*> spp_proto;
 	for (int i=0; i<spp_names.size(); ++i){
 		auto spp = new MySpecies<PSPM_Plant>(p);
-		spp->configfile_for_restore = configfilename; // set config file that MySpecies will use to restore cohorts FIXME: Maybe this can be prevented by simply writing parameters only once? - but configfile will be needed even after continuation for inserting new species (immigration)
+		spp->configfile_for_restore = config_infile; // set config file that MySpecies will use to restore cohorts FIXME: Maybe this can be prevented by simply writing parameters only once? - but configfile will be needed even after continuation for inserting new species (immigration)
 		spp_proto.push_back(static_cast<Species_Base*>(spp));
 	}
 
