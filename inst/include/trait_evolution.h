@@ -57,7 +57,7 @@ class MySpecies : public Species<Model>{
 	void print_extra();
 
 	void save(std::ofstream &fout);
-	void restore(std::ifstream &fin, std::string params_file);
+	void restore(std::ifstream &fin);
 
 };
 

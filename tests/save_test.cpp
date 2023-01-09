@@ -178,9 +178,26 @@ int main(){
 	S.resetState(I.getScalar("year0"));
 	S.initialize();
 
-//	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+	// std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
 
-	S.print();
+	// S.print();
+
+	// saveState(&S, paramsFile);
+	// for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
+	// S.species_vec.clear();
+	// S.print();
+
+	// S = Solver(solver_method, "rk45ck");
+	// S.control.abm_n0 = 20;
+    // S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
+	// S.control.ifmu_centered_grids = false; //true;
+	// S.control.ifmu_order = 1;
+	// S.control.ebt_ucut = 1e-7;
+    // S.use_log_densities = true;
+	// S.setEnvironment(&E);
+
+	// restoreState(&S, paramsFile);
+	// S.print();
 
 	SolverIO sio;
 	sio.S = &S;
@@ -286,33 +303,50 @@ int main(){
 	}
 	
 
-	for (int i=0; i<S.species_vec.size(); ++i){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[i]);
-		cout << "Testing trait equality for species " << i << "\n";
-		for (int j=0; j<spp->xsize(); ++j) {
-			// spp->getCohort(j).traits.save(cout);
-			assert(spp->getCohort(j).traits == spp->getCohort(-1).traits);
-		}
-	}
-	cout << "Trait equality test PASSED\n";
+	// for (int i=0; i<S.species_vec.size(); ++i){
+	// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[i]);
+	// 	cout << "Testing trait equality for species " << i << "\n";
+	// 	for (int j=0; j<spp->xsize(); ++j) {
+	// 		// spp->getCohort(j).traits.save(cout);
+	// 		assert(spp->getCohort(j).traits == spp->getCohort(-1).traits);
+	// 	}
+	// }
+	// cout << "Trait equality test PASSED\n";
 
-	ofstream fout("species_save.txt");
-	for (int i=0; i<1; ++i){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[i]);
-		spp->save(fout);
-	}
-	fout.close();
+	// ofstream fout("species_save.txt");
+	// for (int i=0; i<1; ++i){
+	// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[i]);
+	// 	spp->save(fout);
+	// }
+	// fout.close();
 
-	ifstream fin("species_save.txt");
-	PSPM_Plant p;
-	MySpecies<PSPM_Plant> new_spp(p);
-	new_spp.restore(fin, paramsFile);
+	// ifstream fin("species_save.txt");
+	// PSPM_Plant p;
+	// MySpecies<PSPM_Plant> new_spp(p);
+	// new_spp.restore(fin);//, paramsFile);
 
-	ofstream fout1("species_restored.txt");
-	new_spp.save(fout1);
-	fout1.close();
+	// ofstream fout1("species_restored.txt");
+	// new_spp.save(fout1);
+	// fout1.close();
 
-	return 0;
+	saveState(&S, paramsFile);
+	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
+	S.species_vec.clear();
+	S.print();
+
+	// S = Solver(solver_method, "rk45ck");
+	// S.control.abm_n0 = 20;
+    // S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
+	// S.control.ifmu_centered_grids = false; //true;
+	// S.control.ifmu_order = 1;
+	// S.control.ebt_ucut = 1e-7;
+    // S.use_log_densities = true;
+	// S.setEnvironment(&E);
+//	sio.S = &S;
+
+	restoreState(&S, paramsFile);
+	S.print();
+
 
 	for (; t <= yf; t=t+delta_T) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";

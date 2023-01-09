@@ -215,6 +215,7 @@ class MovingAverager{
 
 	void restore(std::ifstream &fin){
 		std::string s; fin >> s; // discard version number
+		assert(s == "MovingAverager::v1");
 
 		fin >> area_sum
 		    >> T;

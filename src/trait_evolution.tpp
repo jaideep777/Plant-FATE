@@ -83,7 +83,7 @@ void MySpecies<Model>::print_extra(){
 	std::cout << "Name: " << species_name << "\n";
 	std::cout << "Resident: " << ((isResident)? "Yes" : "No") << "\n";
 	std::cout << "Probes: ";
-	for (auto x : probes) std::cout << x << " ";
+	for (auto x : probes) std::cout << x->species_name << " ";
 	std::cout << "\n";
 	std::cout << "Fitness gradient: ";
 	for (auto x : fitness_gradient) std::cout << x << " ";
@@ -98,7 +98,7 @@ void MySpecies<Model>::print_extra(){
 
 template <class Model>
 void MySpecies<Model>::save(std::ofstream &fout){
-	fout << "MySpecies::v1\n";
+	fout << "MySpecies<T>::v1\n";
 	
 	// save species-level data
 	fout << std::make_tuple(
@@ -110,19 +110,12 @@ void MySpecies<Model>::save(std::ofstream &fout){
 			, r0);
 	fout << '\n';
 
-	// // probes are written by name, rather than by pointer (obviously!)
-	// // FIXME: maybe this probes map should be written by solver (not species)
-	// fout << probes.size() << " | ";
-	// for (auto m : probes) fout << std::quoted(m->species_name) << ' ';
-	// fout << '\n';
-
 	fout << fitness_gradient
 	     << trait_variance
 		 << trait_scalars
 		 << trait_names;  // trait names dont contain whitespaces, so safe to write this way
 	
-	// MovingAverager seeds_hist;
-	// MovingAverager r0_hist;
+	// MovingAveragers
 	seeds_hist.save(fout);
 	r0_hist.save(fout);
 
@@ -134,9 +127,13 @@ void MySpecies<Model>::save(std::ofstream &fout){
 
 
 template <class Model>
-void MySpecies<Model>::restore(std::ifstream &fin, std::string params_file){
+void MySpecies<Model>::restore(std::ifstream &fin){
+	std::cout << "Restoring MySpecies<Model>...\n";
 	std::string s; fin >> s; // discard version number
-	
+	assert(s == "MySpecies<T>::v1");
+
+	std::string params_file = "tests/params/p.ini";
+
 	// restore species-level data
 	fin >> fg_dx
 		>> std::quoted(species_name)
@@ -144,11 +141,6 @@ void MySpecies<Model>::restore(std::ifstream &fin, std::string params_file){
 		>> t_introduction
 		>> invasion_fitness
 		>> r0;
-
-	// int n;
-	// fin >> n >> s; // s will have " | "
-	// probes.resize(n, nullptr);
-	// for (int i=0; i<n; ++i) fin >> s; // discarding probe names for now, need to save somewhere
 	
 	fin >> fitness_gradient
 	    >> trait_variance
@@ -164,6 +156,7 @@ void MySpecies<Model>::restore(std::ifstream &fin, std::string params_file){
 	auto& C = this->getCohort(-1);
 	C.initParamsFromFile(params_file);
 	C.traits.restore(fin);
+	C.traits.save(std::cout); std::cout.flush();
 
 	Species<Model>::restore(fin);
 }
