@@ -135,8 +135,9 @@ int main(){
 	sysresult = system(command.c_str());
 	sysresult = system(command2.c_str());
 
-	string state_outfile  = out_dir + "/" + I.get<string>("savedState");
-	string config_outfile = out_dir + "/" + I.get<string>("savedConfig");
+	bool save_state = (I.get<string>("saveState") == "yes")? true : false;
+	string state_outfile  = out_dir + "/" + I.get<string>("savedStateFile");
+	string config_outfile = out_dir + "/" + I.get<string>("savedConfigFile");
 
 	// ~~~~~~~~~~ Set up environment ~~~~~~~~~~~~~~~~~~~~~~~~~
 	PSPM_Dynamic_Environment E;

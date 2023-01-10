@@ -2,9 +2,9 @@ library(tidyverse)
 rm(list=ls())
 
 output_dir = "pspm_output"
-prefix = "ELE"
+prefix = "test"
   
-solver = "HD_save_state_with_evol"#_old_params"
+solver = "spinup"#_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
