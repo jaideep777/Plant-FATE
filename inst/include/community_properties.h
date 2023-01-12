@@ -5,6 +5,25 @@
 #include "trait_evolution.h"
 #include "utils/sequence.h"
 
+
+template<class Func>
+double integrate_prop(double t, Solver &S, const Func &f){
+	double x = 0;
+	for (int k=0; k<S.n_species(); ++k){
+		bool is_resident = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k])->isResident;
+		if (is_resident){
+			x += S.integrate_x([&S,k,f](int i, double t){
+					auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+					const PSPM_Plant * pp = &p;
+					return f(pp);
+				 }, t, k);
+		}
+	}
+	return x;
+}
+
+
+
 // FIXME: move definitions to cpp
 class SpeciesProps{
 public:
@@ -66,19 +85,6 @@ public:
 	EmergentProps & operator += (const EmergentProps &s);
 
 	bool isResident(Species_Base * spp);
-	
-	template<class Func>
-	double integrate_prop(double t, Solver &S, const Func &f){
-		double x = 0;
-		for (int k=0; k<S.n_species(); ++k)
-			if (isResident(S.species_vec[k]))
-			x += S.integrate_x([&S,k,f](int i, double t){
-				auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-				const PSPM_Plant * pp = &p;
-				return f(pp);
-			}, t, k);
-		return x;
-	}
 	
 	void update(double t, Solver &S);
 

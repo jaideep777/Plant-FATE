@@ -42,6 +42,7 @@ tags
 1
 
 pspm_output/*
+pspm_output*
 .DS_Store
 docs
 .Rbuildignore
