@@ -56,7 +56,7 @@ class LifeHistoryOptimizer{
 		P.initParamsFromFile("tests/params/p.ini");
 		P.geometry.set_lai(1);
 		P.set_size(0.01);
-		// Simulation below starts at sedeling stage. So account for survival until seedling stage
+		// Simulation below starts at seedling stage. So account for survival until seedling stage
 		P.state.mortality = -log(P.p_survival_dispersal(C)*P.p_survival_germination(C)); // p{fresh seed is still alive after germination} = p{it survives dispersal}*p{it survives germination}
 
 		double total_prod = P.get_biomass();
