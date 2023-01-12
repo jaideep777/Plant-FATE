@@ -1,32 +1,114 @@
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <cmath>
-#include <numeric>
-#include <functional>
+#include "plantfate.h"
 using namespace std;
 
-#include <solver.h>
-#include "pspm_interface.h"
-#include "trait_reader.h"
-#include "community_properties.h"
-#include "trait_evolution.h"
-#include "state_restore.h"
+Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45ck") {
+	paramsFile = params_file; // = "tests/params/p.ini";
+	I.readFile();
+
+	out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
+	
+	string command = "mkdir -p " + out_dir;
+	string command2 = "cp " + paramsFile + " " + out_dir + "/p.ini";
+	int sysresult;
+	sysresult = system(command.c_str());
+	sysresult = system(command2.c_str());
+
+	save_state = (I.get<string>("saveState") == "yes")? true : false;
+	state_outfile  = out_dir + "/" + I.get<string>("savedStateFile");
+	config_outfile = out_dir + "/" + I.get<string>("savedConfigFile");
+
+	continueFrom_stateFile = I.get<string>("continueFromState");
+	continueFrom_configFile = I.get<string>("continueFromConfig");
+	continuePrevious = (continueFrom_configFile != "null") && (continueFrom_stateFile != "null");
+
+	evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
+
+	// Set up simulation start and end points
+	y0 = I.getScalar("year0");
+	yf = I.getScalar("yearf");
+	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
+	timestep = I.getScalar("timestep");
+ 	delta_T = I.getScalar("delta_T");
+
+	// Set up environment
+	E.metFile = I.get<string>("metFile");
+	E.co2File = I.get<string>("co2File");
+	E.init();
+	E.print(0);
+	E.use_ppa = true;
+	E.update_met = true;
+	E.update_co2 = true;
+
+	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
+	string solver_method = I.get<string>("solver");
+	S = Solver(solver_method, "rk45ck");
+	S.control.abm_n0 = 20;
+	S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
+	S.control.ifmu_centered_grids = false; //true;
+	S.control.ifmu_order = 1;
+	S.control.ebt_ucut = 1e-7;
+	S.use_log_densities = true;
+	S.setEnvironment(&E);
+
+}
+
+void Simulator::init(){
+
+	if (continuePrevious){
+		restoreState(&S, continueFrom_stateFile, continueFrom_configFile);
+		y0 = S.current_time; // replace y0
+	}
+	else {
+		// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
+		TraitsReader Tr;
+		Tr.readFromFile(I.get<string>("traitsFile"));
+		Tr.print();
+
+		// ~~~ Create initial resident species pool from traits file ~~~~
+		int nspp = I.getScalar("nSpecies");
+		// int res = I.getScalar("resolution");
+		for (int i=0; i<nspp; ++i){
+			addSpeciesAndProbes(&S, paramsFile, I,
+								I.getScalar("year0"), 
+								Tr.species[i].species_name, 
+								Tr.species[i].lma, 
+								Tr.species[i].wood_density, 
+								Tr.species[i].hmat, 
+								Tr.species[i].p50_xylem);
+		}
+
+		S.resetState(I.getScalar("year0"));
+		S.initialize();
+	} 
+
+//	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+
+	S.print();	
+
+	sio.S = &S;
+	sio.openStreams(out_dir, I);
+}
 
 
-inline double runif(double rmin=0, double rmax=1){
+void Simulator::close(){
+	//S.print();
+	sio.closeStreams();
+
+	saveState(&S, state_outfile, config_outfile, paramsFile);
+
+	// free memory associated
+	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
+
+}
+
+
+double Simulator::runif(double rmin, double rmax){
 	double r = double(rand())/RAND_MAX; 
 	return rmin + (rmax-rmin)*r;
 }
 
 
-/// @brief     Calculate seed output of all species
-/// @param t   Current time 
-/// @param S   Solver
-/// @ingroup   trait_evolution
-/// @details   Species seed output rate is defined as,  
-///            \f[S = \int_{x_b}^{x_m}{f(s)u(s)ds}\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
-void calc_seed_output(double t, Solver& S){
+void Simulator::calc_seed_output(double t, Solver& S){
 	vector<double> seeds = S.newborns_out(t);
 	// cout << "t = " << fixed << setprecision(10) << t << ", Species r0s:\n";
 	for (int k=0; k<S.species_vec.size(); ++k){
@@ -50,7 +132,7 @@ void calc_seed_output(double t, Solver& S){
 /// @ingroup   trait_evolution
 /// @details   Species growth rate is defined from the seed perspective, i.e., 
 ///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
-void calc_r0(double t, double dt, Solver& S){
+void Simulator::calc_r0(double t, double dt, Solver& S){
 	for (int k=0; k<S.species_vec.size(); ++k){
 		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
 		double r0 = log(spp->seeds_hist.get()/spp->birth_flux_in)/dt;
@@ -61,7 +143,7 @@ void calc_r0(double t, double dt, Solver& S){
 	}
 }
 
-void removeSpeciesAndProbes(Solver* S, MySpecies<PSPM_Plant>* spp){
+void Simulator::removeSpeciesAndProbes(Solver* S, MySpecies<PSPM_Plant>* spp){
 	// delete species probes and remove their pointers from solver
 	for (auto p : spp->probes){ // probes vector is not modified in the loop, so we can use it directly to iterate
 		delete p;               // this will delete the object, but the pointer p and its copy in the solver remain
@@ -76,7 +158,7 @@ void removeSpeciesAndProbes(Solver* S, MySpecies<PSPM_Plant>* spp){
 	S->copyCohortsToState();
 }
 
-void addSpeciesAndProbes(Solver *S, string params_file, io::Initializer &I, double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
+void Simulator::addSpeciesAndProbes(Solver *S, string params_file, io::Initializer &I, double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
 	int res = I.getScalar("resolution");
 	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
 	double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
@@ -122,106 +204,13 @@ void addSpeciesAndProbes(Solver *S, string params_file, io::Initializer &I, doub
 }
 
 
-int main(){
+void Simulator::simulate(){
 
-	// ~~~~~~~~~~ Read Paramaters ~~~~~~~~~~~~~~~~~~~~~~~~~
-	string paramsFile = "tests/params/p.ini";
-	io::Initializer I(paramsFile);
-	I.readFile();
-	string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
-	string command = "mkdir -p " + out_dir;
-	string command2 = "cp " + paramsFile + " " + out_dir + "/p.ini";
-	int sysresult;
-	sysresult = system(command.c_str());
-	sysresult = system(command2.c_str());
-
-	bool save_state = (I.get<string>("saveState") == "yes")? true : false;
-	string state_outfile  = out_dir + "/" + I.get<string>("savedStateFile");
-	string config_outfile = out_dir + "/" + I.get<string>("savedConfigFile");
-
-	string continueFrom_stateFile = I.get<string>("continueFromState");
-	string continueFrom_configFile = I.get<string>("continueFromConfig");
-	bool   continuePrevious = (continueFrom_configFile != "null") && (continueFrom_stateFile != "null");
-
-	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
-
-	// Set up simulation start and end points
-	double y0 = I.getScalar("year0");
-	double yf = I.getScalar("yearf");
-	double ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
-
-	// ~~~~~~~~~~ Set up environment ~~~~~~~~~~~~~~~~~~~~~~~~~
-	PSPM_Dynamic_Environment E;
-	E.metFile = I.get<string>("metFile");
-	E.co2File = I.get<string>("co2File");
-	E.init();
-	E.print(0);
-	E.use_ppa = true;
-	E.update_met = true;
-	E.update_co2 = true;
-
-	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
-	string solver_method = I.get<string>("solver");
-	Solver S(solver_method, "rk45ck");
-	S.control.abm_n0 = 20;
-	S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
-	S.control.ifmu_centered_grids = false; //true;
-	S.control.ifmu_order = 1;
-	S.control.ebt_ucut = 1e-7;
-	S.use_log_densities = true;
-	S.setEnvironment(&E);
-
-
-	if (continuePrevious){
-		restoreState(&S, continueFrom_stateFile, continueFrom_configFile);
-		y0 = S.current_time; // replace y0
-	}
-	else {
-		// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
-		TraitsReader Tr;
-		Tr.readFromFile(I.get<string>("traitsFile"));
-		Tr.print();
-
-		// ~~~ Create initial resident species pool from traits file ~~~~
-		int nspp = I.getScalar("nSpecies");
-		// int res = I.getScalar("resolution");
-		for (int i=0; i<nspp; ++i){
-			addSpeciesAndProbes(&S, paramsFile, I,
-								I.getScalar("year0"), 
-								Tr.species[i].species_name, 
-								Tr.species[i].lma, 
-								Tr.species[i].wood_density, 
-								Tr.species[i].hmat, 
-								Tr.species[i].p50_xylem);
-		}
-
-		S.resetState(I.getScalar("year0"));
-		S.initialize();
-	} 
-
-//	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-
-	S.print();
-
-	SolverIO sio;
-	sio.S = &S;
-	sio.openStreams(out_dir, I);
-
-	// ~~~~~~~~~~ Set up seed rain calculation ~~~~~~~~~~~~~~~~~~~~~~~~~
-	double timestep = I.getScalar("timestep");
-	auto after_step = [&S, timestep](double t){
+	auto after_step = [this](double t){
 		calc_seed_output(t, S);
 		calc_r0(t, timestep, S);
 	};
 
-
-	SpeciesProps cwm;
-	EmergentProps props; 
-
-	// ~~~~~~~~~~ Simulate ~~~~~~~~~~~~~~~~~~~~~~~~~
-	double t_clear = 105000;
-	// t is years since 2000-01-01
-	double delta_T = I.getScalar("delta_T");
 	for (double t=y0; t <= yf; t=t+delta_T) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
@@ -296,12 +285,4 @@ int main(){
 		
 	}
 	
-	//S.print();
-	sio.closeStreams();
-
-	saveState(&S, state_outfile, config_outfile, paramsFile);
-
-	// free memory associated
-	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
 }
-
