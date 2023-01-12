@@ -11,6 +11,7 @@ using namespace std;
 
 int main(){
 
+	// reference run
 	{
 		Simulator sim("tests/params/p.ini");
 		sim.continuePrevious = false;
@@ -20,6 +21,7 @@ int main(){
 		sim.close();
 	}
 
+	// spinup run
 	{
 		Simulator sim("tests/params/p.ini");
 		sim.continuePrevious = false;
@@ -29,6 +31,7 @@ int main(){
 		sim.close();
 	}
 
+	// continuation run
 	{
 		Simulator sim("tests/params/p.ini");
 		sim.continuePrevious = true;
