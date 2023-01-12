@@ -4,6 +4,7 @@
 #include <solver.h>
 #include <vector>
 #include <string>
+#include <io_utils.h>
 #include "utils/moving_average.h"
 
 // Extend the Species class from libpspm to allow trait evolution
@@ -41,6 +42,10 @@ class MySpecies : public Species<Model>{
 	MovingAverager seeds_hist;
 	MovingAverager r0_hist;
 
+	public: 
+	/*NO_SAVE_RESTORE*/ std::string configfile_for_restore = "";  // Dont output this variable in save/restore. This is set by restoreState() to provide the saved config file for recreating cohorts  
+
+	public:
 	MySpecies(Model M, bool res=true);
 
 	void set_traits(std::vector<double> tvec);
@@ -54,6 +59,10 @@ class MySpecies : public Species<Model>{
 	void evolveTraits(double dt);
 
 	void print_extra();
+
+	void save(std::ofstream &fout);
+	void restore(std::ifstream &fin);
+
 };
 
 #include "trait_evolution.tpp"

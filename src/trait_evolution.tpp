@@ -83,7 +83,7 @@ void MySpecies<Model>::print_extra(){
 	std::cout << "Name: " << species_name << "\n";
 	std::cout << "Resident: " << ((isResident)? "Yes" : "No") << "\n";
 	std::cout << "Probes: ";
-	for (auto x : probes) std::cout << x << " ";
+	for (auto x : probes) std::cout << x->species_name << " ";
 	std::cout << "\n";
 	std::cout << "Fitness gradient: ";
 	for (auto x : fitness_gradient) std::cout << x << " ";
@@ -95,3 +95,70 @@ void MySpecies<Model>::print_extra(){
 	for (auto x : trait_scalars) std::cout << x << " ";
 	std::cout << "\n";     // these scalars will be applied to fg_dx
 }
+
+template <class Model>
+void MySpecies<Model>::save(std::ofstream &fout){
+	fout << "MySpecies<T>::v1\n";
+	
+	// save species-level data
+	fout << std::make_tuple(
+		      fg_dx
+			, std::quoted(species_name)
+			, isResident
+			, t_introduction
+			, invasion_fitness
+			, r0);
+	fout << '\n';
+
+	fout << fitness_gradient
+	     << trait_variance
+		 << trait_scalars
+		 << trait_names;  // trait names dont contain whitespaces, so safe to write this way
+	
+	// MovingAveragers
+	seeds_hist.save(fout);
+	r0_hist.save(fout);
+
+	// save traits from boundary cohort
+	this->getCohort(-1).traits.save(fout); 
+
+	Species<Model>::save(fout);
+}
+
+
+template <class Model>
+void MySpecies<Model>::restore(std::ifstream &fin){
+	std::cout << "Restoring MySpecies<Model>...\n";
+	std::string s; fin >> s; // discard version number
+	assert(s == "MySpecies<T>::v1");
+
+	if (configfile_for_restore == "") throw std::runtime_error("Config file has not been set");
+
+	// restore species-level data
+	fin >> fg_dx
+		>> std::quoted(species_name)
+		>> isResident
+		>> t_introduction
+		>> invasion_fitness
+		>> r0;
+	
+	fin >> fitness_gradient
+	    >> trait_variance
+		>> trait_scalars
+		>> trait_names;
+
+	// moving averagers go here
+	seeds_hist.restore(fin);
+	r0_hist.restore(fin);
+
+	// Create a Model object and restore all individual properties to this object
+	// This will be used to copy-construct the species
+	auto& C = this->getCohort(-1);
+	C.initParamsFromFile(configfile_for_restore);  
+	C.traits.restore(fin);
+	C.coordinateTraits();
+	C.traits.save(std::cout); std::cout.flush();
+
+	Species<Model>::restore(fin);
+}
+

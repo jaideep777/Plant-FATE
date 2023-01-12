@@ -2,13 +2,13 @@ library(tidyverse)
 rm(list=ls())
 
 output_dir = "pspm_output"
-prefix = "ELE"
+prefix = "test"
   
-solver = "HD_xx"#_old_params"
+solver = "spinup"#_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
-plot_trait_space = F
+plot_trait_space = T
 
 add_band = function(){
   polygon(x=c(2000,5000,5000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
@@ -34,6 +34,9 @@ x = exp(seq(log(0.01), log(10), length.out=100))
 names(dist)[1:2] = c("YEAR", "SPP")
 dist_amb = dist %>% filter(YEAR>1100 & YEAR<2000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
 dist_ele = dist %>% filter(YEAR>2100 & YEAR<3000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
+
+# dist_amb = dist %>% filter(YEAR == 1100) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
+# dist_ele = dist %>% filter(YEAR == 1101) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
 
 n_species = length(unique(dat2$PID))
 n_year = length(unique(dat2$YEAR))
@@ -221,7 +224,7 @@ p1 = traits %>%
   geom_point(aes(col=YEAR, size=RES), alpha=0.4)+
   scale_color_viridis_c(direction = -1)+
   scale_size("size_RES", range = c(0, 1.5))
-
+print(p1)
 
   
 # matplot(y=cbind(dat$ET), x=dat$YEAR, type="l", lty=1, col=c("blue"))

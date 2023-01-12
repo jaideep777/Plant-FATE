@@ -11,6 +11,7 @@ using namespace std;
 #include "trait_reader.h"
 #include "community_properties.h"
 #include "trait_evolution.h"
+#include "state_restore.h"
 
 
 inline double runif(double rmin=0, double rmax=1){
@@ -129,10 +130,25 @@ int main(){
 	I.readFile();
 	string out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
 	string command = "mkdir -p " + out_dir;
-	string command2 = "cp tests/params/p.ini " + out_dir;
+	string command2 = "cp " + paramsFile + " " + out_dir + "/p.ini";
 	int sysresult;
 	sysresult = system(command.c_str());
 	sysresult = system(command2.c_str());
+
+	bool save_state = (I.get<string>("saveState") == "yes")? true : false;
+	string state_outfile  = out_dir + "/" + I.get<string>("savedStateFile");
+	string config_outfile = out_dir + "/" + I.get<string>("savedConfigFile");
+
+	string continueFrom_stateFile = I.get<string>("continueFromState");
+	string continueFrom_configFile = I.get<string>("continueFromConfig");
+	bool   continuePrevious = (continueFrom_configFile != "null") && (continueFrom_stateFile != "null");
+
+	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
+
+	// Set up simulation start and end points
+	double y0 = I.getScalar("year0");
+	double yf = I.getScalar("yearf");
+	double ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
 	// ~~~~~~~~~~ Set up environment ~~~~~~~~~~~~~~~~~~~~~~~~~
 	PSPM_Dynamic_Environment E;
@@ -148,34 +164,40 @@ int main(){
 	string solver_method = I.get<string>("solver");
 	Solver S(solver_method, "rk45ck");
 	S.control.abm_n0 = 20;
-    S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
+	S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ifmu_order = 1;
 	S.control.ebt_ucut = 1e-7;
-    S.use_log_densities = true;
+	S.use_log_densities = true;
 	S.setEnvironment(&E);
-	
-	// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
-	TraitsReader Tr;
-	Tr.readFromFile(I.get<string>("traitsFile"));
-	Tr.print();
 
-	// ~~~ Create initial resident species pool from traits file ~~~~
-	int nspp = I.getScalar("nSpecies");
-	// int res = I.getScalar("resolution");
-	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
-	for (int i=0; i<nspp; ++i){
-		addSpeciesAndProbes(&S, paramsFile, I,
-		                    I.getScalar("year0"), 
-		                    Tr.species[i].species_name, 
-		                    Tr.species[i].lma, 
-		                    Tr.species[i].wood_density, 
-		                    Tr.species[i].hmat, 
-		                    Tr.species[i].p50_xylem);
+
+	if (continuePrevious){
+		restoreState(&S, continueFrom_stateFile, continueFrom_configFile);
+		y0 = S.current_time; // replace y0
 	}
+	else {
+		// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
+		TraitsReader Tr;
+		Tr.readFromFile(I.get<string>("traitsFile"));
+		Tr.print();
 
-	S.resetState(I.getScalar("year0"));
-	S.initialize();
+		// ~~~ Create initial resident species pool from traits file ~~~~
+		int nspp = I.getScalar("nSpecies");
+		// int res = I.getScalar("resolution");
+		for (int i=0; i<nspp; ++i){
+			addSpeciesAndProbes(&S, paramsFile, I,
+								I.getScalar("year0"), 
+								Tr.species[i].species_name, 
+								Tr.species[i].lma, 
+								Tr.species[i].wood_density, 
+								Tr.species[i].hmat, 
+								Tr.species[i].p50_xylem);
+		}
+
+		S.resetState(I.getScalar("year0"));
+		S.initialize();
+	} 
 
 //	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
 
@@ -184,7 +206,6 @@ int main(){
 	SolverIO sio;
 	sio.S = &S;
 	sio.openStreams(out_dir, I);
-
 
 	// ~~~~~~~~~~ Set up seed rain calculation ~~~~~~~~~~~~~~~~~~~~~~~~~
 	// double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
@@ -204,9 +225,6 @@ int main(){
 	// ~~~~~~~~~~ Simulate ~~~~~~~~~~~~~~~~~~~~~~~~~
 	double t_clear = 105000;
 	// t is years since 2000-01-01
-	double y0, yf;
-	y0 = I.getScalar("year0");
-	yf = I.getScalar("yearf");
 	double delta_T = I.getScalar("delta_T");
 	for (double t=y0; t <= yf; t=t+delta_T) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
@@ -228,7 +246,7 @@ int main(){
 	
 		// evolve traits
 		if (evolve_traits){
-			if (t > y0 + 120){
+			if (t > ye){
 				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
 				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
 			}
@@ -284,6 +302,8 @@ int main(){
 	
 	//S.print();
 	sio.closeStreams();
+
+	saveState(&S, state_outfile, config_outfile, paramsFile);
 
 	// free memory associated
 	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
