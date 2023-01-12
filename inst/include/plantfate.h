@@ -18,7 +18,10 @@
 class Simulator{
 	public:
 	std::string paramsFile;
-	std::string out_dir;
+	std::string parent_dir, expt_dir, out_dir;
+
+	std::string met_file;
+	std::string co2_file;
 
 	bool        save_state;
 	std::string state_outfile;
@@ -40,6 +43,8 @@ class Simulator{
 	double delta_T;
 	double timestep;
 
+	std::string solver_method;
+
 	io::Initializer          I;
 	Solver                   S;
 	PSPM_Dynamic_Environment E;
@@ -51,7 +56,7 @@ class Simulator{
 	public:
 	Simulator(std::string params_file);
 	
-	void init();
+	void init(double tstart, double tend);
 
 	void simulate();
 

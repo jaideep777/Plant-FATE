@@ -5,17 +5,14 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	paramsFile = params_file; // = "tests/params/p.ini";
 	I.readFile();
 
-	out_dir = I.get<string>("outDir") + "/" + I.get<string>("exptName");
+	parent_dir = I.get<string>("outDir");
+	expt_dir   = I.get<string>("exptName");
+	out_dir  = parent_dir  + "/" + expt_dir;
 	
-	string command = "mkdir -p " + out_dir;
-	string command2 = "cp " + paramsFile + " " + out_dir + "/p.ini";
-	int sysresult;
-	sysresult = system(command.c_str());
-	sysresult = system(command2.c_str());
-
 	save_state = (I.get<string>("saveState") == "yes")? true : false;
-	state_outfile  = out_dir + "/" + I.get<string>("savedStateFile");
-	config_outfile = out_dir + "/" + I.get<string>("savedConfigFile");
+
+	state_outfile  = I.get<string>("savedStateFile");
+	config_outfile = I.get<string>("savedConfigFile");
 
 	continueFrom_stateFile = I.get<string>("continueFromState");
 	continueFrom_configFile = I.get<string>("continueFromConfig");
@@ -23,16 +20,30 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 
 	evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
 
-	// Set up simulation start and end points
-	y0 = I.getScalar("year0");
-	yf = I.getScalar("yearf");
-	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
-	timestep = I.getScalar("timestep");
- 	delta_T = I.getScalar("delta_T");
+	timestep = I.getScalar("timestep");  // ODE Solver timestep
+ 	delta_T = I.getScalar("delta_T");    // Cohort insertion timestep
 
-	// Set up environment
-	E.metFile = I.get<string>("metFile");
-	E.co2File = I.get<string>("co2File");
+	met_file = I.get<string>("metFile");
+	co2_file = I.get<string>("co2File");
+
+	solver_method = I.get<string>("solver");
+}
+
+void Simulator::init(double tstart, double tend){
+	
+	string command = "mkdir -p " + out_dir;
+	string command2 = "cp " + paramsFile + " " + out_dir + "/p.ini";
+	int sysresult;
+	sysresult = system(command.c_str());
+	sysresult = system(command2.c_str());
+
+	y0 = tstart; //I.getScalar("year0");
+	yf = tend;   //I.getScalar("yearf");
+	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
+
+	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
+	E.metFile = met_file;
+	E.co2File = co2_file;
 	E.init();
 	E.print(0);
 	E.use_ppa = true;
@@ -40,20 +51,16 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	E.update_co2 = true;
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
-	string solver_method = I.get<string>("solver");
 	S = Solver(solver_method, "rk45ck");
 	S.control.abm_n0 = 20;
-	S.control.ode_ifmu_stepsize = I.getScalar("timestep"); //0.02; //0.0833333;
+	S.control.ode_ifmu_stepsize = timestep; //0.02; //0.0833333;
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ifmu_order = 1;
 	S.control.ebt_ucut = 1e-7;
 	S.use_log_densities = true;
 	S.setEnvironment(&E);
 
-}
-
-void Simulator::init(){
-
+	// Add species
 	if (continuePrevious){
 		restoreState(&S, continueFrom_stateFile, continueFrom_configFile);
 		y0 = S.current_time; // replace y0
@@ -69,7 +76,7 @@ void Simulator::init(){
 		// int res = I.getScalar("resolution");
 		for (int i=0; i<nspp; ++i){
 			addSpeciesAndProbes(&S, paramsFile, I,
-								I.getScalar("year0"), 
+								y0, 
 								Tr.species[i].species_name, 
 								Tr.species[i].lma, 
 								Tr.species[i].wood_density, 
@@ -77,7 +84,7 @@ void Simulator::init(){
 								Tr.species[i].p50_xylem);
 		}
 
-		S.resetState(I.getScalar("year0"));
+		S.resetState(y0);
 		S.initialize();
 	} 
 
@@ -94,7 +101,10 @@ void Simulator::close(){
 	//S.print();
 	sio.closeStreams();
 
-	saveState(&S, state_outfile, config_outfile, paramsFile);
+	saveState(&S, 
+	          out_dir + "/" + state_outfile, 
+			  out_dir + "/" + config_outfile, 
+			  paramsFile);
 
 	// free memory associated
 	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 

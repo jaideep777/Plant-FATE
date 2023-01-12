@@ -1,20 +1,9 @@
 library(tidyverse)
 rm(list=ls())
 
-# 1. for reference data:
-# In p.ini, Set folder to test_ref, year0 to 1000, yearf to 1350, continueFrom to null
-# 
-# 2. for spinup data:
-# In p.ini, Set folder to test_spinup, year0 to 1000, yearf to 1200, continueFrom to null
-# 
-# 3. for main data:
-# In p.ini, Set folder to test_main, year0 to <anything>, yearf to 1350, continueFrom to saved state file
-
-ref_dir = "pspm_output/test_ref"
-
-spinup_dir = "pspm_output/test_spinup"
-main_dir   = "pspm_output/test_main"
-
+ref_dir = "pspm_output2/cont_test_ref"
+spinup_dir = "pspm_output2/cont_test_spinup"
+main_dir   = "pspm_output2/cont_test_main"
 
 setwd(paste0("~/codes/Plant-FATE/",spinup_dir))
 dat2_spin = read.delim("AmzFACE_Y_PFATE_ELE_HD.txt")
