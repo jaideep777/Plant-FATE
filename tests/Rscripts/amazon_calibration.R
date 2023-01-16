@@ -1,10 +1,10 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output"
-prefix = "test"
+output_dir = "pspm_output_old"
+prefix = "ELE"
   
-solver = "main_ref2"#_old_params"
+solver = "HD"#_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = F
@@ -14,8 +14,8 @@ add_band = function(){
   polygon(x=c(2000,5000,5000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
 }
 
-add_hband = function(ylim, col=scales::alpha("grey30",0.2)){
-  polygon(y=c(ylim[1],ylim[2],ylim[2],ylim[1]), x=c(-1e20,-1e20,2000,2000), border = NA, col=col)
+add_hband = function(ylim, col=scales::alpha("grey30",0.2), xlim=c(-1e20,2000)){
+  polygon(y=c(ylim[1],ylim[2],ylim[2],ylim[1]), x=c(xlim[1],xlim[1],xlim[2],xlim[2]), border = NA, col=col)
 }
 
 # seeds1 = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
@@ -269,4 +269,50 @@ cowplot::plot_grid(p2,p3,p4, align="hv")
 )
 if (plot_to_file) dev.off()
 
+}
+
+
+#### Sample results  ####
+plot_sample=F
+
+if (plot_sample){
+par(mfrow=c(1,3), mar=c(5,6,4,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(3.2,1,0), las=1)
+
+with(dat %>% filter(YEAR<1200), matplot(y=cbind(GPP, NPP)*1e-3*365, x=YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC m-2 yr-1)", xlab="Time (years)"))
+# abline(h=c(3,3.5), col="grey")
+add_hband(c(3,3.5), col=scales::alpha("black",0.2))
+add_hband(c(1.31,1.4), col=scales::alpha("black", 0.4))#, col=scales::alpha("black",0.3))
+# abline(h=c(1.31), col=scales::muted("green3"))
+mtext(text = "CO2 Fluxes", side=3, line=1)
+
+traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.005), las=0, main="", xlab="Wood density", col=NA, lwd=2)
+traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% polygon(col=scales::alpha("grey30", 0.2), border=scales::alpha("grey30",0.4))
+dat2 %>% select(YEAR, PID, BA) %>%
+  left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>%
+  filter(YEAR == 2000) %>%
+  with(density(x =WD, weights=BA/sum(BA))) %>% points(col="black", type="l", lwd=1.5)
+mtext(text = "Sample\ntrait distribution", side=3, line=1)
+
+
+matplot(y=cbind(as.numeric(dist_amb[gtools::mixedsort(names(dist_amb))][-1])
+)*1e-2*1e4, # Convert stems m-1 m-2 --> stems cm-1 ha-1
+x=x, type="l", log="y", lty=1, col=c("black", "yellow3"),
+xlim=c(0.01, 1.2), ylim=c(1e-4, 1000), ylab="Density\n(stems cm-1 ha-1)", xlab="Diameter (m)", las=0)
+
+# abline(v=1, col=scales::alpha("red", 0.2))
+
+xobs = c(15,25,35,45,55,65,75,85,95,105)/100
+# Data for Manaus from https://link.springer.com/article/10.1007/s00442-004-1598-z
+yobs=c(350.5221340921042,
+       132.41927918860426,
+       62.62503296462008,
+       29.61724892214378,
+       15.095996574802413,
+       5.702923697662178,
+       2.3219542502889836,
+       1.5968055466971947,
+       0.7006940913385968,
+       0.5597156879584093)/10
+points(yobs~xobs, pch=20, col=scales::alpha("grey30", 0.4), cex=1.7)
+mtext(text = "Size distribution", side=3, line=1)
 }
