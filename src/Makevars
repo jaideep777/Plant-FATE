@@ -1,0 +1,41 @@
+CXX_STD = CXX17
+
+# include and lib dirs (esp for cuda)
+INC_PATH :=  -I../inst/include -I../src -I../../phydro/inst/include -I../../libpspm/include -isystem ../../phydro/inst/LBFGSpp/include -isystem 
+
+# flags
+PKG_CXXFLAGS = -O3 -g -pg -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY
+PKG_LDFLAGS =  -g -pg -fPIC
+
+PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
+-Wno-unused-but-set-variable -Wno-float-conversion \
+-Wno-unused-parameter
+
+PKG_CPPFLAGS = $(INC_PATH)
+
+
+SOURCES = plant_geometry.cpp \
+          assimilation.cpp \
+          plant.cpp \
+          light_environment.cpp \
+          climate.cpp
+
+# Obtain the object files
+OBJECTS=$(SOURCES:.cpp=.o) 
+
+.PHONY: all libpspm
+
+# Make the shared object
+all: $(SHLIB)
+
+$(SHLIB): libpspm
+
+## This can be used in this way to build libpspm during package install
+libpspm:
+#	(cd ../../libpspm; $(MAKE))
+
+# Provide recipe to remove all objects
+clean:
+	@rm -f $(OBJECTS)
+#	(cd ../../libpspm; $(MAKE) clean)
+	
