@@ -60,18 +60,11 @@ std::vector<double> Plant::get_evolvableTraits(){
 
 
 void Plant::print(){
-	cout << "Plant:\n";
+	cout << "Plant size:\n";
 	cout << "  height = " << geometry.height << "\n";
 	cout << "  diameter = " << geometry.diameter << "\n";
 	cout << "  crown_area = " << geometry.crown_area << "\n";
-	cout << "  a = " << geometry.geom.a << "\n";
-	cout << "  c = " << geometry.geom.c << "\n";
-	cout << "  K_leaf = " << traits.K_leaf << "\n";
-	cout << "  lma = " << traits.lma << "\n";
-	cout << "  hmat = " << traits.hmat << "\n";
-	cout << "  wd = " << traits.wood_density << "\n";
-	cout << "  p50 = " << traits.p50_xylem << "\n";
-
+	traits.print();
 }
 
 	

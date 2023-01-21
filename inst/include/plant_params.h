@@ -86,10 +86,27 @@ class PlantTraits{
 					, K_leaf      
 					, K_xylem     
 					, b_leaf      
-					, b_xylem
+					, b_xylem      
 					);
 		fout << '\n';
 	}
+
+	void print(){
+		std::cout << "Traits:\n";
+		std::cout << "   lma          = " << lma          << '\n';
+		std::cout << "   zeta         = " << zeta         << '\n';
+		std::cout << "   fcr          = " << fcr          << '\n';
+		std::cout << "   hmat         = " << hmat         << '\n';
+		std::cout << "   fhmat        = " << fhmat        << '\n';
+		std::cout << "   seed_mass    = " << seed_mass    << '\n';
+		std::cout << "   wood_density = " << wood_density << '\n';
+		std::cout << "   p50_xylem    = " << p50_xylem    << '\n';
+		std::cout << "   K_leaf       = " << K_leaf       << '\n';
+		std::cout << "   K_xylem      = " << K_xylem      << '\n';
+		std::cout << "   b_leaf       = " << b_leaf       << '\n';
+		std::cout << "   b_xylem      = " << b_xylem      << '\n';
+	}
+
 
 	void restore(std::istream &fin){
 		std::string s; fin >> s; // discard version number

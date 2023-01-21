@@ -21,6 +21,10 @@ class LifeHistoryOptimizer{
 	plant::Plant P;
 	ErgodicEnvironment C;
 
+	std::string params_file;
+	std::string met_file = "";
+	std::string co2_file = "";
+
 	double dt = 0.1; 
 
 	double rep;
@@ -35,6 +39,10 @@ class LifeHistoryOptimizer{
 	void printHeader(std::ostream &lfout);
 
 	void printState(double t, std::ostream& lfout);
+	void printPlant();
+
+	void set_traits(std::vector<double> tvec);
+	std::vector<double> get_traits();
 
 	void set_state(std::vector<double>::iterator it);
 

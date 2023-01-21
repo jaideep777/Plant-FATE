@@ -22,15 +22,15 @@ void LifeHistoryOptimizer::init(){
 
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
 	P = plant::Plant();
-	P.initParamsFromFile("tests/params/p.ini");
+	P.initParamsFromFile(params_file);
 	P.geometry.set_lai(1);
 	P.set_size(0.01);
 	// Simulation below starts at seedling stage. So account for survival until seedling stage
 	P.state.mortality = -log(P.p_survival_dispersal(C)*P.p_survival_germination(C)); // p{fresh seed is still alive after germination} = p{it survives dispersal}*p{it survives germination}
 
-	double total_prod = P.get_biomass();
-	cout << "Starting biomass = " << total_prod << "\n";
-	cout << "Mortality until seedling stage = " << P.state.mortality << "\n";
+	// double total_prod = P.get_biomass();
+	// cout << "Starting biomass = " << total_prod << "\n";
+	// cout << "Mortality until seedling stage = " << P.state.mortality << "\n";
 
 }
 
@@ -106,6 +106,22 @@ void LifeHistoryOptimizer::printState(double t, ostream& lfout){
 			"\n";
 }
 
+
+void LifeHistoryOptimizer::set_traits(std::vector<double> tvec){
+	P.set_evolvableTraits(tvec);
+}
+
+
+std::vector<double> LifeHistoryOptimizer::get_traits(){
+	return P.get_evolvableTraits();
+}
+
+
+void LifeHistoryOptimizer::printPlant(){
+	P.print();
+}
+
+
 void LifeHistoryOptimizer::set_state(vector<double>::iterator it){
 	P.geometry.set_lai(*it++);
 	P.set_size(*it++);
@@ -153,7 +169,6 @@ void LifeHistoryOptimizer::grow_for_dt(double t, double dt){
 
 
 double LifeHistoryOptimizer::calcFitness(){
-	init();
 	// lho_set_traits(tvec);
 	for (double t=2000; t<=2500; t=t+dt){
 		grow_for_dt(t, dt);

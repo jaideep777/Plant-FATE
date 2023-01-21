@@ -1,10 +1,10 @@
 CXX_STD = CXX17
 
 # include and lib dirs (esp for cuda)
-INC_PATH :=  -I../inst/include -I../src -I../../phydro/inst/include -I../../libpspm/include -isystem ../../phydro/inst/LBFGSpp/include -isystem 
+INC_PATH :=  -I../inst/include -I../src -I../../phydro/inst/include -I../../libpspm/include -isystem ../../phydro/inst/LBFGSpp/include
 
 # flags
-PKG_CXXFLAGS = -O3 -g -pg -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY
+PKG_CXXFLAGS = -O3 -g -pg -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY -DUSING_RCPP_PF
 PKG_LDFLAGS =  -g -pg -fPIC
 
 PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
@@ -13,12 +13,15 @@ PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 
 PKG_CPPFLAGS = $(INC_PATH)
 
+PKG_LIBS = -lgsl -lgslcblas
 
 SOURCES = plant_geometry.cpp \
           assimilation.cpp \
           plant.cpp \
           light_environment.cpp \
-          climate.cpp
+          climate.cpp \
+          treelife.cpp \
+          r_interface.cpp
 
 # Obtain the object files
 OBJECTS=$(SOURCES:.cpp=.o) 

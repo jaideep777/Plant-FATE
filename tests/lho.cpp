@@ -23,8 +23,15 @@ int main(){
 	// 	fswp << C.v_met_swp[t] << "\n";
 	// }
 	
+	cout << setprecision(12);
+	
 	LifeHistoryOptimizer lho;
+	lho.params_file = "tests/params/p.ini";
 	lho.init();
+	double total_prod = lho.P.get_biomass();
+	cout << "Starting biomass = " << total_prod << "\n";
+	cout << "Mortality until seedling stage = " << lho.P.state.mortality << "\n";
+
 	lho.C.print(0);
 
 	ofstream fout("assim1.txt");
@@ -38,7 +45,6 @@ int main(){
 	// fswp.close();
 
 	cout << "At last t: " << "\n" 
-		 << setprecision(12) 
 		 << "  Total biomass    = " << lho.P.get_biomass() << "\n"
 		 << "  Total litter     = " << lho.litter_pool << "\n"
 		 << "  Total reproduc   = " << lho.rep << "\n"
@@ -50,6 +56,10 @@ int main(){
 	cout << "Relative error in biomass accounting = " << rel_error << endl;
 	if (rel_error > 2e-5) return 1;
 	
+	lho.init();
+	total_prod = lho.P.get_biomass();
+	cout << "Starting biomass = " << total_prod << "\n";
+	cout << "Mortality until seedling stage = " << lho.P.state.mortality << "\n";
 	double fitness = lho.calcFitness();
 	cout << "After calcFitness(): " << "\n" 
 		 << setprecision(12) 
