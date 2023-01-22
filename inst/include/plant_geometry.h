@@ -1,6 +1,7 @@
 #ifndef PLANT_FATE_PLANT_GEOMETRY_H_
 #define PLANT_FATE_PLANT_GEOMETRY_H_
 
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "plant_params.h"

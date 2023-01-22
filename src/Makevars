@@ -4,8 +4,8 @@ CXX_STD = CXX17
 INC_PATH :=  -I../inst/include -I../src -I../../phydro/inst/include -I../../libpspm/include -isystem ../../phydro/inst/LBFGSpp/include
 
 # flags
-PKG_CXXFLAGS = -O3 -g -pg -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY -DUSING_RCPP_PF
-PKG_LDFLAGS =  -g -pg -fPIC
+PKG_CXXFLAGS = -O3 -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY -DUSING_RCPP_PF
+PKG_LDFLAGS =  -fPIC
 
 PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-but-set-variable -Wno-float-conversion \
@@ -13,7 +13,7 @@ PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 
 PKG_CPPFLAGS = $(INC_PATH)
 
-PKG_LIBS = -lgsl -lgslcblas
+PKG_LIBS = 
 
 SOURCES = plant_geometry.cpp \
           assimilation.cpp \

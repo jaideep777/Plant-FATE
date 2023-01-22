@@ -27,6 +27,7 @@ gprof2dot.py
 *.o
 *.so
 *.cu_o
+*.dll
 exec_*
 
 *.txt
