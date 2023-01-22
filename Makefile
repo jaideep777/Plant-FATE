@@ -54,7 +54,7 @@ CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-parameter
 
 # libs
-LIBS = 	 -lgsl -lgslcblas -lpspm	# additional libs
+LIBS = 	 -lpspm	# additional libs
 #LIBS = -lcudart 			# cuda libs
 
 # files
