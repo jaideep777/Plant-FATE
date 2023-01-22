@@ -3,7 +3,7 @@
 TARGET := 1
 
 # files
-SRCFILES  :=  $(filter-out src/RcppExports.cpp, $(wildcard src/*.cpp))
+SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp))
 HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 # ------------------------------------------------------------------------------
 
@@ -18,11 +18,11 @@ ROOT_DIR := ${shell dirname ${shell pwd}}
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
-INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -I$(ROOT_DIR)/libpspm/include -isystem /usr/include/eigen3
+INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags
-CPPFLAGS = -O3 -g -pg -std=c++17 -Wall -Wextra
+CPPFLAGS = -O3 -g -pg -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY
 LDFLAGS =  -g -pg
 
 ## -Weffc++
