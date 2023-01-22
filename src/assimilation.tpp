@@ -87,7 +87,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	//std::cout << "---\nCA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 	// calculate yearly averages in mol/yr	
-	// the factor 1.18 accounts for the non-linearity in the light response in the P-hydro model
+	// the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
 	double f_light_day = 1.18*env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
 	double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
 	double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
@@ -105,21 +105,22 @@ PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, 
 	plant_assim = PlantAssimilationResult(); // reset plant_assim
 
 	calc_plant_assimilation_rate(env, G, par, traits); // update plant_assim
-	   
+	les_update_lifespans(G->lai, par, traits);
+
 	plant_assim.rleaf = leaf_respiration_rate(G,par,traits);      // kg yr-1  
 	plant_assim.rroot = root_respiration_rate(G, par,traits);     // kg yr-1
 	plant_assim.rstem = sapwood_respiration_rate(G, par,traits);  // kg yr-1
 	
-	plant_assim.tleaf = leaf_turnover_rate(G, par,traits);  // kg yr-1
-	plant_assim.troot = root_turnover_rate(G, par,traits);  // kg yr-1
+	plant_assim.tleaf = leaf_turnover_rate(kappa_l, G, par,traits);  // kg yr-1
+	plant_assim.troot = root_turnover_rate(kappa_r, G, par,traits);  // kg yr-1
 	
 	double A = plant_assim.gpp;
-	//if (G->height > 15) std::cout << "h/A = " << G->height << " / " << A/G->crown_area << std::endl;
 	double R = plant_assim.rleaf + plant_assim.rroot + plant_assim.rstem;
 	double T = plant_assim.tleaf + plant_assim.troot;
 
 	plant_assim.npp = par.y*(A-R) - T; // net biomass growth rate (kg yr-1)
 
+	// if (G->height > 15) std::cout << "h/A = " << G->height << " / " << A/G->crown_area << std::endl;
 	// if (env.n_layers > 1 && G->height < 5) std::cout << "h/L/ml/mr | A/R/T/Vc = " << G->height << " / " << G->lai << " / " << G->leaf_mass(traits) << " / " << G->root_mass(traits) << " | " << A << " / " << R << " / " << T << " / " << plant_assim.vcmax_avg << "\n"; 
 	// std::cout.flush();
 	return plant_assim;

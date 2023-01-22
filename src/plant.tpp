@@ -14,16 +14,17 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	double dnpp_dL = (res_plus.npp - res.npp)/geometry.crown_area/par.dl;
 	double dgpp_dL = (res_plus.gpp - res.gpp)/geometry.crown_area/par.dl;
 	double dE_dL = (res_plus.trans - res.trans)/geometry.crown_area/par.dl;
+//	double ddpsi_dL = dE_dL * viscosity / (traits.K_xylem * phydro::P(env.clim.swp, traits.p50_xylem, traits.b_xylem)); // FIXME: Need proper unit conversion
 
 	double dL_dt = 0;
-	if (par.optimize_lai) dL_dt = par.response_intensity*(dgpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma);
+	if (par.optimize_lai) dL_dt = par.response_intensity*(dnpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma); // FIXME: This condition can be applied to the whole block
 	//std::cout << "dnpp_dL = " << dnpp_dL << ", dE_dL = " << 0.001*dE_dL << ", Cc = " << traits.K_leaf << "\n";
 	
 	if (lai_curr < 0.1) dL_dt = 0;  // limit to prevent LAI going negative
 	
 	// calculate and constrain rate of LAI change
 	double max_alloc_lai = par.max_alloc_lai * _dmass_dt_tot; // if npp is negative, there can be no lai increment. if npp is positive, max 10% can be allocated to lai increment
-	bp.dmass_dt_lai = geometry.dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
+	bp.dmass_dt_lai = geometry.dmass_dt_lai(dL_dt, max_alloc_lai, traits);  // biomass change resulting from LAI change  
 
 	return dL_dt;
 }
@@ -61,43 +62,43 @@ double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 template<class Env>
 double Plant::mortality_rate(Env &env, double t){
 	double D = geometry.diameter;
-	double dDs = par.mS0*exp(-rates.rgr*par.mS); //-log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
-	double dDd = exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
-//	std::cout << "H = " << geometry.height << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
-	//return par.mI + par.mD*dDd*(1+dDs);
+// 	double dDs = par.mS0*exp(-rates.rgr*par.mS); //-log(par.mS0 + rates.rgr*par.mS); //exp(-par.mS * bp.dmass_dt_growth/geometry.crown_area); // Falster-like mortality rate
+// 	double dDd = exp(-par.mD_e*log(D)); //0.1/(1+rates.rgr/0.1);
+// //	std::cout << "H = " << geometry.height << ", RGR = " << rates.rgr << ", Mortality growth-dependent = " << dD2 << "\n";
+// 	//return par.mI + par.mD*dDd*(1+dDs);
 
-//	double wd = (traits.wood_density/1000);
-//	double dI = exp(-5);
-//	double mu_rgr = exp(-par.mS*rates.rgr);
-//	double mu_d   = exp(-0.3*log(D) + 0.1*D - 1.48*wd*wd);
-//	return dI*(mu_d + mu_rgr);
+// //	double wd = (traits.wood_density/1000);
+// //	double dI = exp(-5);
+// //	double mu_rgr = exp(-par.mS*rates.rgr);
+// //	double mu_d   = exp(-0.3*log(D) + 0.1*D - 1.48*wd*wd);
+// //	return dI*(mu_d + mu_rgr);
 	
-//	double wd = (traits.wood_density/1000);
-//	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
-//	return mu_d;
+// //	double wd = (traits.wood_density/1000);
+// //	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
+// //	return mu_d;
 	double mu = 0;
 	
-	double r = par.c0 + 
-	            par.cL*log(res.c_open_avg*100) + 
-	            par.clnD*log(D*1000) + 
-				par.cD*(D*1000) + 
-	            par.cG*log(rates.rgr*D*1000) + 
-	        //    par.cWD*(traits.wood_density - par.cWD0)+
-			   par.cS0*exp(-res.npp/1);
+// 	double r = par.c0 + 
+// 	            par.cL*log(res.c_open_avg*100) + 
+// 	            par.clnD*log(D*1000) + 
+// 				par.cD*(D*1000) + 
+// 	            par.cG*log(rates.rgr*D*1000) + 
+// 	        //    par.cWD*(traits.wood_density - par.cWD0)+
+// 			   par.cS0*exp(-res.npp/1);
 	
-	// Adding Hydraulic Mortality function to overall mortality rate
-//	double c = 2;
-//	double h = c*(1-pow(0.5,((env.inst_swp(t)/(3*traits.p50_xylem)))));
-//	//fmuh << env.inst_swp(t) << "\t" << h << "\t";
-//	
-//	
-//	mu += h;
-	mu += 1/(1+exp(-(r)));
-	//fmuh << mu << "\n";
+// 	// Adding Hydraulic Mortality function to overall mortality rate
+// //	double c = 2;
+// //	double h = c*(1-pow(0.5,((env.inst_swp(t)/(3*traits.p50_xylem)))));
+// //	//fmuh << env.inst_swp(t) << "\t" << h << "\t";
+// //	
+// //	
+// //	mu += h;
+// 	mu += 1/(1+exp(-(r)));
+// 	//fmuh << mu << "\n";
 
 	mu = par.m_gamma*pow(traits.wood_density/600, -1.8392) + 
 	     par.m_alpha*pow(traits.wood_density/600, -1.1493)*exp(-par.m_beta * rates.rgr*D*100) +
-		 par.cD0*(D*D) + 
+		 par.cD0*pow(D, 1.3) + 
 		 par.cD1*exp(-D/0.01);
 
 	assert(mu>=0);
@@ -115,7 +116,7 @@ double Plant::mortality_rate(Env &env, double t){
 
 template<class Env>
 double Plant::fecundity_rate(double _dmass_dt_rep, Env &env){
-	return _dmass_dt_rep/(4*traits.seed_mass);
+	return _dmass_dt_rep/(4*traits.seed_mass); // factor 4 accounts for ancillary costs of seed production, e.g. dispersal/protective structures
 }
 
 template<class Env>
@@ -131,15 +132,13 @@ void Plant::calc_demographic_rates(Env &env, double t){
 	partition_biomass(bp.dmass_dt_tot, bp.dmass_dt_lai, env); 
 
 	// set core rates
-	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env);
+	rates.dsize_dt  = size_growth_rate(bp.dmass_dt_growth, env); // also sets rates.rgr
 	rates.dmort_dt  = mortality_rate(env, t);
 
-	double fec = fecundity_rate(bp.dmass_dt_rep, env)*exp(-state.mortality);
-	state.f_m = fec;
-	state.f = fecundity_rate(bp.dmass_dt_rep, env);
-	rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
-	rates.dseeds_dt_germ =   state.seed_pool/par.ll_seed;   // seeds that leave seed pool proceed for germincation
-	// need to add seed decay
+	double fec = fecundity_rate(bp.dmass_dt_rep, env);
+	// rates.dseeds_dt_pool =  -state.seed_pool/par.ll_seed  +  fec * p_survival_dispersal(env);  // seeds that survive dispersal enter seed pool
+	// rates.dseeds_dt_germ =   state.seed_pool/par.ll_seed;   // seeds that leave seed pool proceed for germincation
+	rates.dseeds_dt = fec;
 }
 
 
@@ -178,7 +177,8 @@ void Plant::partition_biomass(double dm_dt_tot, double dm_dt_lai, Env &env){
 	bp.dmass_dt_growth = dmass_growth_dmass * dmass_dt_nonlai;
 
 	// consistency check - see that all biomass allocations add up as expected
-	assert(fabs(bp.dmass_dt_tot - (bp.dmass_dt_lai + bp.dmass_dt_lit + bp.dmass_dt_rep + bp.dmass_dt_growth)) < 1e-6);
+	double dmass_dt_allocated = bp.dmass_dt_lai + bp.dmass_dt_lit + bp.dmass_dt_rep + bp.dmass_dt_growth;
+	assert(fabs(bp.dmass_dt_tot - dmass_dt_allocated) < 1e-6);
 
 	//return {rates.dmass_dt_tot, rates.dlai_dt, rates.dsize_dt, rates.dmass_dt_lit, rates.dmass_dt_rep};
 }

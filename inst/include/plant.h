@@ -9,29 +9,34 @@
 
 namespace plant{
 
+/// @defgroup physiology Physiology
+/// @brief    This is a collection of classes which implement the core physiology of the plants in Plant-FATE.
+
+/// @brief   The class for an individual plant
+/// @ingroup physiology
 class Plant{
 	public:
-	// ** core state variables **
+
+	/// @brief Residual variables integrated via the ODE solver go in here. 
 	struct{
 		//double lai;         // these are in geometry 
 		//double size;
-		double mortality = 0;     // cummulative mortality
-		double seed_pool = 0;
-		double f_m = 0;
-		double f = 0; // seed pool size  // FIXME: This needs to be a species characteristic if nonlinearities come in, e.g. environmentally dependent germination
+		double mortality = 0;     ///< Cummulative mortality
+		//double seed_pool = 0;
 	} state;
 	
-	// ** core rates **
+	/// @brief Core demographic rates
 	struct{
-		double dlai_dt;
-		double dsize_dt;
-		double dmort_dt;
-		double dseeds_dt_pool;
-		double dseeds_dt_germ;
-		double rgr;
+		double dlai_dt;    ///< Rate of change of LAI
+		double dsize_dt;   ///< Growth rate
+		double dmort_dt;   ///< Mortality rate
+		double dseeds_dt;  ///< Fecundity rate 
+		double rgr;        ///< Relative growth rate (RGR)
+		// double dseeds_dt_pool;
+		// double dseeds_dt_germ;
 	} rates;	
 		
-	// results of biomass partitioning
+	/// @brief Derivatives used for biomass partitioning
 	struct {
 		double dmass_dt_lai;
 		double dmass_dt_rep;
@@ -40,46 +45,57 @@ class Plant{
 		double dmass_dt_tot;
 	} bp;
 
-
+	/// @brief Result of whole-plant assimilation calculation, returned by Assimilator::calc_plant_assimilation_rate()
 	PlantAssimilationResult res;
-
-	// seed output history
-	//MovingAverager seeds_hist;
 
 	public:
 	//std::ofstream fmuh; // Cannot use streams here because we need copy-constructor for Plants, which in turn would need a copy constructor for streams, which is deleted.
-	PlantTraits traits;
-	PlantParameters par;
+	PlantTraits traits;   ///< Collection of all functional traits
+	PlantParameters par;  ///< Collection of all model parameters that are not traits
 
-	Assimilator assimilator; // to use pointers here, need to apply rule of 5
+	Assimilator assimilator; 
 	PlantGeometry geometry;
 	
 	public:
-//	Plant(){
-//		fmuh.open("muh.txt");
 
-//		fmuh << "swp" << "\t"
-//			 << "h" <<"\t"
-//		 	 << "mu" << "\n";
-//	};
-//	~Plant();
-//	Plant(const Plant &P);  // we need a copy constructor to correctly set geometry and assimilator pointers
-
+	/// @brief  This function initializes the plant (traits, par, and geometry) from ini file
 	void initParamsFromFile(std::string file);
+
+	
+	/// @brief Set traits that are calculated from other traits (e.g., leaf_p50, a, c)
 	void coordinateTraits();
 	
-	void set_size(double x);
 
-	double get_biomass() const;
+	/// @addtogroup trait_evolution
+	/// @{
+	/// @brief Set values for evolvable traits from vector
+	void set_evolvableTraits(std::vector<double> tvec);
+	/// @brief Return values of evolvable traits in a vector
+	std::vector<double> get_evolvableTraits();
+	/// @}
+
+
+	/// @brief  Set size (diameter and all associated variables) from x
+	void set_size(double x); // FIXME: Is this function really needed?! 
+	/// @brief  Get plant biomass 
+	double get_biomass() const; // FIXME: Is this function really needed?! 
 	
-	// LAI model
+
+	/// @brief LAI model
 	template<class Env>
 	double lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env &env);
 
+
+	/// @brief  Partition total biomass dm_dt_tot into various carbon pools
+	/// @param dm_dt_tot  Total biomass to partition
+	/// @param dm_dt_lai  Biomass that goes into LAI increment
 	template<class Env>
 	void partition_biomass(double dm_dt_tot, double dm_dt_lai, Env &env);
 
-	// demographics
+
+	// Core demographic rates
+	/// @addtogroup libpspm_interface
+	/// @{
 	template<class Env>
 	double size_growth_rate(double _dmass_dt_growth, Env &env);
 
@@ -91,66 +107,19 @@ class Plant{
 
 	template<class Env>
 	void calc_demographic_rates(Env &env, double t);
+	/// @}
 
+
+	/// @brief  Probability of survival during germination (i.e. until recruitment stage)
 	template<class Env>
 	double p_survival_germination(Env &env);
 
+	/// @brief  Probability of survival during dispersal
 	template<class Env>
 	double p_survival_dispersal(Env &env);
 
 
 	void print();
-
-	// ** 
-	// ** Simple growth simulator for testing purposes
-	// ** - grows plant over dt with constant assimilation rate A
-	// ** 
-	template<class Env>
-	void grow_for_dt(double t, double dt, Env &env, double &prod, double &rep, double &litter_pool, double &germinated){
-
-		auto derivs = [&env, &prod, &rep, &litter_pool, &germinated, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
-			//if (fabs(t - 2050) < 1e-5) 
-			//env.updateClimate(t);
-
-			geometry.set_lai(S[0]);
-			set_size(S[1]);
-//			this->geometry.set_state(S.begin(), traits);
-			prod = S[2];
-			litter_pool = S[3];
-			rep = S[4];
-			state.seed_pool = S[5];
-			germinated = S[6];
-			state.mortality = S[7];
-
-			calc_demographic_rates(env, t);
-			
-			dSdt[0] = rates.dlai_dt;       // lai growth rate
-//			dSdt[1] = rates.dcroot_dt;    // growth rate of coarse root biomass
-			dSdt[1] = rates.dsize_dt;    // size (diameter) growth rate
-			dSdt[2] = bp.dmass_dt_tot;	   // biomass production rate
-			dSdt[3] = bp.dmass_dt_lit;  // litter biomass growth rate
-			dSdt[4] = bp.dmass_dt_rep; //(1-fg)dBdt;  // reproduction biomass growth rate
-			dSdt[5] = rates.dseeds_dt_pool;
-			dSdt[6] = rates.dseeds_dt_germ;
-			dSdt[7] = rates.dmort_dt;
-		};
-
-		std::vector<double> S = {geometry.lai, geometry.get_size(), prod, litter_pool, rep, state.seed_pool, germinated, state.mortality};
-		RK4(t, dt, S, derivs);
-		//Euler(t, dt, S, derivs);
-		geometry.set_lai(S[0]);
-		set_size(S[1]);
-//		geometry.set_state(S.begin(), traits);
-		prod = S[2];
-		litter_pool = S[3];
-		rep = S[4];
-		state.seed_pool = S[5];
-		germinated = S[6];
-		state.mortality = S[7];
-		//seeds_hist.push(t+dt, rates.dseeds_dt_germ);
-		//seeds_hist.print();
-
-	}
 
 };
 

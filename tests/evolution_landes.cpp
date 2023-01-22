@@ -43,6 +43,16 @@ class Species{
 		isResident = res;
 	}
 	
+	void createVariants(){
+		vector<double> traits = get_traits();
+		for (int i=0; i<traits.size(); ++i){
+			vector<double> traits_mutant = traits;
+			traits_mutant[i] += fg_dx;
+			Species * s = new Species(traits_mutant, 0.02, false);
+			probes.push_back(s);
+		}
+	}
+
 	void evolveTraits(double dt){
 		vector<double> traits_res = get_traits();
 		vector<double> dx(traits_res.size());
@@ -80,6 +90,10 @@ class Solver{
 	vector<Species*> species_vec;
 	double t =0;
 
+	void addSpecies(Species *s){
+		species_vec.push_back(s);
+	}
+
 	void createRandomResidents(int n){
 		for (int i=0; i<n; ++i){
 			double r = double(rand())/RAND_MAX*0.9;
@@ -91,21 +105,6 @@ class Solver{
 		}
 	}
 
-	void createProbes(){
-		for (auto spp : species_vec){
-			vector<double> traits = spp->get_traits();
-			for (int i=0; i<traits.size(); ++i){
-				vector<double> traits_mutant = traits;
-				traits_mutant[i] += spp->fg_dx;
-				Species * s = new Species(traits_mutant, 0.02, false);
-				spp->probes.push_back(s);
-			}
-		}
-		vector<Species*> species_vec_copy = species_vec;
-		for (auto spp : species_vec_copy){
-			for (auto m : spp->probes) species_vec.push_back(m);
-		}
-	}
 
 	void reset(){
 		t = 0;
@@ -152,7 +151,13 @@ int main(){
 	
 	Solver S;
 	S.createRandomResidents(15);
-	S.createProbes();
+	for (auto spp : S.species_vec){
+		spp->createVariants();
+	}
+	for (auto spp : S.species_vec){
+		for (auto m : spp->probes) S.addSpecies(m);
+	}
+
 
 	// // add mutant probes
 	// for (int i=0; i<1000; ++i){

@@ -1,0 +1,71 @@
+---
+title: "TreeLife demo"
+author: "Jaideep Joshi"
+date: "2023-01-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(PlantFATE)
+library(tidyverse)
+
+print(getwd())
+```
+
+## Calculate fitness of specified traits
+
+To calculate the fitness of a tree with given traits, follow these steps:
+
+1. Create an optimizer
+2. set the parameters file
+3. Initialize the optimizer - this will read the params file and initialize everything from it
+4. set traits  - this will overwrite the specified traits and redo any trait-coordination calculations
+5. Calculate fitness
+
+```{r}
+lho = new(LifeHistoryOptimizer)
+lho$params_file = "/home/jjoshi/codes/Plant-FATE/tests/params/p.ini"
+lho$init()
+lho$set_traits(c(0.08, 750))
+lho$printPlant()
+lho$calcFitness()
+```
+
+## Calculate fitness as a function of LMA
+
+```{r}
+fitness_lma = function(lma){
+  lho = new(LifeHistoryOptimizer)
+  lho$params_file = "/home/jjoshi/codes/Plant-FATE/tests/params/p.ini"
+  lho$init()
+  lho$set_traits(c(lma, 750))
+  # lho$printPlant()
+  lho$calcFitness()
+}
+
+lma = seq(0.05, 0.3, 0.01)
+dat = lma %>% purrr::map_dbl(fitness_lma)
+
+plot(dat~lma)
+```
+## Calculate fitness as a function of wood density
+
+```{r}
+fitness_wd = function(wd){
+  lho = new(LifeHistoryOptimizer)
+  lho$params_file = "/home/jjoshi/codes/Plant-FATE/tests/params/p.ini"
+  lho$init()
+  lho$set_traits(c(0.12, wd))
+  # lho$printPlant()
+  lho$calcFitness()
+}
+
+wd = seq(350, 900, length.out=20)
+dat = wd %>% purrr::map_dbl(fitness_wd)
+
+plot(dat~wd)
+```

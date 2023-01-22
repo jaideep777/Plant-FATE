@@ -21,7 +21,7 @@ void PlantGeometry::init(PlantParameters &par, PlantTraits &traits){
 
 	geom.eta_c = geom.zm_H - m*m*n/(geom.qm*geom.qm) * beta(2-1/n, 2*m-1) * (incbeta(2-1/n, 2*m-1, (n-1)/(m*n-1)) - (1-geom.fg)); 
 	
-	std::cout << "Init Geometry: m = " << m << ", n = " << n << ", zm/H = " << geom.zm_H << ", qm = " << geom.qm << ", eta_c = " << geom.eta_c << "\n";
+	// std::cout << "Init Geometry: m = " << m << ", n = " << n << ", zm/H = " << geom.zm_H << ", qm = " << geom.qm << ", eta_c = " << geom.eta_c << "\n";
 	
 	geom.dmat = -(traits.hmat/geom.a) * log(1-traits.fhmat);
 
@@ -46,8 +46,11 @@ double PlantGeometry::zm(){
 	return geom.zm_H * height;
 } 
 
-// projected crown area including gaps, for PPA
-// = r(z)^2 = r0^2 q(z)^2 = (Ac/qm^2) q(z)^2 = Ac (q(z)/qm)^2
+
+/// @details   This is the total area that can  
+///            be potentially occupied by leaves, including the area that currently consists of gaps. 
+///            \f[A_{cp} = \pi r(z)^2 = \pi r_0^2 q(z)^2 = (A_c/q_m^2) q(z)^2 = A_c (q(z)/q_m)^2\f]
+/// @ingroup   ppa_module
 double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits){
 	if (z >= zm()){
 		double fq = q(z)/geom.qm;
@@ -58,6 +61,9 @@ double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits)
 	}
 }
 	
+/// @details This is the area within
+///          the potential crown that is actually occupied by leaves  
+/// @ingroup ppa_module
 double PlantGeometry::crown_area_above(double z, PlantTraits &traits){
 	if (z == 0) return crown_area; // shortcut because z=0 is used often
 
@@ -70,6 +76,11 @@ double PlantGeometry::crown_area_above(double z, PlantTraits &traits){
 	}
 }
 
+double PlantGeometry::diameter_at_height(double z, PlantTraits &traits){
+	double as_z = crown_area_above(z, traits)/geom.c;
+	double a_z  = as_z/sapwood_fraction;
+	return sqrt(4*a_z/M_PI);
+}
 
 // **
 // ** Biomass partitioning
@@ -90,14 +101,17 @@ double PlantGeometry::dreproduction_dmass(PlantParameters &par, PlantTraits &tra
 	return par.a_f1 / (1.0 + exp(par.a_f2 * (1.0 - diameter / geom.dmat))); 
 }
 
-
-// **
-// ** LAI model
-// ** 
+/// @param  dL_dt Desired LAI increment 
+/// @param  dmass_dt_max Maximum allowed biomass increment resulting from LAI change 
+/// @details Given the LAI change (dL_dt) and the maximum allowed mass increment (dmass_dt_max), this function calculates
+///          the mass increment (of leaves and fine roots) needed to achive the specified LAI increment. If this exceeds the maximum 
+///          allowed mass increment, then mass increment is set to dmass_dt_max and dL_dt is revised accordingly. 
+///          Complete coordination between fine roots and leaves is assumed. Thus, both leaves and fine roots need to increase for increasing LAI, 
+///          and both are simultaneously shed if LAI decreases.
 double PlantGeometry::dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTraits &traits){
-	double l2m = crown_area * (traits.lma + traits.zeta); 
-	double dm_dt_lai = std::min(dL_dt * l2m, dmass_dt_max);  // biomass change resulting from LAI change  // FIXME: here roots also get shed with LAI. true?
-	dL_dt = dm_dt_lai / l2m;
+	double l2m = crown_area * (traits.lma + traits.zeta);    // biomass required to support a unit LAI
+	double dm_dt_lai = std::min(dL_dt * l2m, dmass_dt_max);  // biomass change resulting from LAI change. 
+	dL_dt = dm_dt_lai / l2m;   // Revise dL_dt, in case dm_lai_dt was capped at the maximum
 	return dm_dt_lai;
 }
 
@@ -155,12 +169,11 @@ void PlantGeometry::set_lai(double _l){
 	lai = _l;
 }
 
-
+/// @details Sets the following properties: diameter, height, crown area, sapwood fraction 
 void PlantGeometry::set_size(double _x, PlantTraits &traits){
 	diameter = _x;
 	height = traits.hmat * (1 - exp(-geom.a*diameter/traits.hmat));
 	crown_area = geom.pic_4a * height * diameter;
-	//leaf_area = crown_area * lai;
 	sapwood_fraction = height / (diameter * geom.a);	
 }
 

@@ -34,25 +34,25 @@ int main(){
 	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 	//C.init();
-//	C.z_star = {7,0};
-//	C.canopy_openness = {1,exp(-0.5*3.5)};
-//	C.n_layers = C.z_star.size()-1;
+	C.z_star = {15, 10, 0};
+	C.canopy_openness = {1, exp(-0.5*1.8), exp(-0.5*3.5)};
+	C.n_layers = C.z_star.size()-1;
 
 	
 // Creating random number generator for soil water potential
-	ofstream fswp("swp.txt");
+	// ofstream fswp("swp.txt");
 
-	double prng_mean = -3.0;
-	double prng_stddev = -4.0;
-	std::default_random_engine generator;
-	std::normal_distribution<double> dist(prng_mean, prng_stddev);
-	for (double t=2000; t<=2100; t=t+10){
-		C.t_met.push_back(t);
-		double val = dist(generator);
-		if(val>0) val = 0;
-		C.v_met_swp.push_back(val);
-		fswp << C.v_met_swp[t] << "\n";
-	}
+	// double prng_mean = -3.0;
+	// double prng_stddev = -4.0;
+	// std::default_random_engine generator;
+	// std::normal_distribution<double> dist(prng_mean, prng_stddev);
+	// for (double t=2000; t<=2100; t=t+10){
+	// 	C.t_met.push_back(t);
+	// 	double val = dist(generator);
+	// 	if(val>0) val = 0;
+	// 	C.v_met_swp.push_back(val);
+	// 	fswp << C.v_met_swp[t] << "\n";
+	// }
 	
 	
 	C.print(0);
@@ -83,13 +83,13 @@ int main(){
 		 << "coarse_root_mass" << "\t"
 		 << "total_mass" << "\t"
 		 << "total_rep" << "\t"
-		 << "seed_pool" << "\t"
-		 << "germinated" << "\t"
-		 << "germinated_avg" << "\t"
+		//  << "seed_pool" << "\t"
+		//  << "germinated" << "\t"
+		//  << "germinated_avg" << "\t"
 		 << "total_prod" << "\t"
 		 << "litter_mass" << "\t"
-		 << "fecundity" << "\t"
-		 << "fecundity_mort" << "\t"
+		//  << "fecundity" << "\t"
+		//  << "fecundity_mort" << "\t"
 		 << "mortality" << "\t"
 		 << "mortality_inst" << "\n";
 
@@ -99,7 +99,7 @@ int main(){
 	double litter_pool = 0;
 	double germinated = 0;
 	cout << "Starting biomass = " << total_prod << "\n";
-	for (double t=2000; t<=2100; t=t+dt){
+	for (double t=2000; t<=2200; t=t+dt){
 
 		//cout << t << " " << P.geometry.total_mass(par, traits) << " " << total_prod << "\n";
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;
@@ -127,9 +127,9 @@ int main(){
 			 << P.geometry.coarse_root_mass(P.traits) << "\t"	
 			 << P.get_biomass() << "\t"
 			 << total_rep << "\t"
-			 << P.state.seed_pool << "\t"
-			 << germinated << "\t"
-			 << 0/*P.seeds_hist.get()*/ << "\t"
+			//  << P.state.seed_pool << "\t"
+			//  << germinated << "\t"
+			//  << 0/*P.seeds_hist.get()*/ << "\t"
 			 << total_prod << "\t"
 			 << litter_pool << "\t"
 			 << P.state.f << "\t"
@@ -146,9 +146,9 @@ int main(){
 
 	}
 	fout.close();
-	fswp.close();
+	// fswp.close();
 
-	cout << "At t = " << 100 << "\n" 
+	cout << "At t = " << 200 << "\n" 
 		 << setprecision(12) 
 		 << "Total biomass    = " << P.get_biomass() << "\n"
 		 << "Total litter     = " << litter_pool << "\n"

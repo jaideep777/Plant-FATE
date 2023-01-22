@@ -1,5 +1,5 @@
-setwd("/home/jaideep/codes/tmodel_cpp/tests/data/")
-dat = read.csv("trait_100.csv")
+setwd("~/codes/Plant-FATE/tests/data/")
+dat = read.csv("trait.csv")
 
 library(dplyr)
 
@@ -7,10 +7,10 @@ dat = dat %>% mutate(P50..Mpa. = purrr::map_dbl(P50..Mpa.,
                                       .f = function(x) {
                                               ifelse(is.na(x), 
                                                   no = x,
-                                                  yes = runif(1, -3.5, -0.5))
+                                                  yes = runif(1, -5.5, -2.5))
                                            }))
 
-write.csv(dat, file = "trait_100_filled.csv", row.names = F)
+write.csv(dat, file = "Amz_trait_filled_HD.csv", row.names = F)
 
 # CWM traits
 

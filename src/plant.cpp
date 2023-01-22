@@ -1,21 +1,7 @@
 #include "plant.h"
+using namespace std;
 
 namespace plant{
-
-//Plant::Plant(){
-//	assimilator = new Assimilator();
-//	geometry = new PlantGeometry();
-//}
-
-//Plant::~Plant(){
-//	delete assimilator;
-//	delete geometry;
-//}
-
-//Plant::Plant(const Plant& p) {  
-//	assimilator = new Assimilator(*p.assimilator);
-//	geometry = new PlantGeometry(*p.geometry);
-//}
 
 
 void Plant::initParamsFromFile(std::string file){
@@ -57,20 +43,28 @@ double Plant::get_biomass() const{
 	return geometry.total_mass(traits);
 }
 
+void Plant::set_evolvableTraits(std::vector<double> tvec){
+	vector<double>::iterator it = tvec.begin();
+	traits.lma = *it++;
+	traits.wood_density = *it++;
+	coordinateTraits();
+}
+
+std::vector<double> Plant::get_evolvableTraits(){
+	vector<double> tvec({
+		traits.lma,
+		traits.wood_density
+	});
+	return tvec;
+}
+
 
 void Plant::print(){
-	std::cout << "Plant:\n";
-	std::cout << "  height = " << geometry.height << "\n";
-	std::cout << "  diameter = " << geometry.diameter << "\n";
-	std::cout << "  crown_area = " << geometry.crown_area << "\n";
-	std::cout << "  a = " << geometry.geom.a << "\n";
-	std::cout << "  c = " << geometry.geom.c << "\n";
-	std::cout << "  K_leaf = " << traits.K_leaf << "\n";
-	std::cout << "  lma = " << traits.lma << "\n";
-	std::cout << "  hmat = " << traits.hmat << "\n";
-	std::cout << "  wd = " << traits.wood_density << "\n";
-	std::cout << "  p50 = " << traits.p50_xylem << "\n";
-
+	cout << "Plant size:\n";
+	cout << "  height = " << geometry.height << "\n";
+	cout << "  diameter = " << geometry.diameter << "\n";
+	cout << "  crown_area = " << geometry.crown_area << "\n";
+	traits.print();
 }
 
 	
