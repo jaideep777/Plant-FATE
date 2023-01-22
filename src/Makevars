@@ -5,7 +5,6 @@ INC_PATH :=  -I../inst/include -I../src -I../../phydro/inst/include -I../../libp
 
 # flags
 PKG_CXXFLAGS = -O3 -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY -DUSING_RCPP_PF
-PKG_LDFLAGS =  -fPIC
 
 PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-but-set-variable -Wno-float-conversion \
@@ -13,14 +12,20 @@ PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 
 PKG_CPPFLAGS = $(INC_PATH)
 
-PKG_LIBS = 
+PKG_LIBS = -L../../libpspm/lib -lpspm
+
+# SOURCES = $(wildcard src/*.cpp)
 
 SOURCES = plant_geometry.cpp \
           assimilation.cpp \
           plant.cpp \
           light_environment.cpp \
           climate.cpp \
+          pspm_interface.cpp \
+          community_properties.cpp \
+          state_restore.cpp \
           treelife.cpp \
+          plantfate.cpp \
           r_interface.cpp
 
 # Obtain the object files
@@ -35,10 +40,10 @@ $(SHLIB): libpspm
 
 ## This can be used in this way to build libpspm during package install
 libpspm:
-#	(cd ../../libpspm; $(MAKE))
+	(cd ../../libpspm && $(MAKE))
 
 # Provide recipe to remove all objects
 clean:
 	@rm -f $(OBJECTS)
-#	(cd ../../libpspm; $(MAKE) clean)
+	(cd ../../libpspm && $(MAKE) clean)
 	

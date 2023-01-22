@@ -20,6 +20,19 @@ RCPP_MODULE(treelife_module){
 	;
 }
 
+#include "plantfate.h"
+
+RCPP_MODULE(plantfate_module){
+	class_ <Simulator>("Simulator")
+		.constructor<std::string>()
+		.method("init", &Simulator::init)
+		.method("simulate", &Simulator::simulate)
+		.method("close", &Simulator::close)
+	;
+}
+
+
+
 #endif
 
 
