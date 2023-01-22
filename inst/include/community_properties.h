@@ -5,6 +5,9 @@
 #include "trait_evolution.h"
 #include "utils/sequence.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358
+#endif
 
 template<class Func>
 double integrate_prop(double t, Solver &S, const Func &f){
