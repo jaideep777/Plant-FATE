@@ -1,5 +1,4 @@
 .vscode
-vignettes/*
 inst/website
 pspm_output_*
 *Rproj*
@@ -27,6 +26,7 @@ gprof2dot.py
 *.o
 *.so
 *.cu_o
+*.dll
 exec_*
 
 *.txt

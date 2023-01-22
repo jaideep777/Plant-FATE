@@ -1,4 +1,4 @@
-setwd("/home/jaideep/codes/Plant-FATE/tests/data/")
+setwd("~/codes/Plant-FATE/tests/data/")
 dat = read.csv("trait.csv")
 
 library(dplyr)
