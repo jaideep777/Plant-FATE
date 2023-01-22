@@ -1,5 +1,3 @@
-#ifdef USING_RCPP_PF
-
 #include <Rcpp.h>
 using namespace Rcpp;
 
@@ -30,10 +28,4 @@ RCPP_MODULE(plantfate_module){
 		.method("close", &Simulator::close)
 	;
 }
-
-
-
-#endif
-
-
 

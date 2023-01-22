@@ -1,7 +1,7 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_old"
+output_dir = "pspm_output_amazon"
 prefix = "ELE"
   
 solver = "HD"#_old_params"
