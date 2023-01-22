@@ -1,0 +1,95 @@
+---
+title: "PlantFATE demo"
+author: "Jaideep Joshi"
+date: "2023-01-21"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(PlantFATE)
+library(tidyverse)
+
+print(getwd())
+```
+
+## Running PlantFATE
+
+To run PlantFATE, follow these steps
+
+1. Create a simulator, specifying the parameters file
+2. Initialize it, specifying the start and end times
+3. run it
+4. close it
+
+```{r}
+sim = new(Simulator, "tests/params/p.ini")
+sim$init(1000, 1050)
+sim$simulate()
+sim$close()
+```
+
+## Analyze results
+```{r echo=F}
+output_dir = "pspm_output2"
+prefix = "test"
+solver = "main_ref2"
+dir = paste0("",output_dir,"/",prefix,"_",solver)
+```
+
+Let us look at the vertical structure generated in the forest.
+
+```{r}
+Zp = read.delim(paste0(dir,"/z_star.txt"), header=F, col.names = paste0("V", 1:50))
+lai_v = read.delim(paste0(dir,"/lai_profile.txt"), header=F, col.names = paste0("V", 1:27))
+
+par(mfrow=c(1,3), mar=c(4,4,1,1))
+matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l", las=1, xlab="Time (years)", ylab="Z*")
+
+
+n_year = nrow(Zp)
+
+matplot(y=1:24, x=t(-lai_v[,3:26]+lai_v[,2:25]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=20/n_year), type="l",
+        las=1, xlab="Leaf area density", ylab="Height")
+matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=20/n_year), type="l",
+        las=1, xlab="Cumulative LAI", ylab="Height")
+
+```
+
+Let us look at some emergent properties
+
+```{r}
+dat = read.delim(paste0(dir,"/AmzFACE_D_PFATE_ELE_HD.txt"))
+
+par(mfrow=c(1,3), mar=c(4,4,1,1))
+
+plot(dat$LAI~dat$YEAR, type="l", col="red3", ylim=c(0,max(dat$LAI,6.5)), xlab="Time (years)", ylab="Total LAI")
+
+matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC/m2/yr)", xlab="Time (years)")
+
+matplot(y=cbind(dat$GS), x=dat$YEAR, type="l", lty=1, col=c("cyan3"), ylab="Stomatal conductance\n(mol/m2/s)", xlab="Time (years)")
+
+
+```
+
+Or the size distribution
+
+```{r}
+dist = read.delim(paste0(dir,"/size_distributions.txt"), header=F)
+dist = dist[,-ncol(dist)]
+x = exp(seq(log(0.01), log(10), length.out=100))
+
+names(dist)[1:2] = c("YEAR", "SPP")
+dist_amb = dist %>% filter(YEAR == max(YEAR)) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
+
+matplot(y=cbind(as.numeric(dist_amb[gtools::mixedsort(names(dist_amb))][-1])
+)*1e-2*1e4, # Convert stems m-1 m-2 --> stems cm-1 ha-1
+x=x, type="l", log="xy", lty=1, col=c("black", "yellow3"), 
+xlim=c(0.01, 1.2), ylim=c(1e-4, 1000), ylab="Density\n(stems/cm/ha)", xlab="Diameter (m)", las=0)
+
+```

@@ -1,0 +1,71 @@
+#ifndef PLANT_FATE_TRAIT_EVOLUTION_H_
+#define PLANT_FATE_TRAIT_EVOLUTION_H_
+
+#include <solver.h>
+#include <vector>
+#include <string>
+#include <io_utils.h>
+#include "utils/moving_average.h"
+
+// Extend the Species class from libpspm to allow trait evolution
+
+/// @defgroup trait_evolution Trait Evolution
+/// @brief   This is a collection of all classes and variables that are used in the 
+///          evolutionary algorithm. 
+///
+///          Any changes to the algorithm or to the evolving traits will 
+///          typically require changes in these variables.
+
+/// @ingroup trait_evolution
+/// @brief   This classes extends the Species class provided by the solver
+///          to implement the evolutionary algorithm.
+/// @tparam  Model 'Model' represents an individual plant which is used as a
+///          prototype to construct the indiviuals in the species.
+template <class Model>
+class MySpecies : public Species<Model>{
+	private:
+	double fg_dx = 0.001;
+	
+	public:
+	std::string species_name;
+	bool isResident = true;
+	double t_introduction = 0;
+
+	double invasion_fitness;
+	double r0;
+	std::vector<MySpecies<Model>*> probes;
+	std::vector<double> fitness_gradient;
+	std::vector<double> trait_variance;
+	std::vector<double> trait_scalars;     // these scalars will be applied to fg_dx
+	std::vector<std::string> trait_names;
+	
+	MovingAverager seeds_hist;
+	MovingAverager r0_hist;
+
+	public: 
+	/*NO_SAVE_RESTORE*/ std::string configfile_for_restore = "";  // Dont output this variable in save/restore. This is set by restoreState() to provide the saved config file for recreating cohorts  
+
+	public:
+	MySpecies(Model M, bool res=true);
+
+	void set_traits(std::vector<double> tvec);
+	std::vector<double> get_traits();
+
+	// Species(vector<double> tvec, double u0, bool res);
+	
+	void createVariants(Model M);
+	
+	void calcFitnessGradient();
+	void evolveTraits(double dt);
+
+	void print_extra();
+
+	void save(std::ofstream &fout);
+	void restore(std::ifstream &fin);
+
+};
+
+#include "trait_evolution.tpp"
+
+#endif
+
