@@ -1,4 +1,5 @@
 #include "state_restore.h"
+#include <filesystem>
 using namespace std;
 
 void saveState(Solver *S, string state_outfile, string config_outfile, string params_file){
@@ -7,8 +8,10 @@ void saveState(Solver *S, string state_outfile, string config_outfile, string pa
 	cout << "Saving config to: " << config_outfile << '\n';
 
 	// save config file and get filename of saved state
-	string command = "cp " + params_file + " " + config_outfile;
-	int sysresult = system(command.c_str());
+	// string command = "cp " + params_file + " " + config_outfile;
+	// int sysresult = system(command.c_str());
+	std::filesystem::remove(config_outfile); // use this because the overwrite flag in below command does not work!
+	std::filesystem::copy(params_file, config_outfile, std::filesystem::copy_options::overwrite_existing);
 
 	// open file for writing state
 	ofstream fout(state_outfile.c_str());

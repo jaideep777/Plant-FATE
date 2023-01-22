@@ -1,11 +1,13 @@
 CXX_STD = CXX17
 
+PHYDRO_PATH = ../../phydro
+LIBPSPM_PATH = ../../libpspm
+
 # include and lib dirs (esp for cuda)
-INC_PATH :=  -I../inst/include -I../src -I../../phydro/inst/include -I../../libpspm/include -isystem ../../phydro/inst/LBFGSpp/include
+INC_PATH :=  -I../inst/include -I../src -I"$(PHYDRO_PATH)"/inst/include -I"$(LIBPSPM_PATH)"/include -isystem "$(PHYDRO_PATH)"/inst/LBFGSpp/include
 
 # flags
 PKG_CXXFLAGS = -O3 -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY -DUSING_RCPP_PF
-PKG_LDFLAGS =  -fPIC
 
 PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-but-set-variable -Wno-float-conversion \
@@ -13,14 +15,21 @@ PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 
 PKG_CPPFLAGS = $(INC_PATH)
 
-PKG_LIBS = 
+# Need libstdc++fs for using std::filesystem
+PKG_LIBS = -L../../libpspm/lib -lpspm -lstdc++fs
+
+# SOURCES = $(wildcard src/*.cpp)
 
 SOURCES = plant_geometry.cpp \
           assimilation.cpp \
           plant.cpp \
           light_environment.cpp \
           climate.cpp \
+          pspm_interface.cpp \
+          community_properties.cpp \
+          state_restore.cpp \
           treelife.cpp \
+          plantfate.cpp \
           r_interface.cpp
 
 # Obtain the object files
@@ -33,12 +42,12 @@ all: $(SHLIB)
 
 $(SHLIB): libpspm
 
-## This can be used in this way to build libpspm during package install
+# To compile libpspm, pass down g++ and ar from here, and clear profiling flags (as they are not supported on windows)
 libpspm:
-#	(cd ../../libpspm; $(MAKE))
+	(cd ../../libpspm && $(MAKE) CXX=$(CXX17) AR=$(AR) PROFILING_FLAGS="")
 
 # Provide recipe to remove all objects
 clean:
 	@rm -f $(OBJECTS)
-#	(cd ../../libpspm; $(MAKE) clean)
+	(cd ../../libpspm && $(MAKE) clean)
 	
