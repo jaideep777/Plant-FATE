@@ -6,11 +6,7 @@ Plant-FATE, standing for Plant FunctionAl Trait Evolution, is an eco-evolutionar
 
 Plant-FATE can be built without any third party libraries as shown here (but GSL and Eigen can be optionally used - we will not cover these cases for now). 
 
-You do need git to select the appropriate branches for compiling.
-
-```
-sudo apt-get install git
-```
+You do need git to select the appropriate branches for compiling. Instructions to install git can be found here: https://github.com/git-guides/install-git
 
 ## Installation
 
@@ -19,7 +15,7 @@ You need three repos to run PlantFATE:
 2) [libpspm](https://github.com/jaideep777/libpspm): PSPM solver library
 3) [PlantFATE](https://github.com/jaideep777/Plant-FATE): The PlantFATE EVM
 
-Please clone all three repos in same root folder, so that your directory structure looks like this:
+Create a folder that will serve as a root folder for cloning these repos. Clone all three repos in same (root) folder, so that your directory structure looks like this:
 
 ```
   root
@@ -52,7 +48,7 @@ cd ..
 
 git clone https://github.com/jaideep777/Plant-FATE
 cd Plant-FATE
-git checkout feature_trait_evolution
+git checkout feature_evolution
 cd ..
 
 ```
@@ -66,9 +62,26 @@ cd ..
 
 ### R Installation
 
-After cloning the three repos and checking out the appropriate branches, create a new R Project, select 'Exisiting Directory' in the wizard, and select the Plant-FATE folder.
+#### Prerequisites 
 
-Open the project and simply perform a build (type ctrl+shift+B or via the menu, click on Build/Install Package). 
+If you are using R in Windows, you also need to install a C++ compiler for R and the Rcpp package. Please follow these guidelines to install both: https://teuder.github.io/rcpp4everyone_en/020_install.html  
+
+#### Compiling the PlantFATE R package
+
+After cloning the three repos and checking out the appropriate branches, create a new R Project, select 'Exisiting Directory' in the wizard, and select the Plant-FATE folder. At the end of this step, you should have the following files in the Plant-FATE folder (among others):
+
+```
+  root
+  |---- Plant-FATE
+  |     |--- ...
+  |     |--- Plant-FATE.Rproj
+  |     |--- DESCRIPTION
+  |     |--- NAMESPACE
+  |     |--- vignettes
+  |     |--- ...
+```
+
+Open the project and simply perform a build (type ctrl+shift+B or via the menu, click on Build/Install Package). In Windows, if you get a prompt saying you need additional build tools, go ahead and install them.
 
 Please see the vignettes folder for demos on how to use the PlantFATE and TreeLife models in R.
 
