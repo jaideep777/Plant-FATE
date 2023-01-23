@@ -5,6 +5,7 @@
 #include <cmath>
 #include <string>
 #include <io_utils.h>
+#include <cassert>
 
 namespace plant{
 
@@ -27,6 +28,10 @@ class PlantTraits{
 	double K_xylem;         ///< Leaf conductivity [m]
 	double b_leaf;          ///< Shape parameter of leaf vulnerabilty curve [-]
 	double b_xylem;         ///< Shape parameter of leaf vulnerabilty curve [-]
+	double m;               ///< Crown shape flatness at the top
+	double n;               ///< Crown top-heaviness 
+	double a;               ///< Initial height to diameter ratio 
+	double c;               ///< Crown area to sapwood area ratio
 	
 
 	// traits set via coordination
@@ -52,6 +57,10 @@ class PlantTraits{
 		K_xylem = I.getScalar("K_xylem");
 		b_leaf = I.getScalar("b_leaf");	
 		b_xylem = I.getScalar("b_xylem");	
+		m = I.getScalar("m");
+		n = I.getScalar("n");
+		a = I.getScalar("a");	
+		c = I.getScalar("c");	
 	}
 
 	// Just for debugging purposes - to check if 2 plants have the same traits
@@ -66,13 +75,17 @@ class PlantTraits{
 		   this->wood_density	== rhs.wood_density &&
 		   this->p50_xylem	== rhs.p50_xylem &&
 		   this->K_leaf	== rhs.K_leaf &&
-		   this->K_xylem	== rhs.K_xylem &&
+		   this->K_xylem  == rhs.K_xylem &&
 		   this->b_leaf	== rhs.b_leaf &&
-		   this->b_xylem	== rhs.b_xylem);
+		   this->b_xylem == rhs.b_xylem &&
+		   this->m	== rhs.m &&
+		   this->n	== rhs.n &&
+		   this->a	== rhs.a &&
+		   this->c	== rhs.c);
 	}
 
 	void save(std::ostream &fout){
-		fout << "Traits::v1 ";
+		fout << "Traits::v2 ";
 		fout << std::quoted(species_name) << ' ';
 		fout << std::make_tuple(
 					  lma
@@ -86,7 +99,11 @@ class PlantTraits{
 					, K_leaf      
 					, K_xylem     
 					, b_leaf      
-					, b_xylem      
+					, b_xylem
+					, m
+					, n
+					, a
+					, c    
 					);
 		fout << '\n';
 	}
@@ -94,6 +111,8 @@ class PlantTraits{
 
 	void restore(std::istream &fin){
 		std::string s; fin >> s; // discard version number
+		assert(s == "Traits::v2");
+
 		fin >> std::quoted(species_name);
 		fin >> lma
 			>> zeta        
@@ -106,7 +125,11 @@ class PlantTraits{
 			>> K_leaf      
 			>> K_xylem     
 			>> b_leaf      
-			>> b_xylem;
+			>> b_xylem
+			>> m
+			>> n
+			>> a
+			>> c;
 	}
 
 	void print(){
@@ -123,6 +146,10 @@ class PlantTraits{
 		std::cout << "   K_xylem      = " << K_xylem      << '\n';
 		std::cout << "   b_leaf       = " << b_leaf       << '\n';
 		std::cout << "   b_xylem      = " << b_xylem      << '\n';
+		std::cout << "   m            = " << m            << '\n';
+		std::cout << "   n            = " << n            << '\n';
+		std::cout << "   a            = " << a            << '\n';
+		std::cout << "   c            = " << c            << '\n';
 	}
 
 
@@ -142,9 +169,6 @@ class PlantParameters{
 	// **
 	// ** Allocation and geometric paramaters  
 	// **
-	double m, n;            ///< crown shape paramaters
-	double a;               ///< height-diameter allometry
-	double c;               ///< crown area allometry
 	double fg;		        ///< upper canopy gap fraction
 
 	// ** LAI optimization
@@ -225,11 +249,7 @@ class PlantParameters{
 		kphio = I.getScalar("kphio");
 		alpha = I.getScalar("alpha");
 		gamma = I.getScalar("gamma");
-		m = I.getScalar("m");
-		n = I.getScalar("n");
 		fg = I.getScalar("fg");
-		a  = I.getScalar("a");
-		c  = I.getScalar("c");
 
 		Cc  = I.getScalar("Cc");
 		Chyd = I.getScalar("Chyd");
@@ -292,10 +312,6 @@ class PlantParameters{
 
 	inline void print(){
 		std::cout << "Params:\n";
-		std:: cout << "   m = "  << m << "\n";
-		std:: cout << "   n = "  << n << "\n";
-		std:: cout << "   a  = " << a  << "\n";
-		std:: cout << "   c  = " << c  << "\n";
 		//std:: cout << "   eta_c  = " << eta_c << "\n";
 		std:: cout << "   rd  = " << rd  << "\n";
 		std:: cout << "   rr  = " << rr  << "\n";
