@@ -10,7 +10,7 @@ void saveState(Solver *S, string state_outfile, string config_outfile, string pa
 	// save config file and get filename of saved state
 	// string command = "cp " + params_file + " " + config_outfile;
 	// int sysresult = system(command.c_str());
-	std::filesystem::remove(config_outfile); // use this because the overwrite flag in below command does not work!
+	if (std::filesystem::exists(config_outfile)) std::filesystem::remove(config_outfile); // use this because the overwrite flag in below command does not work!
 	std::filesystem::copy(params_file, config_outfile, std::filesystem::copy_options::overwrite_existing);
 
 	// open file for writing state
