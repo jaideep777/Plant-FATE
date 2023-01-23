@@ -56,13 +56,21 @@ git checkout feature_trait_evolution
 cd ..
 
 ```
+
+### Prepare input data and simulation configuration
+
+1. Paste data files in folder tests/data
+
+2. Simulation config is in `tests/params/p.ini`. Change these parameters as necessary. Particularly, set the output folder: output files will be generated in the folder specified in a folder hierarchy as follows:  Plant_FATE/`outDir`/`exptName`
+
+
 ### R Installation
 
-After cloning the three repos and checking out the appropriate branches, create an R Project with exisiting folder, specifying the Plant-FATE folder.
+After cloning the three repos and checking out the appropriate branches, create a new R Project, select 'Exisiting Directory' in the wizard, and select the Plant-FATE folder.
 
-Open the project and simply perform a build (ctrl+shift+B or via the menu, click on Build/Install Package) 
+Open the project and simply perform a build (type ctrl+shift+B or via the menu, click on Build/Install Package). 
 
-The vignettes contain demos on how to use PlantFATE and TreeLife models.
+Please see the vignettes folder for demos on how to use the PlantFATE and TreeLife models in R.
 
 ### Native C++ Installation
 
@@ -77,7 +85,7 @@ make
 make check
 ```
 
-**(all tests should pass)**
+*(all tests should pass)*
 
 #### Test `Phydro` 
 
@@ -87,15 +95,12 @@ make clean testclean
 make check
 ```
 
-**(all tests should pass)**
+*(all tests should pass)*
 
-#### Set up PlantFATE
+#### Compile and run PlantFATE
 
-1. Paste data files in folder tests/data
+The main program to run Plant-FATE is in `tests/pf.cpp`:
 
-2. Change parameters in `tests/params/p.ini`. Particularly, set the output filenames. Output files will be generated in the folder specified in `outDir`
-
-3. Compile and run:
 ```
 make clean testclean
 make check TEST_FILES=tests/pf.cpp
