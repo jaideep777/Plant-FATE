@@ -16,9 +16,12 @@
 #include "state_restore.h"
 
 class Simulator{
+	private:
+	std::string out_dir;
+	
 	public:
 	std::string paramsFile;
-	std::string parent_dir, expt_dir, out_dir;
+	std::string parent_dir, expt_dir;
 
 	std::string met_file;
 	std::string co2_file;

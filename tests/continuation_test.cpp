@@ -9,13 +9,20 @@
 
 using namespace std;
 
-int main(){
+int main(int argc, char ** argv){
+
+	if (argc < 2){
+		cout << "Parameters file not specified!";
+		return 1;
+	}
+
+	string par_file = argv[1];
 
 	// reference run
 	{
-		Simulator sim("tests/params/p.ini");
+		Simulator sim(par_file);
 		sim.continuePrevious = false;
-		sim.out_dir = sim.parent_dir + "/" + "cont_test_ref";
+		sim.expt_dir = "cont_test_ref";
 		sim.init(1000, 1350);
 		sim.simulate();
 		sim.close();
@@ -23,9 +30,9 @@ int main(){
 
 	// spinup run
 	{
-		Simulator sim("tests/params/p.ini");
+		Simulator sim(par_file);
 		sim.continuePrevious = false;
-		sim.out_dir = sim.parent_dir + "/" + "cont_test_spinup";
+		sim.expt_dir = "cont_test_spinup";
 		sim.init(1000, 1200);
 		sim.simulate();
 		sim.close();
@@ -33,11 +40,11 @@ int main(){
 
 	// continuation run
 	{
-		Simulator sim("tests/params/p.ini");
+		Simulator sim(par_file);
 		sim.continuePrevious = true;
 		sim.continueFrom_stateFile    = sim.parent_dir + "/" + "cont_test_spinup/pf_saved_state.txt"; 
 		sim.continueFrom_configFile   = sim.parent_dir + "/" + "cont_test_spinup/pf_saved_config.ini"; 
-		sim.out_dir = sim.parent_dir + "/" + "cont_test_main";
+		sim.expt_dir = "cont_test_main";
 		sim.init(1000, 1350);
 		sim.simulate();
 		sim.close();
