@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 ```
 
 ```{r}
@@ -28,7 +29,7 @@ To calculate the fitness of a tree with given traits, follow these steps:
 
 ```{r}
 lho = new(LifeHistoryOptimizer)
-lho$params_file = "/home/jjoshi/codes/Plant-FATE/tests/params/p.ini"
+lho$params_file = "tests/params/p.ini"
 lho$init()
 lho$set_traits(c(0.08, 750))
 lho$printPlant()
@@ -40,7 +41,7 @@ lho$calcFitness()
 ```{r}
 fitness_lma = function(lma){
   lho = new(LifeHistoryOptimizer)
-  lho$params_file = "/home/jjoshi/codes/Plant-FATE/tests/params/p.ini"
+  lho$params_file = "tests/params/p.ini"
   lho$init()
   lho$set_traits(c(lma, 750))
   # lho$printPlant()
@@ -52,12 +53,13 @@ dat = lma %>% purrr::map_dbl(fitness_lma)
 
 plot(dat~lma)
 ```
+
 ## Calculate fitness as a function of wood density
 
 ```{r}
 fitness_wd = function(wd){
   lho = new(LifeHistoryOptimizer)
-  lho$params_file = "/home/jjoshi/codes/Plant-FATE/tests/params/p.ini"
+  lho$params_file = "tests/params/p.ini"
   lho$init()
   lho$set_traits(c(0.12, wd))
   # lho$printPlant()

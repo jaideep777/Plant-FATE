@@ -36,7 +36,7 @@ class PlantTraits{
 
 	// traits set via coordination
 	public:
-	double ll;              ///< leaf-longevity (as a function of LMA and environment)
+	// double ll;              ///< leaf-longevity (as a function of LMA and environment)
 	double p50_leaf;        ///< Leaf hydraulic vulnerability [MPa] (calculated from Xylem P50)
 
 
@@ -196,7 +196,7 @@ class PlantParameters{
 	double rr;              ///< fine-root respiration rate [kg yr-1]
 	double rs;              ///< sapwood respiration rate [kg yr-1]
 
-	double lr;              ///< fine root lifespan [yr]
+	//double lr;              ///< fine root lifespan [yr]
 
 	double cbio;            ///< Biomass expansion factor: kg biomass per mol CO2 
 	double y;               ///< Growth respiration factor [-]
@@ -272,7 +272,7 @@ class PlantParameters{
 		rr  = I.getScalar("rr");
 		rs  = I.getScalar("rs");
 		//kl  = I.getScalar("kl");
-		lr  = I.getScalar("lr");
+		//lr  = I.getScalar("lr");
 		cbio  = I.getScalar("cbio");
 		y = I.getScalar("y");
 		k_light = I.getScalar("k_light");
@@ -317,7 +317,7 @@ class PlantParameters{
 		std:: cout << "   rr  = " << rr  << "\n";
 		std:: cout << "   rs  = " << rs  << "\n";
 		//std:: cout << "   ll  = " << kl  << "\n";
-		std:: cout << "   lr  = " << lr  << "\n";
+		//std:: cout << "   lr  = " << lr  << "\n";
 		std:: cout << "   cbio  = " << cbio  << "\n";
 		std:: cout << "   y   = " << y  << "\n";
 	}
