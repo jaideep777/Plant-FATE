@@ -4,10 +4,12 @@ Plant-FATE, standing for Plant FunctionAl Trait Evolution, is an eco-evolutionar
 
 ## Prerequisites
 
-You need git, gsl, and eigen to be able to run Plant-FATE
+Plant-FATE can be built without any third party libraries as shown here (but GSL and Eigen can be optionally used - we will not cover these cases for now). 
+
+You do need git to select the appropriate branches for compiling.
 
 ```
-sudo apt-get install git libeigen3-dev libgsl-dev
+sudo apt-get install git
 ```
 
 ## Installation
@@ -17,13 +19,59 @@ You need three repos to run PlantFATE:
 2) [libpspm](https://github.com/jaideep777/libpspm): PSPM solver library
 3) [PlantFATE](https://github.com/jaideep777/Plant-FATE): The PlantFATE EVM
 
-You can clone all of them in the same root folder
-
-### Install and test `libpspm`
+Please clone all three repos in same root folder, so that your directory structure looks like this:
 
 ```
+  root
+  |---- phydro
+  |     |--- inst/include
+  |
+  |---- libpspm
+  |     |--- include
+  |     |--- lib
+  |
+  |---- Plant-FATE
+  |     |--- inst/include
+
+```
+
+For each repo, we clone it and checkout the appropriate branch. The latest branches that should be used are shown in the commands below. 
+
+```
+cd <path/to/root>
+
+git clone https://github.com/jaideep777/phydro
+cd phydro
+git checkout master
+cd ..
+
 git clone https://github.com/jaideep777/libpspm
-git checkout hotfix_afterstep
+cd libpspm
+git checkout develop
+cd ..
+
+git clone https://github.com/jaideep777/Plant-FATE
+cd Plant-FATE
+git checkout feature_trait_evolution
+cd ..
+
+```
+### R Installation
+
+After cloning the three repos and checking out the appropriate branches, create an R Project with exisiting folder, specifying the Plant-FATE folder.
+
+Open the project and simply perform a build (ctrl+shift+B or via the menu, click on Build/Install Package) 
+
+The vignettes contain demos on how to use PlantFATE and TreeLife models.
+
+### Native C++ Installation
+
+Perform these steps from the root folder:
+
+#### Compile and test `libpspm`
+
+```
+cd libpspm
 make clean testclean
 make
 make check
@@ -31,40 +79,29 @@ make check
 
 **(all tests should pass)**
 
-### Install and test `Phydro` 
+#### Test `Phydro` 
 
 ```
-git clone https://github.com/jaideep777/phydro
-git checkout master
+cd phydro
 make clean testclean
 make check
 ```
 
 **(all tests should pass)**
 
-### Set up PlantFATE
+#### Set up PlantFATE
 
-To set up PlantFATE, follow these steps:
+1. Paste data files in folder tests/data
 
-1. clone the repo and checkout the desired branch.
+2. Change parameters in `tests/params/p.ini`. Particularly, set the output filenames. Output files will be generated in the folder specified in `outDir`
 
-```
-git clone https://github.com/jaideep777/Plant-FATE
-git checkout feature_evolution
-```
-
-2. Change paths in the makefile to correctly point to eigen, phydro, and libpspm
-
-3. Paste data files in folder tests/data
-
-4. Change parameters in tests/params/p.ini (if necessary)
-
-5. Compile and run:
+3. Compile and run:
 ```
 make clean testclean
-make check TEST_FILES=tests/plantfate_evolution_test.cpp
+make check TEST_FILES=tests/pf.cpp
 ```
-### Analyse results
+
+## Analyse results
 
 Analyse results with `tests/Rscripts/amazon_calibration.R` 
 Dont forget to change path to Working dir
