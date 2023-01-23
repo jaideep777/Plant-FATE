@@ -1,11 +1,49 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+#include "climate.h"
+#include "light_environment.h"
 #include "treelife.h"
 
+RCPP_EXPOSED_CLASS(ErgodicEnvironment);
+RCPP_EXPOSED_CLASS(env::LightEnvironment);
+RCPP_EXPOSED_CLASS(env::Climate);
+RCPP_EXPOSED_CLASS(env::Clim);
+
+
 RCPP_MODULE(treelife_module){
+	class_ <env::LightEnvironment>("LightEnvironment")
+		.constructor()
+		.field("z_star", &env::LightEnvironment::z_star)
+		.field("canopy_openness", &env::LightEnvironment::canopy_openness)
+	;
+
+	class_ <env::Clim>("Clim")
+		.field("tc", &env::Clim::tc)
+		.field("ppfd_max", &env::Clim::ppfd_max)
+		.field("ppfd", &env::Clim::ppfd)
+		.field("vpd", &env::Clim::vpd)
+		.field("co2", &env::Clim::co2)
+		.field("elv", &env::Clim::elv)
+		.field("swp", &env::Clim::swp)
+	;
+
+	class_ <env::Climate>("Climate")
+		.constructor()
+		.field("clim", &env::Climate::clim)
+	;
+
+	class_ <ErgodicEnvironment>("ErgodicEnvironment")
+		.constructor()
+		.derives<env::LightEnvironment>("LightEnvironment")
+		.derives<env::Climate>("Climate")
+
+		.method("print", &ErgodicEnvironment::print)
+	;
+
 	class_ <LifeHistoryOptimizer>("LifeHistoryOptimizer")
 		.field("params_file", &LifeHistoryOptimizer::params_file)
+		.field("env", &LifeHistoryOptimizer::C)
 		
 		.constructor()
 		.method("set_traits", &LifeHistoryOptimizer::set_traits)

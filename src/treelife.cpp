@@ -1,11 +1,21 @@
 #include "treelife.h"
 using namespace std;
 
+
+ErgodicEnvironment::ErgodicEnvironment() : LightEnvironment(){
+	z_star = {15, 10, 5, 0};
+	canopy_openness = {1, exp(-0.5*1.8), exp(-0.5*3.5), exp(-0.5*5.5)};
+}
+
 void ErgodicEnvironment::print(double t){
 	Climate::print(t);
 	LightEnvironment::print();
 }
 
+LifeHistoryOptimizer::LifeHistoryOptimizer(){
+	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
+	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
+}
 
 void LifeHistoryOptimizer::init(){
 	rep = 0;
@@ -13,11 +23,7 @@ void LifeHistoryOptimizer::init(){
 	seeds = 0;
 	prod = 0;
 
-	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
-	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 	//C.init();
-	C.z_star = {15, 10, 5, 0};
-	C.canopy_openness = {1, exp(-0.5*1.8), exp(-0.5*3.5), exp(-0.5*5.5)};
 	C.n_layers = C.z_star.size()-1;
 
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)

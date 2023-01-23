@@ -60,8 +60,8 @@ class Climate{
 	bool update_co2 = true;
 
 	private:
-	std::ifstream fin_met;
-	std::ifstream fin_co2;
+	// std::ifstream fin_met; // Cannot use streams as members because when exported to R, R needs copy constructor
+	// std::ifstream fin_co2;
 
 	public:
 	
@@ -72,7 +72,7 @@ class Climate{
 	int id(double t);
 	void updateClimate(double t);
 
-	int readNextLine_met(Clim &clim, double &t);
+	int readNextLine_met(Clim &clim, double &t, std::ifstream& fin_met);
 	
 	int binarySearch(double k);
 	double inst_swp(double year);

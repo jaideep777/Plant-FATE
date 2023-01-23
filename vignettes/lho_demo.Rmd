@@ -31,10 +31,20 @@ To calculate the fitness of a tree with given traits, follow these steps:
 lho = new(LifeHistoryOptimizer)
 lho$params_file = "tests/params/p.ini"
 lho$init()
+lho$printPlant()
+lho$env$print(0)
+lho$calcFitness()
+```
+
+```{r}
+lho = new(LifeHistoryOptimizer)
+lho$params_file = "tests/params/p.ini"
+lho$init()
 lho$set_traits(c(0.08, 750))
 lho$printPlant()
 lho$calcFitness()
 ```
+
 
 ## Calculate fitness as a function of LMA
 

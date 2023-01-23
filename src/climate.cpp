@@ -1,8 +1,3 @@
-
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 #include <iomanip>
 #include <cmath>
 #include <stdexcept>
@@ -14,8 +9,8 @@ namespace env{
 
 
 int Climate::init(){
-	fin_met.open(metFile.c_str());
-	fin_co2.open(co2File.c_str());
+	std::ifstream fin_met(metFile.c_str());
+	std::ifstream fin_co2(co2File.c_str());
 	
 	if (!fin_met){
 		throw std::runtime_error("Could not open file " + metFile);
@@ -32,7 +27,7 @@ int Climate::init(){
 	while (fin_met.peek() != EOF){
 		Clim clim1;
 		double t1;
-		readNextLine_met(clim1, t1);
+		readNextLine_met(clim1, t1, fin_met);
 		t_met.push_back(t1);
 		v_met.push_back(clim1);
 	}
@@ -102,7 +97,7 @@ void Climate::updateClimate(double t){
 
 }
 
-int Climate::readNextLine_met(Clim &clim, double &t){
+int Climate::readNextLine_met(Clim &clim, double &t, std::ifstream& fin_met){
 
 	std::string                line, cell;
 	
