@@ -8,7 +8,6 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 
 	parent_dir = I.get<string>("outDir");
 	expt_dir   = I.get<string>("exptName");
-	out_dir  = parent_dir  + "/" + expt_dir;
 	
 	save_state = (I.get<string>("saveState") == "yes")? true : false;
 
@@ -31,12 +30,14 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 }
 
 void Simulator::init(double tstart, double tend){
-	
+	out_dir  = parent_dir  + "/" + expt_dir;
+
 	// string command = "mkdir -p " + out_dir;
 	std::filesystem::create_directories(out_dir);
 	// string command2 = "cp " + paramsFile + " " + out_dir + "/p.ini";
-	std::filesystem::remove(out_dir + "/p.ini"); // use this because the overwrite flag in below command does not work!
-	std::filesystem::copy_file(paramsFile, out_dir + "/p.ini", std::filesystem::copy_options::overwrite_existing);
+	std::string copy_to = out_dir + "/p.ini";
+	if (std::filesystem::exists(copy_to)) std::filesystem::remove(copy_to); // use this because the overwrite flag in below command does not work!
+	std::filesystem::copy_file(paramsFile, copy_to, std::filesystem::copy_options::overwrite_existing);
 	// int sysresult;
 	// sysresult = system(command.c_str());
 	// sysresult = system(command2.c_str());
