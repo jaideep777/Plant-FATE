@@ -1,13 +1,13 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_amazon"
+output_dir = "pspm_output_amazon_nut"
 prefix = "ELE"
   
-solver = "HD"#_old_params"
+solver = "HD_low"#_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
-plot_to_file = F
+plot_to_file = T
 plot_trait_space = T
 
 add_band = function(){
@@ -316,3 +316,5 @@ yobs=c(350.5221340921042,
 points(yobs~xobs, pch=20, col=scales::alpha("grey30", 0.4), cex=1.7)
 mtext(text = "Size distribution", side=3, line=1)
 }
+
+

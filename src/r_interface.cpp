@@ -16,6 +16,7 @@ RCPP_MODULE(treelife_module){
 		.constructor()
 		.field("z_star", &env::LightEnvironment::z_star)
 		.field("canopy_openness", &env::LightEnvironment::canopy_openness)
+		.method("print", &env::LightEnvironment::print)
 	;
 
 	class_ <env::Clim>("Clim")
@@ -31,6 +32,14 @@ RCPP_MODULE(treelife_module){
 	class_ <env::Climate>("Climate")
 		.constructor()
 		.field("clim", &env::Climate::clim)
+
+		.field("metFile", &env::Climate::metFile)
+		.field("co2File", &env::Climate::co2File)
+		.field("update_met", &env::Climate::update_met)
+		.field("update_co2", &env::Climate::update_co2)
+
+		.method("set", &env::Climate::set)
+		.method("print", &env::Climate::print)
 	;
 
 	class_ <ErgodicEnvironment>("ErgodicEnvironment")
@@ -46,10 +55,16 @@ RCPP_MODULE(treelife_module){
 		.field("env", &LifeHistoryOptimizer::C)
 		
 		.constructor()
+		.method("set_metFile", &LifeHistoryOptimizer::set_metFile)
+		.method("set_co2File", &LifeHistoryOptimizer::set_co2File)
+
+		.method("get_header", &LifeHistoryOptimizer::get_header)
+		.method("get_state", &LifeHistoryOptimizer::get_state)
+
 		.method("set_traits", &LifeHistoryOptimizer::set_traits)
 		.method("get_traits", &LifeHistoryOptimizer::get_traits)
 		.method("init", &LifeHistoryOptimizer::init)
-		.method("printPlant", &LifeHistoryOptimizer::printPlant)
+		.method("printMeta", &LifeHistoryOptimizer::printMeta)
 		.method("calcFitness", &LifeHistoryOptimizer::calcFitness)
 
 		.method("grow_for_dt", &LifeHistoryOptimizer::grow_for_dt)
@@ -61,6 +76,8 @@ RCPP_MODULE(treelife_module){
 RCPP_MODULE(plantfate_module){
 	class_ <Simulator>("Simulator")
 		.constructor<std::string>()
+		.method("set_metFile", &Simulator::set_metFile)
+		.method("set_co2File", &Simulator::set_co2File)
 		.method("init", &Simulator::init)
 		.method("simulate", &Simulator::simulate)
 		.method("close", &Simulator::close)
@@ -68,8 +85,6 @@ RCPP_MODULE(plantfate_module){
 		.field("paramsFile", &Simulator::paramsFile)
 		.field("parent_dir", &Simulator::parent_dir)
 		.field("expt_dir", &Simulator::expt_dir)
-		.field("met_file", &Simulator::met_file)
-		.field("co2_file", &Simulator::co2_file)
 		.field("save_state", &Simulator::save_state)
 		.field("state_outfile", &Simulator::state_outfile)
 		.field("config_outfile", &Simulator::config_outfile)

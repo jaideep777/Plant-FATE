@@ -48,16 +48,13 @@ class Climate{
 	Clim clim;
 	std::vector<double> t_met;
 	std::vector<Clim>   v_met;
-	// Adding temp vector for soil water potential
-	std::vector<double> v_met_swp;
-	int counter_var = 1;
 
 	std::string metFile = "";
 	std::string co2File = "";
 	bool interpolate = false;
 	
-	bool update_met = true;
-	bool update_co2 = true;
+	bool update_met = false;
+	bool update_co2 = false;
 
 	private:
 	// std::ifstream fin_met; // Cannot use streams as members because when exported to R, R needs copy constructor
@@ -67,6 +64,8 @@ class Climate{
 	
 	int init();
 	
+	void set(double _tc, double _ppfd_max, double _ppfd, double _vpd, double _co2, double _elv, double _swp);
+
 	Clim interp(Clim &clim_prev, Clim &clim_next);
 
 	int id(double t);
@@ -74,13 +73,11 @@ class Climate{
 
 	int readNextLine_met(Clim &clim, double &t, std::ifstream& fin_met);
 	
-	int binarySearch(double k);
-	double inst_swp(double year);
-	
 	template<class T> 
 	T as(std::string s);
 
-	void print(double t);
+	void print();
+	void print_line(double t);
 	void print_all();
 
 };

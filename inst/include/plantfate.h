@@ -23,8 +23,8 @@ class Simulator{
 	std::string paramsFile;
 	std::string parent_dir, expt_dir;
 
-	std::string met_file;
-	std::string co2_file;
+	// std::string met_file;
+	// std::string co2_file;
 
 	bool        save_state;
 	std::string state_outfile;
@@ -59,6 +59,9 @@ class Simulator{
 	public:
 	Simulator(std::string params_file);
 	
+	void set_metFile(std::string metfile);
+	void set_co2File(std::string co2file);
+
 	void init(double tstart, double tend);
 
 	void simulate();

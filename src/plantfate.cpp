@@ -23,11 +23,28 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	timestep = I.getScalar("timestep");  // ODE Solver timestep
  	delta_T = I.getScalar("delta_T");    // Cohort insertion timestep
 
-	met_file = I.get<string>("metFile");
-	co2_file = I.get<string>("co2File");
-
 	solver_method = I.get<string>("solver");
+
+	E.metFile = I.get<string>("metFile");
+	E.co2File = I.get<string>("co2File");
+	E.update_met = (E.metFile == "null")? false : true;
+	E.update_co2 = (E.co2File == "null")? false : true;
+	E.use_ppa = true;
+
 }
+
+
+void Simulator::set_metFile(std::string metfile){
+	E.metFile = metfile;
+	E.update_met = (metfile == "")? false : true;
+}
+
+
+void Simulator::set_co2File(std::string co2file){
+	E.co2File = co2file;
+	E.update_co2 = (co2file == "")? false : true;
+}
+
 
 void Simulator::init(double tstart, double tend){
 	out_dir  = parent_dir  + "/" + expt_dir;
@@ -47,13 +64,10 @@ void Simulator::init(double tstart, double tend){
 	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
-	E.metFile = met_file;
-	E.co2File = co2_file;
+	// E.metFile = met_file;
+	// E.co2File = co2_file;
 	E.init();
 	E.print(0);
-	E.use_ppa = true;
-	E.update_met = true;
-	E.update_co2 = true;
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
 	S = Solver(solver_method, "rk45ck");

@@ -36,12 +36,19 @@ class LifeHistoryOptimizer{
 	public:
 
 	LifeHistoryOptimizer();
+	
+	void set_metFile(std::string metfile);
+	void set_co2File(std::string co2file);
+	
 	void init();
 
+	std::vector<std::string> get_header();
 	void printHeader(std::ostream &lfout);
 
+	std::vector<double> get_state(double t);
 	void printState(double t, std::ostream& lfout);
-	void printPlant();
+
+	void printMeta();
 
 	void set_traits(std::vector<double> tvec);
 	std::vector<double> get_traits();

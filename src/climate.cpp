@@ -3,58 +3,76 @@
 #include <stdexcept>
 
 #include "climate.h"
-
+using namespace std;
 
 namespace env{
 
 
 int Climate::init(){
-	std::ifstream fin_met(metFile.c_str());
-	std::ifstream fin_co2(co2File.c_str());
-	
-	if (!fin_met){
-		throw std::runtime_error("Could not open file " + metFile);
-	}
-	if (!fin_co2){
-		throw std::runtime_error("Could not open file " + co2File);
-	}
-	
-	// skip header
 	std::string line;
-	getline(fin_met, line);
-	getline(fin_co2, line);
 
-	while (fin_met.peek() != EOF){
-		Clim clim1;
-		double t1;
-		readNextLine_met(clim1, t1, fin_met);
-		t_met.push_back(t1);
-		v_met.push_back(clim1);
+	if (update_met){
+		std::ifstream fin_met(metFile.c_str());
+		if (!fin_met){
+			throw std::runtime_error("Could not open file " + metFile);
+		}
+
+		// skip header
+		getline(fin_met, line);
+
+		while (fin_met.peek() != EOF){
+			Clim clim1(clim);  // use copy constructor so that any user-defined values (e.g., co2) are preserved
+			double t1;
+			readNextLine_met(clim1, t1, fin_met);
+			t_met.push_back(t1);
+			v_met.push_back(clim1);
+		}
+		
+		delta = *t_met.rbegin() - *t_met.begin() + t_met[1]-t_met[0]+ 1e-6;
 	}
-	
-	delta = *t_met.rbegin() - *t_met.begin() + t_met[1]-t_met[0]+ 1e-6;
-	
-	// read CO2 file
-	while (fin_co2.peek() != EOF){
-		std::getline(fin_co2, line);
-	
-		std::stringstream lineStream(line);
 
-		std::string cell;
+	if (update_co2){
+		std::ifstream fin_co2(co2File.c_str());
+		if (!fin_co2){
+			throw std::runtime_error("Could not open file " + co2File);
+		}
 		
-		std::getline(lineStream, cell, ',');
-		int year = as<int>(cell);
+		// skip header
+		getline(fin_co2, line);
+		
+		// read CO2 file
+		while (fin_co2.peek() != EOF){
+			std::getline(fin_co2, line);
+		
+			std::stringstream lineStream(line);
 
-		std::getline(lineStream, cell, ',');
-		double co2 = as<double>(cell);
-		
-		t_co2.push_back(year);
-		v_co2.push_back(co2);
+			std::string cell;
+			
+			std::getline(lineStream, cell, ',');
+			int year = as<int>(cell);
+
+			std::getline(lineStream, cell, ',');
+			double co2 = as<double>(cell);
+			
+			t_co2.push_back(year);
+			v_co2.push_back(co2);
+		}
 	}
 	
 	return 0;
 
 }
+
+
+void Climate::set(double _tc, double _ppfd_max, double _ppfd, double _vpd, double _co2, double _elv, double _swp){
+	clim.tc = _tc; 
+	clim.ppfd_max = _ppfd_max; 
+	clim.ppfd = _ppfd;
+	clim.vpd = _vpd;
+	clim.co2 = _co2;
+	clim.elv = _elv;
+	clim.swp = _swp;
+};
 
 
 Clim Climate::interp(Clim &clim_prev, Clim &clim_next){
@@ -72,9 +90,10 @@ void Climate::updateClimate(double t){
 
 	// double tadj = t;  // adjusted t to lie between limits of observed data
 	// while(tadj < *t_met.begin()) tadj += delta;
-	if (t_met.size() == 0) throw std::runtime_error("Climate time vector is empty");
 		
 	if (update_met){
+		if (t_met.size() == 0) throw std::runtime_error("Climate time vector is empty");
+
 		double tadj = t;  // adjusted t to lie between limits of observed data
 		while(tadj < *t_met.begin()) tadj += delta;
 		int idx_now = id(tadj);
@@ -134,11 +153,27 @@ int Climate::readNextLine_met(Clim &clim, double &t, std::ifstream& fin_met){
 }
 
 
-void Climate::print(double t){
+void Climate::print(){
+	cout << "Climate meta:\n";
+	cout << "  met_file = " << metFile << '\n';
+	cout << "  co2_file = " << co2File << '\n';
+	cout << "  met data will be updated from file: " << ((update_met)? "yes" : "no") << '\n';
+	cout << "  CO2 will be updated from file: " << ((update_co2)? "yes" : "no") << '\n';
+	cout << "  Current climate:\n";
+	cout << "     tc      = " << clim.tc  << '\n';
+	cout << "     ppfdmax = " << clim.ppfd_max << '\n';
+	cout << "     ppfd    = " << clim.ppfd << '\n';
+	cout << "     vpd     = " << clim.vpd << '\n';
+	cout << "     co2     = " << clim.co2 << '\n';
+	cout << "     elv     = " << clim.elv << '\n';
+	cout << "     swp     = " << clim.swp << '\n';
+}
+
+void Climate::print_line(double t){
 	int year = int(t);
 	double month = (t-int(t))*12;
 	std::cout << "Climate at t = " << t << " (" << year << "/" << month << ")";
-	std::cout << " | " << clim.tc << " " << clim.ppfd      << " " << clim.vpd << " " << clim.co2 << "\n"; 
+	std::cout << " | T/Im/I/D/CO2/Z/Ps = " << clim.tc << " " << clim.ppfd_max << " " << clim.ppfd << " " << clim.vpd << " " << clim.co2 << " " << clim.elv << " " << clim.swp << "\n"; 
 }
 
 
@@ -149,41 +184,6 @@ void Climate::print_all(){
 		double month = (t-int(t))*12;
 		std::cout << "Climate at t = " << t << " (" << year << "/" << month << ")";
 		std::cout << " | " << v_met[i].tc << " " << v_met[i].ppfd      << " " << v_met[i].vpd << "\n"; 
-	}
-}
-
-int Climate::binarySearch(double k){
-	int low = 0;
-	int len = t_met.size();
-	int high = len - 1;
-	int mid = (high+low)/2;
-	int index = -1;
-	while(low <= high){
-		mid =( low + high ) / 2;
-		if(t_met[mid] <= k){
-			index = mid;
-			low = mid+1;
-		}
-		else{
-			high=mid-1;
-		}
-	}
-	return index;
-}
-	
-
-double Climate::inst_swp(double year){
-	int i = binarySearch(year);
-	if (i == (t_met.size()-1)){
-		return v_met_swp[i];
-	}
-	else {
-		double x_1 = t_met[i];
-		double y_1 = v_met_swp[i];
-		int x_2 = t_met[i+1];
-		double y_2 = v_met_swp[i+1];
-		double y = y_1 - (((y_2-y_1)/(x_2-x_1))*(x_1-year));
-		return y;
 	}
 }
 
