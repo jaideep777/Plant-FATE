@@ -193,7 +193,7 @@ void Simulator::addSpeciesAndProbes(Solver *S, string params_file, io::Initializ
 	double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 
 	PSPM_Plant p1;
-	p1.initParamsFromFile(params_file);
+	p1.initFromFile(params_file);
 	p1.traits.species_name = species_name;
 	p1.traits.lma = lma;
 	p1.traits.wood_density = wood_density;

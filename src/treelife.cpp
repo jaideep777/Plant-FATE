@@ -42,7 +42,7 @@ void LifeHistoryOptimizer::init(){
 
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
 	P = plant::Plant();
-	P.initParamsFromFile(params_file);
+	P.initFromFile(params_file);
 	P.geometry.set_lai(P.par.lai0);
 	P.set_size(0.01);
 	// Simulation below starts at seedling stage. So account for survival until seedling stage

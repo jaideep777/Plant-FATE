@@ -6,6 +6,7 @@
 #include "assimilation.h"
 #include "utils/rk4.h"
 #include "utils/moving_average.h"
+#include "utils/initializer.h"
 
 namespace plant{
 
@@ -58,10 +59,12 @@ class Plant{
 	
 	public:
 
-	/// @brief  This function initializes the plant (traits, par, and geometry) from ini file
-	void initParamsFromFile(std::string file);
+	/// @brief  This function initializes the plant (traits, par, and geometry) from an Initialzer object
+	void init(io::Initializer &I);
 
-	
+	/// @brief  This function initializes the plant (traits, par, and geometry) from ini file
+	void initFromFile(std::string file);
+
 	/// @brief Set traits that are calculated from other traits (e.g., leaf_p50, a, c)
 	void coordinateTraits();
 	

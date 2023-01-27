@@ -3,16 +3,18 @@ using namespace std;
 
 namespace plant{
 
-
-void Plant::initParamsFromFile(std::string file){
-	par.initFromFile(file);
-	traits.initFromFile(file);
-
-	//seeds_hist.set_interval(par.T_seed_rain_avg);
-
+/// @brief  This function initializes the plant (traits, par, and geometry) from an Initialzer object
+void Plant::init(io::Initializer &I){
+	par.init(I);
+	traits.init(I);
 	coordinateTraits();
+}
 
-	//geometry.init(par, traits);
+void Plant::initFromFile(std::string file){
+	io::Initializer I(file);
+	I.readFile();
+
+	init(I);
 }
 
 
