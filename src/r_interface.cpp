@@ -72,8 +72,18 @@ RCPP_MODULE(treelife_module){
 }
 
 #include "plantfate.h"
+#include "pspm_interface.h"
+
+RCPP_EXPOSED_CLASS(EnvironmentBase);
+RCPP_EXPOSED_CLASS(PSPM_Dynamic_Environment);
 
 RCPP_MODULE(plantfate_module){
+	class_ <EnvironmentBase>("EnvironmentBase")
+	;
+
+	class_ <PSPM_Dynamic_Environment>("PSPM_Dynamic_Environment")
+	;
+
 	class_ <Simulator>("Simulator")
 		.constructor<std::string>()
 		.method("set_metFile", &Simulator::set_metFile)
@@ -81,6 +91,8 @@ RCPP_MODULE(plantfate_module){
 		.method("init", &Simulator::init)
 		.method("simulate", &Simulator::simulate)
 		.method("close", &Simulator::close)
+
+		.field("E", &Simulator::E)
 
 		.field("paramsFile", &Simulator::paramsFile)
 		.field("parent_dir", &Simulator::parent_dir)

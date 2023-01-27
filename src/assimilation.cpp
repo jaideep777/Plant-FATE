@@ -11,7 +11,7 @@ void Assimilator::les_update_lifespans(double lai, PlantParameters &par, PlantTr
 	double fac = sqrt(((par.les_k1 * par.les_k2)*(par.les_k1 * par.les_k2) * f * hT * plant_assim.mc_avg) / (2 * par.les_u * par.les_cc));
 	
 	kappa_l = 365 * plant_assim.vcmax25_avg / (traits.lma*1e3) * fac;
-	kappa_r = 365 * plant_assim.vcmax25_avg / (traits.zeta*1e3) * fac;
+	kappa_r = 365 * plant_assim.vcmax25_avg / (0.1333*1e3) * fac;
 	//kappa_r = kappa_l * (par.les_cc/lai - 1) / (traits.zeta / traits.lma);
 }
 
@@ -33,7 +33,7 @@ double Assimilator::leaf_respiration_rate(PlantGeometry *G, PlantParameters &par
 
 
 double Assimilator::root_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
-	return par.rr * G->root_mass(traits) * (plant_assim.gpp/G->crown_area/4.5);
+	return par.rr * G->root_mass(traits) * (plant_assim.gpp/G->crown_area);
 }
 
 
@@ -42,7 +42,7 @@ double Assimilator::sapwood_respiration_rate(PlantGeometry *G, PlantParameters &
 //	double dpsi_gravity = (1000*10*G->height/1e6);
 	double factor = traits.p50_xylem;
 	double factor1 = (1 + 0.02*factor*factor); // 3e3 7e3
-	return par.rs * G->sapwood_mass(traits)*factor1 * (plant_assim.gpp/G->crown_area/4.5);	
+	return par.rs * G->sapwood_mass(traits)*factor1; // * (plant_assim.gpp/G->crown_area);
 }
 
 

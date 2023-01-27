@@ -1,14 +1,14 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_amazon_nut"
+output_dir = "pspm_output_amazon_nut3"
 prefix = "ELE"
-  
-solver = "HD_low"#_old_params"
+
+solver = "HD_low_zeta_0.15" #_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
 plot_to_file = T
-plot_trait_space = T
+plot_trait_space = F
 
 add_band = function(){
   polygon(x=c(2000,5000,5000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
@@ -45,7 +45,7 @@ if (plot_to_file) png("plot.png", width=2412*1.5, height = 1472*1.5, res=300)
 
 par(mfcol=c(3,5), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(3.2,1,0), las=1)
 seeds = dat2 %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID")
-matplot(seeds$YEAR, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85, alpha = 0.5), type="l",
+matplot(seeds$YEAR, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85, alpha = min(10/n_species, 1)), type="l",
         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
 mtext(line=0.5, side=3, text=solver)
 add_band()
@@ -104,6 +104,7 @@ add_band()
 
 
 matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC/m2/yr)", xlab="Time (years)")
+# points(y=dat$NPP/dat$GPP*4, x=dat$YEAR, type="l", lty=1, col=c("yellow1"))
 # abline(h=c(3,3.5), col="grey")
 add_hband(c(3,3.5))#, col=scales::alpha("black",0.3))
 add_hband(c(1.31,1.3555))#, col=scales::alpha("black",0.3))
@@ -224,7 +225,7 @@ p1 = traits %>%
   geom_point(aes(col=YEAR, size=RES), alpha=0.4)+
   scale_color_viridis_c(direction = -1)+
   scale_size("size_RES", range = c(0, 1.5))
-print(p1)
+# print(p1)
 
   
 # matplot(y=cbind(dat$ET), x=dat$YEAR, type="l", lty=1, col=c("blue"))
@@ -316,5 +317,4 @@ yobs=c(350.5221340921042,
 points(yobs~xobs, pch=20, col=scales::alpha("grey30", 0.4), cex=1.7)
 mtext(text = "Size distribution", side=3, line=1)
 }
-
 
