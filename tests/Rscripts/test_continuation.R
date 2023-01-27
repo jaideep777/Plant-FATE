@@ -1,7 +1,7 @@
 library(tidyverse)
 rm(list=ls())
 
-dir = "pspm_output_cont_test3_ref"
+dir = "pspm_output_cont_test3"
 ref_dir = paste0(dir,"/cont_test_ref")
 spinup_dir = paste0(dir,"/cont_test_spinup")
 main_dir   = paste0(dir,"/cont_test_main")
