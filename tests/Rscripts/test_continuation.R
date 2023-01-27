@@ -1,9 +1,9 @@
 library(tidyverse)
 rm(list=ls())
 
-ref_dir = "pspm_output_cont_test/cont_test_ref"
-spinup_dir = "pspm_output_cont_test/cont_test_spinup"
-main_dir   = "pspm_output_cont_test/cont_test_main"
+ref_dir = "pspm_output_cont_test3/cont_test_ref"
+spinup_dir = "pspm_output_cont_test3/cont_test_spinup"
+main_dir   = "pspm_output_cont_test3/cont_test_main"
 
 setwd(paste0("~/codes/Plant-FATE/",spinup_dir))
 dat2_spin = read.delim("AmzFACE_Y_PFATE_ELE_HD.txt")
