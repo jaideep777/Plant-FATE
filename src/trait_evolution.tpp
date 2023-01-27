@@ -96,9 +96,11 @@ void MySpecies<Model>::print_extra(){
 	std::cout << "\n";     // these scalars will be applied to fg_dx
 }
 
+// Changelog:
+// v2: Save plant parameters also from boundary cohort, so that ini file is not needed during restore (for plant parameters)
 template <class Model>
 void MySpecies<Model>::save(std::ofstream &fout){
-	fout << "MySpecies<T>::v1\n";
+	fout << "MySpecies<T>::v2\n";
 	
 	// save species-level data
 	fout << std::make_tuple(
@@ -119,8 +121,10 @@ void MySpecies<Model>::save(std::ofstream &fout){
 	seeds_hist.save(fout);
 	r0_hist.save(fout);
 
-	// save traits from boundary cohort
-	this->getCohort(-1).traits.save(fout); 
+	// save both par and traits from boundary cohort
+	auto& C = this->getCohort(-1);
+	C.par.save(fout); 
+	C.traits.save(fout); 
 
 	Species<Model>::save(fout);
 }
@@ -130,7 +134,7 @@ template <class Model>
 void MySpecies<Model>::restore(std::ifstream &fin){
 	std::cout << "Restoring MySpecies<Model>...\n";
 	std::string s; fin >> s; // discard version number
-	assert(s == "MySpecies<T>::v1");
+	assert(s == "MySpecies<T>::v2");
 
 	if (configfile_for_restore == "") throw std::runtime_error("Config file has not been set");
 
@@ -154,10 +158,12 @@ void MySpecies<Model>::restore(std::ifstream &fin){
 	// Create a Model object and restore all individual properties to this object
 	// This will be used to copy-construct the species
 	auto& C = this->getCohort(-1);
-	C.initFromFile(configfile_for_restore);  
+	//C.initFromFile(configfile_for_restore);  
+	C.par.restore(fin);
 	C.traits.restore(fin);
 	C.coordinateTraits();
-	C.traits.save(std::cout); std::cout.flush();
+
+	C.traits.save(std::cout); std::cout.flush(); // For debug only
 
 	Species<Model>::restore(fin);
 }

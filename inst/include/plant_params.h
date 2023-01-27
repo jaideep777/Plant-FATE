@@ -270,7 +270,6 @@ class PlantParameters{
 		les_hT_dH          = I.getScalar("les_hT_dH");
 		les_molar_R        = I.getScalar("les_molar_R");
 		les_hT_c           = I.getScalar("les_hT_c");
-		
 
 		rd                 = I.getScalar("rd");
 		rr                 = I.getScalar("rr");
@@ -287,7 +286,6 @@ class PlantParameters{
 
 		cD0                = I.getScalar("cD0");
 		cD1                = I.getScalar("cD1");
-
 		m_alpha            = I.getScalar("m_alpha");
 		m_beta             = I.getScalar("m_beta");
 		m_gamma            = I.getScalar("m_gamma");

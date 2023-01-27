@@ -198,7 +198,9 @@ void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
 
 	PSPM_Plant p1;
-	p1.initFromFile(paramsFile);
+	//p1.initFromFile(paramsFile);
+	p1.par = par0;
+	p1.traits = traits0;
 	p1.traits.species_name = species_name;
 	p1.traits.lma = lma;
 	p1.traits.wood_density = wood_density;
