@@ -1,3 +1,5 @@
+library(tidyverse)
+
 get_wd_cwm = function(dat2, traits, yr){
   dat2 %>% select(YEAR, PID, BA) %>% 
     left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
@@ -15,29 +17,55 @@ scale_minmax = function(x, xmin, xmax){
 }
 
 
-N=4
-zeta = c(0.0667, 0.1, 0.2, 0.3)
-output_dir = "pspm_output_amazon_nut2"
+N=2
+zeta = c(0.08, 0.2)
+output_dir = "pspm_output_zeta_x_co2"
 
 wd_mat_t = matrix(nrow = 2001, ncol = N)
 wd_amb_ele_mat = matrix(nrow=2, ncol=N)
-for(i in 1:4){
-  expt = paste0("ELE_HD_zeta_", zeta[i])
+ba_amb_ele_mat = matrix(nrow=2, ncol=N)
+npp_amb_ele_mat = matrix(nrow=2, ncol=N)
+agb_amb_ele_mat = matrix(nrow=2, ncol=N)
+cfr_amb_ele_mat = matrix(nrow=2, ncol=N)
+for(i in 1:N){
+  expt = sprintf("HIST_ELE_zeta_%.6f", zeta[i])
   cat(expt, "\n")
   dat = read.delim(paste0("~/codes/Plant-FATE/",output_dir,"/",expt,"/AmzFACE_Y_PFATE_ELE_HD.txt"))
+  dat1 = read.delim(paste0("~/codes/Plant-FATE/",output_dir,"/",expt,"/AmzFACE_D_PFATE_ELE_HD.txt"))
   traits = read.delim(paste0("~/codes/Plant-FATE/",output_dir,"/",expt,"/traits_ELE_HD.txt"))
   wd_amb_ele_mat[,i] = c(get_wd_cwm(dat, traits, 2000), get_wd_cwm(dat, traits, 3000))
+  npp_amb_ele_mat[1,i] = dat1 %>% filter(YEAR > 1950 & YEAR < 2000) %>% select(NPP) %>% colMeans()
+  npp_amb_ele_mat[2,i] = dat1 %>% filter(YEAR > 2950 & YEAR < 3000) %>% select(NPP) %>% colMeans()
+  agb_amb_ele_mat[1,i] = dat1 %>% filter(YEAR > 1950 & YEAR < 2000) %>% mutate(AGB=CL+CW) %>% select(AGB) %>% colMeans()
+  agb_amb_ele_mat[2,i] = dat1 %>% filter(YEAR > 2950 & YEAR < 3000) %>% mutate(AGB=CL+CW) %>% select(AGB) %>% colMeans()
+  cfr_amb_ele_mat[1,i] = dat1 %>% filter(YEAR > 1950 & YEAR < 2000) %>% select(CFR) %>% colMeans()
+  cfr_amb_ele_mat[2,i] = dat1 %>% filter(YEAR > 2950 & YEAR < 3000) %>% select(CFR) %>% colMeans()
   wd_mat_t[,i] = get_wd_cwm_t(dat, traits)$cwm
 }
 
+par(mfrow=c(2,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
 
-barplot(wd_amb_ele_mat, beside = T, ylim=c(550, 800), xpd=F, 
-        legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+matplot(y=wd_mat_t, x=1000:3000, type="l", lty=1, lwd=2, col=scales::viridis_pal(end = 0.8)(N), ylab="Wood density", xlab="Year")
+
+barplot(wd_amb_ele_mat, beside = T, ylim=c(550, 750), xpd=F, 
+        #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
         axis.lty = 1, 
-        main="Basal-area-weighted mean wood density",
+        col=scales::viridis_pal(end = 0.8)(N),
+        ylab="Wood density",
         names.arg=paste0("zeta = ", zeta))
 
-matplot(y=wd_mat_t, x=1000:3000, type="l", lty=1, lwd=2, col=scales::viridis_pal()(N))
+barplot(npp_amb_ele_mat*1e-3*365, beside = T, ylim=c(0,3), xpd=F, 
+        #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+        axis.lty = 1, 
+        ylab="NPP",
+        names.arg=paste0("zeta = ", zeta))
+
+barplot(agb_amb_ele_mat*1e-3, beside = T, ylim=c(20,45), xpd=F, 
+        #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+        axis.lty = 1, 
+        ylab="AGB",
+        names.arg=paste0("zeta = ", zeta))
+
 
 
 N=11
@@ -89,4 +117,47 @@ points(y=bio_conv %>% scale_minmax(min(agb_vec[1:N]), max(agb_vec[1:N])), x=zeta
 abline(v=0.2, col="grey")
 
 
+#### Optimization ####
 
+library(PlantFATE)
+
+# Ambient Env
+zp_amb = c(19.22669, 15.71661, 3.15710, 0.00000)
+co_amb = c(1.0000000, 0.4712540, 0.2218492, 0.0711068)
+
+# eCO2 env
+zp_ele = c(20.695389, 18.106550, 14.087510, 2.206985, 0.000000) 
+co_ele = c(1.000000, 4.712543e-01, 2.220795e-01, 1.032055e-01, 2.763073e-02)
+
+
+fitness_wd = function(wd, zp, co, co2, zeta, pfile="tests/params/p.ini"){
+  lho = new(LifeHistoryOptimizer)
+  lho$params_file = pfile
+  lho$set_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv")
+  lho$env$clim$co2 = co2
+  lho$env$z_star = zp
+  lho$env$canopy_openness = co
+  lho$init()
+  lho$set_traits(c(0.12, wd))
+  # lho$printPlant()
+  lho$calcFitness()
+}
+
+wd = seq(350, 900, length.out=20)
+
+dat_amb = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=368)
+dat_ele_base = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=614)
+dat_ele = wd %>% purrr::map_dbl(fitness_wd, zp=zp_ele, co=co_ele, co2=614)
+dat_amb_nfert = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=368, pfile="tests/params/p_zeta_0.1.ini")
+
+wd_amb = wd[which(dat_amb==max(dat_amb))]
+wd_ele_base = wd[which(dat_ele_base==max(dat_ele_base))]
+wd_ele = wd[which(dat_ele==max(dat_ele))]
+wd_amb_nfert = wd[which(dat_amb_nfert==max(dat_amb_nfert))]
+
+par(mfrow=c(2,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
+matplot(y=cbind(dat_amb/max(dat_amb), dat_ele_base/max(dat_ele_base), dat_ele/max(dat_ele), dat_amb_nfert/max(dat_amb_nfert)), x = wd, type="l", lty=1, col=c("black", "grey", "yellow3", "brown"), ylab="Fitness", xlab="Wood density", cex.lab=1.3, lwd=2)
+
+barplot(c(wd_amb, wd_ele_base, wd_amb_nfert, wd_ele), ylim=c(500,800), xpd=F, 
+        names.arg=c("aC+aN+aE", "eC+aN+aE", "aC+eN+aE", "eC+aN+eE"),
+        col=c("black", "grey", "brown", "yellow3"))

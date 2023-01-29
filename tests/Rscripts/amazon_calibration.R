@@ -1,14 +1,14 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_timestep_test"
-prefix = "BASE"
+output_dir = "pspm_output_zeta_x_co2"
+prefix = "HIST_ELE"
 
-solver = "dt_4wk" #_old_params"
+solver = "zeta_0.200000" #_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
-plot_to_file = F
-plot_trait_space = F
+plot_to_file = T
+plot_trait_space = T
 
 add_band = function(){
   polygon(x=c(2000,5000,5000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
