@@ -1,13 +1,13 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_amazon_nut3"
-prefix = "ELE"
+output_dir = "pspm_output_timestep_test"
+prefix = "BASE"
 
-solver = "HD_low_zeta_0.15" #_old_params"
+solver = "dt_4wk" #_old_params"
 setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
 
-plot_to_file = T
+plot_to_file = F
 plot_trait_space = F
 
 add_band = function(){
