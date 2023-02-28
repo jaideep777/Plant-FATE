@@ -115,6 +115,7 @@ plot_plant_trajectory = function(dat){
                   dat$fineroot_lifespan)),
           x=dat$height, 
           ylab="Leaf/fine root\nlifespan", xlab="Height", type="l", col=c("yellowgreen", "brown4"), lty=1, lwd=1)
+  abline(h=1, col="grey")
 }
 
 ```
