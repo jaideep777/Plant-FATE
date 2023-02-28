@@ -174,6 +174,7 @@ void SpeciesProps::update(double t, Solver &S){
 	p50_vec.resize(S.n_species(), 0);
 	// for (int k=0; k<S.n_species(); ++k) p50_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.p50_xylem;
 
+	// This should not be used
 	gs = 0;
 	for (int k=0; k<S.n_species(); ++k)
 		if (isResident(S.species_vec[k]))
