@@ -105,10 +105,11 @@ RCPP_MODULE(plantfate_module){
 
 
 	class_ <LifeHistoryOptimizer>("LifeHistoryOptimizer")
-		.field("params_file", &LifeHistoryOptimizer::params_file)
+		//.field("params_file", &LifeHistoryOptimizer::params_file)
 		.field("env", &LifeHistoryOptimizer::C)
+		.field("traits0", &LifeHistoryOptimizer::traits0)
 		
-		.constructor()
+		.constructor<std::string>()
 		.method("set_metFile", &LifeHistoryOptimizer::set_metFile)
 		.method("set_co2File", &LifeHistoryOptimizer::set_co2File)
 

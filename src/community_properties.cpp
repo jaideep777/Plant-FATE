@@ -323,7 +323,7 @@ void SolverIO::openStreams(std::string dir, io::Initializer &I){
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
-	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
+	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
 
 }
 
@@ -459,6 +459,8 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		std::vector<double> v = spp->get_traits();
 		for (auto vv : v)
 		ftraits << vv << "\t";
+		ftraits << spp->getCohort(-1).traits.hmat << "\t"
+		        << spp->getCohort(-1).traits.p50_xylem << "\t";
 		ftraits << spp->r0_hist.get_last() << "\t"
 				<< spp->r0_hist.get() << "\t"
 				<< spp->r0_hist.get_exp(0.02) << "\t"

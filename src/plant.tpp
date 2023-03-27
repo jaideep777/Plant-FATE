@@ -96,10 +96,16 @@ double Plant::mortality_rate(Env &env, double t){
 // 	mu += 1/(1+exp(-(r)));
 // 	//fmuh << mu << "\n";
 
-	mu = par.m_gamma*pow(traits.wood_density/600, -1.8392) + 
-	     par.m_alpha*pow(traits.wood_density/600, -1.1493)*exp(-par.m_beta * rates.rgr*D*100) +
-		 par.cD0*pow(D, 1.3) + 
+	mu = par.m_gamma*pow(traits.wood_density/par.cWD0, par.eWD_gamma) +  //*pow(traits.wood_density/600, -1.8392) + 
+	     par.m_alpha*pow(traits.wood_density/par.cWD0, par.eWD_alpha)*exp(-par.m_beta * rates.rgr*D*100) +
+		 par.cD0*pow(traits.wood_density/par.cWD0, par.eWD)*pow(D, par.eD0) + 
 		 par.cD1*exp(-D/0.01);
+
+	// mu = pow(traits.wood_density/par.cWD0, par.eWD)*
+	// 	 (par.m_gamma + 
+	// 	  par.m_alpha*exp(-par.m_beta * rates.rgr*D*100) +
+	// 	  par.cD0*pow(D, par.eD0) + 
+	// 	  par.cD1*exp(-D/0.01));
 
 	assert(mu>=0);
 	
