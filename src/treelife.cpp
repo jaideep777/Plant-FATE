@@ -15,9 +15,16 @@ void ErgodicEnvironment::print(double t){
 	cout << "canopy_openness = " << canopy_openness;
 }
 
-LifeHistoryOptimizer::LifeHistoryOptimizer(){
+LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file) : I(params_file){
+	//paramsFile = params_file; // = "tests/params/p.ini";
+	I.readFile();
+
+	traits0.init(I);
+	par0.init(I);
+
 	C.metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	C.co2File = ""; //"tests/data/CO2_AMB_AmzFACE2000_2100.csv";
+
 }
 
 void LifeHistoryOptimizer::set_metFile(std::string metfile){
@@ -42,7 +49,12 @@ void LifeHistoryOptimizer::init(){
 
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
 	P = plant::Plant();
-	P.initFromFile(params_file);
+	// P.initFromFile(params_file);
+	P.par = par0;
+	P.traits = traits0;
+
+	P.coordinateTraits();
+
 	P.geometry.set_lai(P.par.lai0);
 	P.set_size(0.01);
 	// Simulation below starts at seedling stage. So account for survival until seedling stage
