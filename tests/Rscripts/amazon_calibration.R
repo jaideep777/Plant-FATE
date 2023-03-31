@@ -1,7 +1,7 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_lhobase2"
+output_dir = "pspm_output_lhobase"
 prefix = "HIST_ELE"
 
 solver = "zeta_0.200000" #_old_params"
@@ -17,7 +17,7 @@ add_band = function(){
 add_hband = function(ylim, col=scales::alpha("grey30",0.2), xlim=c(-1e20,2000)){
   polygon(y=c(ylim[1],ylim[2],ylim[2],ylim[1]), x=c(xlim[1],xlim[1],xlim[2],xlim[2]), border = NA, col=col)
 }
-
+# 
 # seeds1 = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 Zp = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
 # BA1 = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_species+2)))

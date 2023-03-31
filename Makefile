@@ -22,8 +22,9 @@ INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include #-is
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags
-CPPFLAGS = -O3 -g -pg -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY
-LDFLAGS =  -g -pg
+PROFILING_FLAGS = -g -pg
+CPPFLAGS = -O3 -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY $(PROFILING_FLAGS)
+LDFLAGS =  $(PROFILING_FLAGS)
 
 ## -Weffc++
 #CPPFLAGS +=    \

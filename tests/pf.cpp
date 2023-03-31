@@ -11,19 +11,30 @@
 
 using namespace std;
 
-int main(){
+int main(int argc, char ** argv){
 
-	// 1. eCO2 run for 2 different zetas
-	vector<double> zeta = {0.2, 0.08};
+	string pfile = "tests/params/p.ini";
+	if (argc > 1) pfile = argv[1];
 
 	for (int i=0; i<1; ++i){
-		Simulator sim("tests/params/p.ini");
-		sim.traits0.zeta = zeta[i];
-		sim.expt_dir = "HIST_ELE_zeta_" + to_string(zeta[i]);
-		sim.init(1000, 5000);
+		Simulator sim(pfile);
+		sim.init(1000, 1010);
 		sim.simulate();
 		sim.close();
 	}
+
+
+	// // 1. eCO2 run for 2 different zetas
+	// vector<double> zeta = {0.2, 0.08};
+
+	// for (int i=0; i<1; ++i){
+	// 	Simulator sim(pfile);
+	// 	sim.traits0.zeta = zeta[i];
+	// 	sim.expt_dir = "HIST_ELE_zeta_" + to_string(zeta[i]);
+	// 	sim.init(-1000, 5000);
+	// 	sim.simulate();
+	// 	sim.close();
+	// }
 
 
 	// // Test effect of zeta

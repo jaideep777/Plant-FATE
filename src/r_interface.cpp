@@ -4,6 +4,7 @@ using namespace Rcpp;
 #include "plant_params.h"
 
 RCPP_EXPOSED_CLASS(plant::PlantTraits)
+RCPP_EXPOSED_CLASS(plant::PlantParameters)
 
 #include "climate.h"
 #include "light_environment.h"
@@ -46,6 +47,22 @@ RCPP_MODULE(plantfate_module){
 
 		.constructor()
 		.method("print", &plant::PlantTraits::print)
+	;
+
+	class_ <plant::PlantParameters>("PlantParameters")
+		.field("cD0",          &plant::PlantParameters::cD0)
+		.field("eD0",          &plant::PlantParameters::eD0)
+		.field("cD1",          &plant::PlantParameters::cD1)
+		.field("m_alpha",      &plant::PlantParameters::m_alpha)
+		.field("m_beta",       &plant::PlantParameters::m_beta)
+		.field("m_gamma",      &plant::PlantParameters::m_gamma)
+		.field("eWD_alpha",    &plant::PlantParameters::eWD_alpha)
+		.field("eWD_gamma",    &plant::PlantParameters::eWD_gamma)
+		.field("cWD0",         &plant::PlantParameters::cWD0)
+		.field("eWD",          &plant::PlantParameters::eWD)
+
+		.constructor()
+		.method("print", &plant::PlantParameters::print)	
 	;
 
 	class_ <env::LightEnvironment>("LightEnvironment")
@@ -108,6 +125,7 @@ RCPP_MODULE(plantfate_module){
 		//.field("params_file", &LifeHistoryOptimizer::params_file)
 		.field("env", &LifeHistoryOptimizer::C)
 		.field("traits0", &LifeHistoryOptimizer::traits0)
+		.field("par0", &LifeHistoryOptimizer::par0)
 		
 		.constructor<std::string>()
 		.method("set_metFile", &LifeHistoryOptimizer::set_metFile)
@@ -150,6 +168,7 @@ RCPP_MODULE(plantfate_module){
 		.field("ye", &Simulator::ye)
 
 		.field("traits0", &Simulator::traits0)
+		.field("par0", &Simulator::par0)
 	;
 }
 
