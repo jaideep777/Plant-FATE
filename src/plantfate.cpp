@@ -248,14 +248,14 @@ void Simulator::simulate(){
 	auto after_step = [this](double t){
 		calc_seed_output(t, S);
 		calc_r0(t, timestep, S);
-		sio.fclim << t << "\t" 
-		          << E.clim.tc << "\t"
-		          << E.clim.ppfd_max << "\t"
-		          << E.clim.ppfd << "\t"
-		          << E.clim.vpd << "\t"
-		          << E.clim.co2 << "\t"
-		          << E.clim.elv << "\t"
-		          << E.clim.swp << "\n";
+		// sio.fclim << t << "\t" 
+		//           << E.clim.tc << "\t"
+		//           << E.clim.ppfd_max << "\t"
+		//           << E.clim.ppfd << "\t"
+		//           << E.clim.vpd << "\t"
+		//           << E.clim.co2 << "\t"
+		//           << E.clim.elv << "\t"
+		//           << E.clim.swp << "\n";
 	};
 
 	for (double t=y0; t <= yf; t=t+delta_T) {
