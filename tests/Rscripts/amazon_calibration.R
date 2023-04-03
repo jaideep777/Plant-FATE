@@ -1,11 +1,11 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_lhobase"
-prefix = "HIST_ELE"
+output_dir = "~/codes/Plant-FATE/pspm_output_calib_final1"
+output_dir = "~/output_data/pspm_output_36sims"
+expt_dir = "trial414ppm" #_old_params"
 
-solver = "zeta_0.200000" #_old_params"
-setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
+setwd(paste0(output_dir,"/",expt_dir))
 
 plot_to_file = F
 plot_trait_space = F
@@ -29,8 +29,8 @@ dat2 = read.delim("AmzFACE_Y_PFATE_ELE_HD.txt")
 dist = read.delim("size_distributions.txt", header=F)
 dist = dist[,-ncol(dist)]
 x = exp(seq(log(0.01), log(10), length.out=100))
-traits_obs = read.csv(file = "../../tests/data/Amz_trait_filled_HD.csv")
-traits_used = read.csv(file = "../../tests/data/Traits_random_HD.csv")
+traits_obs = read.csv(file = "~/codes/Plant-FATE/tests/data/Amz_trait_filled_HD.csv")
+traits_used = read.csv(file = "~/codes/Plant-FATE/tests/data/Traits_random_HD2.csv")
 
 # To get avg size distribution, sum over species and average over years
 names(dist)[1:2] = c("YEAR", "SPP")
@@ -49,7 +49,7 @@ par(mfcol=c(4,5), mar=c(4.5,6,.5,1), oma=c(1,1,2,1), cex.lab=1.1, cex.axis=1.1, 
 seeds = dat2 %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID")
 matplot(seeds$YEAR, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85, alpha = min(10/n_species, 1)), type="l",
         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
-mtext(line=0.5, side=3, text=solver)
+mtext(line=0.5, side=3, text=expt_dir)
 add_band()
 
 # matplot(seeds1$V1, seeds1[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85), type="l",
@@ -450,14 +450,14 @@ cl_y %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(temp~YEAR, col="red"
 
 # cl_y %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(VPD~YEAR, type="l"))
 # cl_y %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(VPD~YEAR, col="red"))
-
+  
 abline(v=2000, col="pink")
 
 co2f %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(points(I(CO2/23)~YEAR, type="l", col="cyan3"))
 co2f %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(I(CO2/23)~YEAR, col="blue"))
 
-dat %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(GPP~YEAR, type="l"))
-dat %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(GPP~YEAR, col="red"))
+dat %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(I(GPP*1e-3*365)~YEAR, type="l"))
+dat %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(I(GPP*1e-3*365)~YEAR, col="red"))
 abline(v=2000, col="pink")
 
 dat %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(LAI~YEAR, type="l"))

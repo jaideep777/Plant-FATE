@@ -1,11 +1,11 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "pspm_output_calib_morttrial"
-prefix = "AMB_HD"
+output_dir = "~/codes/Plant-FATE/pspm_output_calib_final1"
+output_dir = "~/output_data/pspm_output_36sims"
+expt_dir = "trial414ppm" #_old_params"
 
-solver = "CALIB_randomspp1" #_old_params"
-setwd(paste0("~/codes/Plant-FATE/",output_dir,"/",prefix,"_",solver))
+setwd(paste0(output_dir,"/",expt_dir))
 
 plot_to_file = F
 plot_trait_space = T
@@ -258,6 +258,16 @@ cwm_p50_pred %>% with(plot(cwm_p50~YEAR, type="l")) #, ylim=c(200,900)))
 add_hband(c(cwm_wd,cwm_wd+5))
 
 if (plot_to_file) dev.off()
+
+
+#### Fittest traits
+
+dat2 %>% select(YEAR, PID, BA) %>% 
+  left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>%
+  mutate(BA = BA*1e4) %>% 
+  filter(YEAR == 2000) %>% 
+  arrange(desc(BA)) %>% 
+  slice(1:5)
 
 
 

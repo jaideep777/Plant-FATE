@@ -17,6 +17,7 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	continueFrom_stateFile = I.get<string>("continueFromState");
 	continueFrom_configFile = I.get<string>("continueFromConfig");
 	continuePrevious = (continueFrom_configFile != "null") && (continueFrom_stateFile != "null");
+	saveStateInterval = I.getScalar("saveStateInterval");
 
 	traits_file = I.get<string>("traitsFile");
 	n_species = I.getScalar("nSpecies");
@@ -273,34 +274,34 @@ void Simulator::simulate(){
 			}
 		}
 
-		// // Remove dead species
-		// vector<MySpecies<PSPM_Plant>*> toRemove;
-		// for (int k=0; k<S.species_vec.size(); ++k){
-		// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-		// 	if (spp->isResident){
-		// 		if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
-		// 	}
-		// }
-		// for (auto spp : toRemove) removeSpeciesAndProbes(spp);
-
-		// Shuffle species in the species vector -- just for debugging
-		if (int(t) % 10 == 0){
-			cout << "shuffling...\n";
-			std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-			S.copyCohortsToState();
+		// Remove dead species
+		vector<MySpecies<PSPM_Plant>*> toRemove;
+		for (int k=0; k<S.species_vec.size(); ++k){
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+			if (spp->isResident){
+				if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+			}
 		}
+		for (auto spp : toRemove) removeSpeciesAndProbes(spp);
 
-		// // Invasion by a random new species
-		// if (int(t) % 300 == 0){
-		// 	cout << "**** Invasion ****\n";
-		// 	addSpeciesAndProbes(t, 
-		// 	                    "spp_t"+to_string(t), 
-		// 	                    runif(0.05, 0.25),    //Tr.species[i].lma, 
-		// 	                    runif(300, 900),   //Tr.species[i].wood_density, 
-		// 	                    runif(2, 35),      //Tr.species[i].hmat, 
-		// 	                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
-		// 	);
+		// // Shuffle species in the species vector -- just for debugging
+		// if (int(t) % 10 == 0){
+		// 	cout << "shuffling...\n";
+		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+		// 	S.copyCohortsToState();
 		// }
+
+		// Invasion by a random new species
+		if (int(t) % 100 == 0){
+			cout << "**** Invasion ****\n";
+			addSpeciesAndProbes(t, 
+			                    "spp_t"+to_string(t), 
+			                    runif(0.05, 0.25),    //Tr.species[i].lma, 
+			                    runif(300, 900),   //Tr.species[i].wood_density, 
+			                    runif(2, 35),      //Tr.species[i].hmat, 
+			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
+			);
+		}
 
 		// clear patch after 50 year	
 		if (t >= t_clear){
@@ -317,7 +318,16 @@ void Simulator::simulate(){
 			double t_int = -log(double(rand())/RAND_MAX) * T_return;
 			t_clear = t + fmin(t_int, 1000);
 		}
-		
+
+		// Save simulation state at specified intervals
+		if (int(t) % saveStateInterval == 0){
+			saveState(&S, 
+	          out_dir + "/" + std::to_string(t) + "_" + state_outfile, 
+			  out_dir + "/" + std::to_string(t) + "_" + config_outfile, 
+			  paramsFile);
+		}
+
 	}
 	
 }
+

@@ -33,6 +33,7 @@ class Simulator{
 	std::string continueFrom_stateFile;
 	std::string continueFrom_configFile;
 	bool        continuePrevious;
+	int         saveStateInterval;
 
 	int         n_species;
 	std::string traits_file;
