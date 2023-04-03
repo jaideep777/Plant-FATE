@@ -20,19 +20,19 @@ int main(int argc, char ** argv){
 		Simulator sim(pfile);
 		sim.expt_dir = sim.expt_dir + "_414ppm";
 		sim.E.clim.co2 = 414;
-		sim.init(1800, 2200);
+		sim.init(1000, 5000);
 		sim.simulate();
 		sim.close();
 	}
 
-	// for (int i=0; i<1; ++i){
-	// 	Simulator sim(pfile);
-	// 	sim.expt_dir = sim.expt_dir + "_614ppm";
-	// 	sim.E.clim.co2 = 614;
-	// 	sim.init(1000, 5000);
-	// 	sim.simulate();
-	// 	sim.close();
-	// }
+	for (int i=0; i<1; ++i){
+		Simulator sim(pfile);
+		sim.expt_dir = sim.expt_dir + "_614ppm";
+		sim.E.clim.co2 = 614;
+		sim.init(1000, 5000);
+		sim.simulate();
+		sim.close();
+	}
 
 
 	// // 1. eCO2 run for 2 different zetas
