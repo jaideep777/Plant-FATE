@@ -321,11 +321,13 @@ void SolverIO::openStreams(std::string dir, io::Initializer &I){
 	fouty.open(std::string(dir + "/" + I.get<std::string>("cwmAvg")).c_str());
 	fouty_spp.open(std::string(dir + "/" + I.get<std::string>("cwmperSpecies")).c_str());
 	ftraits.open(std::string(dir + "/" + I.get<std::string>("traits")).c_str());
+	fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
 	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
+	fclim << "t\ttc\tppfd_max\tppfd\tvpd\tco2\telv\tswp\n";
 
 }
 

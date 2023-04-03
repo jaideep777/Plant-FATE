@@ -29,6 +29,8 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	solver_method = I.get<string>("solver");
 	res = I.getScalar("resolution");
 
+	T_invasion = I.getScalar("T_invasion");
+
 	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 
 	T_return = I.getScalar("T_return");
@@ -246,6 +248,14 @@ void Simulator::simulate(){
 	auto after_step = [this](double t){
 		calc_seed_output(t, S);
 		calc_r0(t, timestep, S);
+		sio.fclim << t << "\t" 
+		          << E.clim.tc << "\t"
+		          << E.clim.ppfd_max << "\t"
+		          << E.clim.ppfd << "\t"
+		          << E.clim.vpd << "\t"
+		          << E.clim.co2 << "\t"
+		          << E.clim.elv << "\t"
+		          << E.clim.swp << "\n";
 	};
 
 	for (double t=y0; t <= yf; t=t+delta_T) {
@@ -292,7 +302,7 @@ void Simulator::simulate(){
 		// }
 
 		// Invasion by a random new species
-		if (int(t) % 100 == 0){
+		if (int(t) % int(T_invasion) == 0){
 			cout << "**** Invasion ****\n";
 			addSpeciesAndProbes(t, 
 			                    "spp_t"+to_string(t), 

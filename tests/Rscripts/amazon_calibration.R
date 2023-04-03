@@ -3,7 +3,7 @@ rm(list=ls())
 
 output_dir = "~/codes/Plant-FATE/pspm_output_calib_final1"
 output_dir = "~/output_data/pspm_output_36sims"
-expt_dir = "trial414ppm" #_old_params"
+expt_dir = "clim_trial2_414ppm" #_old_params"
 
 setwd(paste0(output_dir,"/",expt_dir))
 
@@ -57,7 +57,7 @@ add_band()
 # mtext(line=0.5, side=3, text=solver)
 
 BA = dat2 %>% select(YEAR, PID, BA) %>% spread(value = "BA", key = "PID")
-matplot(BA$YEAR, cbind(BA[,-1], rowSums(BA[,-1], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species, start = 0, end = 0.85), "black"), type="l",
+matplot(BA$YEAR, cbind(BA[,-1], rowSums(BA[,-1,drop=FALSE], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species, start = 0, end = 0.85), "black"), type="l",
         las=1, xlab="Time (years)", ylab="Basal area", log="")
 add_hband(c(31.29, 31.29*1.02))
 add_band()
@@ -434,19 +434,90 @@ if (plot_sample){
 
 #### Separating CO2 effect and LAI effect ####
 
+cl = read.delim(paste0(output_dir,"/",expt_dir, "/climate_co2.txt"), header = T)
+colnames(cl)[1] = "YEAR"
 
-cl = read.delim("../../climate.txt", header=F)
-colnames(cl) = c("YEAR", "temp", "VPD", "Iabs", "SWP", "CO2")
+cl_obs = read.csv("~/codes/Plant-FATE/tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv", header = T)
+cl_obs$YEAR = cl_obs$Year + (cl_obs$Month-1)/12
 
-co2f = read.csv("../../tests/data/CO2_ELE_AmzFACE2000_2100.csv")
-colnames(co2f) = c("YEAR", "CO2")
+par(mfrow = c(6,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
+cl %>% filter(YEAR >= 2000 & YEAR < 2016) %>% with(plot(tc~YEAR, type='l', col=scales::alpha("black", 0.5)))
+cl_obs %>% with(points(Temp~YEAR, pch=20, col=scales::alpha("cyan", 0.5)))
 
-cl_y = cl %>% group_by(as.integer(YEAR)) %>% summarize(temp=mean(temp), YEAR=first(YEAR), VPD=mean(VPD))
+abline(v=2000, col="pink")
+plot(cl$ppfd_max~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl$ppfd~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl$vpd~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl$co2~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+# plot(cl$elv~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+# abline(v=2000, col="pink")
+plot(cl$swp~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+
+# cl = read.delim("~/codes/Plant-FATE/climate.txt", header=F)
+# colnames(cl) = c("YEAR", "temp", "VPD", "Iabs", "SWP", "CO2")
+# 
+# co2f = read.csv("~/codes/Plant-FATE/tests/data/CO2_ELE_AmzFACE2000_2100.csv")
+# colnames(co2f) = c("YEAR", "CO2")
+
+par(mfrow = c(6,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
+plot(cl$tc~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl$ppfd_max~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl$ppfd~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl$vpd~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl$co2~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+# plot(cl$elv~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+# abline(v=2000, col="pink")
+plot(cl$swp~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+# plot(I(cl$ppfd/cl$ppfd_max)~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
+# abline(v=2000, col="pink")
+
+cl %>% filter(YEAR >= 2000 & YEAR < 2016)
+cl %>% filter(YEAR >= 2000 & YEAR < 2016)
+
+cl_y = cl %>% group_by(ceiling(YEAR)) %>% summarize_all(mean) 
+
+par(mfrow = c(6,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
+plot(cl_y$tc~cl_y$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl_y$ppfd_max~cl_y$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl_y$ppfd~cl_y$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(cl_y$vpd~cl_y$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+# plot(cl_y$co2~cl_y$YEAR, type='l', col=scales::alpha("black", 0.5))
+# abline(v=2000, col="pink")
+# plot(cl_y$elv~cl_y$YEAR, type='l', col=scales::alpha("black", 0.5))
+# abline(v=2000, col="pink")
+plot(cl_y$swp~cl_y$YEAR, type='l', col=scales::alpha("black", 0.5))
+abline(v=2000, col="pink")
+plot(dat$GPP~dat$YEAR, type="l")
+abline(v=2000, col="pink")
+
+# plot(I(cl_y$ppfd/cl_y$ppfd_max)~cl_y$YEAR, type='l', col=scales::alpha("black", 0.5))
+# abline(v=2000, col="pink")
+
+
+
+
+# cl_y = cl %>% group_by(as.integer(YEAR)) %>% summarize(temp=mean(temp), YEAR=first(YEAR), VPD=mean(VPD))
+
 
 par(mfrow=c(4,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
 
-cl_y %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(temp~YEAR, type="l", ylim=c(24,27)))
-cl_y %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(temp~YEAR, col="red"))
+cl_y %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(tc~YEAR, type="l", ylim=c(24,27)))
+cl_y %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(tc~YEAR, col="red"))
 
 # cl_y %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(VPD~YEAR, type="l"))
 # cl_y %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(VPD~YEAR, col="red"))

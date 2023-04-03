@@ -50,6 +50,7 @@ class Simulator{
 	double timestep;
 	double T_seed_rain_avg;
 	double T_return; // return interval of disturbance
+	double T_invasion; 	// interval between successive species invasions
 
 	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 

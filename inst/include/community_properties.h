@@ -103,7 +103,7 @@ class SolverIO{
 	std::vector<std::string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
 
 	bool b_output_cohort_props = false;
-	
+
 	// std::vector <std::vector<std::ofstream>> streams;
 	std::ofstream cohort_props_out;
 	std::ofstream size_dists_out;
@@ -117,6 +117,8 @@ class SolverIO{
 	std::ofstream fouty;
 	std::ofstream fouty_spp;
 	std::ofstream ftraits;
+
+	std::ofstream fclim;
 
 	void openStreams(std::string dir, io::Initializer &I);
 
