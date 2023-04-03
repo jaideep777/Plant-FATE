@@ -102,6 +102,8 @@ class SolverIO{
 	Solver * S;
 	std::vector<std::string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
 
+	bool b_output_cohort_props = false;
+	
 	// std::vector <std::vector<std::ofstream>> streams;
 	std::ofstream cohort_props_out;
 	std::ofstream size_dists_out;

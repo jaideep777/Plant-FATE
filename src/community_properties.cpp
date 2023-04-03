@@ -285,10 +285,12 @@ EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
 
 void SolverIO::openStreams(std::string dir, io::Initializer &I){
 
-	cohort_props_out.open(dir + "/cohort_props.txt");
-	cohort_props_out << "t\tspeciesID\tcohortID\t";
-	for (auto vname : varnames) cohort_props_out << vname << "\t";
-	cohort_props_out << std::endl;
+	if (b_output_cohort_props){
+		cohort_props_out.open(dir + "/cohort_props.txt");
+		cohort_props_out << "t\tspeciesID\tcohortID\t";
+		for (auto vname : varnames) cohort_props_out << vname << "\t";
+		cohort_props_out << std::endl;
+	}
 
 	size_dists_out.open(dir + "/size_distributions.txt");
 
@@ -333,7 +335,7 @@ void SolverIO::closeStreams(){
 	// 		streams[s][j].close();
 	// 	}
 	// }
-	cohort_props_out.close();
+	if (b_output_cohort_props) cohort_props_out.close();
 	size_dists_out.close();
 	
 	fzst.close();
@@ -383,20 +385,21 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		// }
 		
 		// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << endl; //"\n";
-	
-		if (spp->isResident){
-			for (int j=0; j<spp->xsize()-1; ++j){
-				auto& C = spp->getCohort(j);
-				cohort_props_out << t << "\t" 
-								<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
-								<< j << "\t"
-								<< C.geometry.height << "\t"
-								<< C.geometry.lai << "\t"
-								<< C.rates.dmort_dt << "\t"
-								<< C.rates.dseeds_dt << "\t"
-								<< C.rates.rgr << "\t"
-								<< C.res.gpp/C.geometry.crown_area << "\t";
-				cohort_props_out << "\n";
+		if (b_output_cohort_props){
+			if (spp->isResident){
+				for (int j=0; j<spp->xsize()-1; ++j){
+					auto& C = spp->getCohort(j);
+					cohort_props_out << t << "\t" 
+									<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
+									<< j << "\t"
+									<< C.geometry.height << "\t"
+									<< C.geometry.lai << "\t"
+									<< C.rates.dmort_dt << "\t"
+									<< C.rates.dseeds_dt << "\t"
+									<< C.rates.rgr << "\t"
+									<< C.res.gpp/C.geometry.crown_area << "\t";
+					cohort_props_out << "\n";
+				}
 			}
 		}
 	}
