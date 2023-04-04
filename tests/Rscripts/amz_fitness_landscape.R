@@ -127,9 +127,6 @@ print(cowplot::plot_grid(p1,p2,q1,q2, align="hv"))
 par(mfrow = c(1,1))
 boxplot(cbind(df$fitness_aCaE, df$fitness_eCaE, df$fitness_eCeE))
 
-wd_opt = function(wd, fitness){
-  sum(wd*fitness)/sum(fitness)
-}
 
 wd_aCaE   = wd_opt(traits_used$meanWoodDensity..g.cm3.[1:N]*1000, ((df$fitness_aCaE^10)))
 wd_eCaE   = wd_opt(traits_used$meanWoodDensity..g.cm3.[1:N]*1000, ((df$fitness_eCaE^10)))
@@ -160,7 +157,12 @@ df_scan = df1 %>% left_join(df2) %>% left_join(df3)
 df_scan %>% write.csv("~/codes/Plant-FATE/fitness_scan.csv")
 
 df_scan = read.csv("~/codes/Plant-FATE/fitness_scan.csv")
+traits_used = read.csv(file = "~/codes/Plant-FATE/tests/data/Traits_random_HD2.csv") %>% arrange(desc(Total.BasalArea_2017.cm2.))
+N = nrow(traits_used)
 
+wd_opt = function(wd, fitness){
+  sum(wd*fitness)/sum(fitness)
+}
 
 wd_diff = traits_used %>% 
   select(Species, meanWoodDensity..g.cm3.) %>% 
