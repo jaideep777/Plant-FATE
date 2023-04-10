@@ -1,9 +1,9 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "~/codes/Plant-FATE/pspm_output_calib_final1"
-output_dir = "~/output_data/pspm_output_36sims"
-expt_dir = "clim_trial2_414ppm" #_old_params"
+output_dir = "~/codes/Plant-FATE/pspm_output_ewd_scan"
+# output_dir = "~/output_data/pspm_output_36sims"
+expt_dir = "zeta_0.05" #_old_params"
 
 setwd(paste0(output_dir,"/",expt_dir))
 
@@ -35,7 +35,7 @@ traits_used = read.csv(file = "~/codes/Plant-FATE/tests/data/Traits_random_HD2.c
 # To get avg size distribution, sum over species and average over years
 names(dist)[1:2] = c("YEAR", "SPP")
 dist_amb = dist %>% filter(YEAR>1100 & YEAR<2000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
-dist_ele = dist %>% filter(YEAR>2100 & YEAR<3000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
+dist_ele = dist %>% filter(YEAR>4100 & YEAR<5000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
 
 # dist_amb = dist %>% filter(YEAR == 1100) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
 # dist_ele = dist %>% filter(YEAR == 1101) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
@@ -43,9 +43,9 @@ dist_ele = dist %>% filter(YEAR>2100 & YEAR<3000) %>% pivot_longer(cols=-(YEAR:S
 n_species = length(unique(dat2$PID))
 n_year = length(unique(dat2$YEAR))
 
-if (plot_to_file) png("plot.png", width=2412*1.5, height = 1472*1.5, res=300)
+if (plot_to_file) png(paste0(output_dir,"/",expt_dir,"/","emg_props_", expt_dir,".png"), width=2412*1.5*4/5, height = 1472*1.5, res=300)
 
-par(mfcol=c(4,5), mar=c(4.5,6,.5,1), oma=c(1,1,2,1), cex.lab=1.1, cex.axis=1.1, mgp=c(3.2,1,0), las=1)
+par(mfcol=c(4,4), mar=c(4.5,6,.5,1), oma=c(1,1,2,1), cex.lab=1.1, cex.axis=1.1, mgp=c(3.2,1,0), las=1)
 seeds = dat2 %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID")
 matplot(seeds$YEAR, seeds[,-1], lty=1, col=rainbow(n = n_species+1, start = 0, end = 0.85, alpha = min(10/n_species, 1)), type="l",
         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
@@ -161,7 +161,7 @@ plot_size_dist = function(){
 }
 try(plot_size_dist())
 
-traits_obs %>% select(Leaf.LMA..g.m2., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Leaf.LMA..g.m2., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.02), las=0, main="", xlab="LMA", col=NA, lwd=2)
+traits_obs %>% select(Leaf.LMA..g.m2., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Leaf.LMA..g.m2., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.03), las=0, main="", xlab="LMA", col=NA, lwd=2)
 traits_obs %>% select(Leaf.LMA..g.m2., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Leaf.LMA..g.m2., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% polygon(col=scales::alpha("grey30", 0.2), border=scales::alpha("grey30",0.4))
 dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
@@ -174,7 +174,7 @@ dat2 %>% select(YEAR, PID, BA) %>%
   with(density(x =LMA*1000, weights=BA/sum(BA))) %>% points(col="yellow3", type="l", lwd=1.5)
 )
 
-traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.005), las=0, main="", xlab="Wood density", col=NA, lwd=2)
+traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.006), las=0, main="", xlab="Wood density", col=NA, lwd=2)
 traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% polygon(col=scales::alpha("grey30", 0.2), border=scales::alpha("grey30",0.4))
 dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
@@ -187,7 +187,7 @@ dat2 %>% select(YEAR, PID, BA) %>%
   with(density(x =WD, weights=BA/sum(BA))) %>% points(col="yellow3", type="l", lwd=1.5)
 )
 
-traits_obs %>% select(Height_Max.m., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Height_Max.m., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.18), las=0, main="", xlab="Max. height", col=NA, lwd=2)
+traits_obs %>% select(Height_Max.m., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Height_Max.m., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.25), las=0, main="", xlab="Max. height", col=NA, lwd=2)
 traits_obs %>% select(Height_Max.m., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Height_Max.m., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% polygon(col=scales::alpha("grey30", 0.2), border=scales::alpha("grey30",0.4))
 try(
   dat2 %>% select(YEAR, PID, BA) %>% 
@@ -248,14 +248,14 @@ cwm_wd_pred %>% with(plot(cwm_wd~YEAR, type="l")) #, ylim=c(200,900)))
 add_hband(c(cwm_wd,cwm_wd+5))
 add_band()
 
-cwm_p50 = traits_obs %>% select(P50..Mpa., Total.BasalArea_2017.cm2.) %>% drop_na %>% summarise(cwm=sum(P50..Mpa.*Total.BasalArea_2017.cm2.)/sum(Total.BasalArea_2017.cm2.))
-cwm_p50_pred = dat2 %>% select(YEAR, PID, BA) %>% 
-  left_join(traits_obs, by = c("PID"="Species")) %>% 
-  drop_na %>% group_by(YEAR) %>% 
-  summarize(cwm_p50 = sum(P50..Mpa.*BA)/sum(BA))
-
-cwm_p50_pred %>% with(plot(cwm_p50~YEAR, type="l")) #, ylim=c(200,900)))
-add_hband(c(cwm_wd,cwm_wd+5))
+# cwm_p50 = traits_obs %>% select(P50..Mpa., Total.BasalArea_2017.cm2.) %>% drop_na %>% summarise(cwm=sum(P50..Mpa.*Total.BasalArea_2017.cm2.)/sum(Total.BasalArea_2017.cm2.))
+# cwm_p50_pred = dat2 %>% select(YEAR, PID, BA) %>% 
+#   left_join(traits_obs, by = c("PID"="Species")) %>% 
+#   drop_na %>% group_by(YEAR) %>% 
+#   summarize(cwm_p50 = sum(P50..Mpa.*BA)/sum(BA))
+# 
+# cwm_p50_pred %>% with(plot(cwm_p50~YEAR, type="l")) #, ylim=c(200,900)))
+# add_hband(c(cwm_wd,cwm_wd+5))
 
 if (plot_to_file) dev.off()
 
@@ -265,31 +265,12 @@ if (plot_to_file) dev.off()
 dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>%
   mutate(BA = BA*1e4) %>% 
-  filter(YEAR == 3000) %>% 
+  filter(YEAR == 5000) %>% 
   arrange(desc(BA)) %>% 
   slice(1:5)
 
 # BA_change = rowSums(BA[c(1000,2000),-1], na.rm=T)*1e4
 # BA_change[3] = (BA_change[2]-BA_change[1])/BA_change[1]*100
-
-mat = cbind(dat$GPP*1e-3*365, 
-            dat$NPP*1e-3*365, 
-            dat$RAU*1e-3*365,
-            dat$GS,
-            dat$LAI,
-            dat$VCMAX,
-            rowSums(BA[,-1], na.rm=T)*1e4,
-            (dat$CL)*1e-3,
-            (dat$CW+dat$CL)*1e-3,
-            (dat$CCR+dat$CFR)*1e-3)
-
-P_change = rbind(colMeans(mat[801:1000,]),
-                 colMeans(mat[1801:2000,]))
-colnames(P_change) = c("GPP", "NPP", "RAU", "GS", "LAI", "VCMAX", "BA", "CL", "AGB", "BGB")
-rownames(P_change) = c("AMB", "ELE")
-
-rr_long = log(P_change[2,]/P_change[1,]) %>% t()
-rr_long
 
 # P_change$Delta = (P_change[,2]-P_change[,1])/P_change[,1]*100
 # P_change$RR =  log(1+((P_change[,2])/(P_change[,1])) / ((614)/368))
@@ -458,11 +439,6 @@ abline(v=2000, col="pink")
 plot(cl$swp~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
 abline(v=2000, col="pink")
 
-# cl = read.delim("~/codes/Plant-FATE/climate.txt", header=F)
-# colnames(cl) = c("YEAR", "temp", "VPD", "Iabs", "SWP", "CO2")
-# 
-# co2f = read.csv("~/codes/Plant-FATE/tests/data/CO2_ELE_AmzFACE2000_2100.csv")
-# colnames(co2f) = c("YEAR", "CO2")
 
 par(mfrow = c(6,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
 plot(cl$tc~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
@@ -481,6 +457,7 @@ plot(cl$swp~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
 abline(v=2000, col="pink")
 # plot(I(cl$ppfd/cl$ppfd_max)~cl$YEAR, type='l', col=scales::alpha("black", 0.5))
 # abline(v=2000, col="pink")
+
 
 cl %>% filter(YEAR >= 2000 & YEAR < 2016)
 cl %>% filter(YEAR >= 2000 & YEAR < 2016)
@@ -509,15 +486,23 @@ abline(v=2000, col="pink")
 # abline(v=2000, col="pink")
 
 
+##### CL from input file #####
 
+cl = read.delim("~/codes/Plant-FATE/climate.txt", header=F)
+colnames(cl) = c("YEAR", "temp", "VPD", "Iabs", "SWP", "CO2")
 
-# cl_y = cl %>% group_by(as.integer(YEAR)) %>% summarize(temp=mean(temp), YEAR=first(YEAR), VPD=mean(VPD))
+co2f = read.csv("~/codes/Plant-FATE/tests/data/CO2_ELE_AmzFACE2000_2100.csv")
+colnames(co2f) = c("YEAR", "CO2")
 
+dd = read_csv("~/codes/Plant-FATE/paper_figs2/Untitled 1.csv", col_names = T)
+
+cl_y = cl %>% group_by(as.integer(YEAR)) %>% summarize(tc=mean(temp), YEAR=first(YEAR), VPD=mean(VPD))
 
 par(mfrow=c(4,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
 
 cl_y %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(tc~YEAR, type="l", ylim=c(24,27)))
 cl_y %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(tc~YEAR, col="red"))
+tibble(tc = c(dd$tc, dd$tc), YEAR = c(dd$t-16, dd$t)) %>% group_by(as.integer(YEAR)) %>% summarize_all(mean) %>%  with(points(tc~`as.integer(YEAR)`, type="o", pch=20, col="green2"))
 
 # cl_y %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(VPD~YEAR, type="l"))
 # cl_y %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(VPD~YEAR, col="red"))
@@ -530,6 +515,8 @@ co2f %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(I(CO2/23)~YEAR, col=
 dat %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(I(GPP*1e-3*365)~YEAR, type="l"))
 dat %>% filter(YEAR %in% (2001+16*(-5:5))) %>% with(points(I(GPP*1e-3*365)~YEAR, col="red"))
 abline(v=2000, col="pink")
+tibble(gpp = c(dd$GPP414, dd$GPP614), YEAR = c(dd$t-15, dd$t)) %>% group_by(as.integer(YEAR)) %>% summarize_all(mean) %>%  with(points(gpp~`as.integer(YEAR)`, type="o", pch=20, col="green2"))
+
 
 dat %>% filter(YEAR %in% (2001-16*5):(2001+16*5)) %>% with(plot(LAI~YEAR, type="l"))
 abline(v=2000, col="pink")
@@ -539,6 +526,62 @@ Zp %>% filter(V1 %in% (2001-16*5):(2001+16*5)) %>% with(matplot(V1, .[,-1], lty=
 abline(v=2000, col="pink")
 
 
-rrdat = dat %>% filter(YEAR %in% (2001+16*(-1:0)))
-rr_short = log(rrdat[2,]/rrdat[1,]) %>% select(-YEAR, -DOY) %>% t() 
-rr_short
+matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC/m2/yr)", xlab="Time (years)", ylim=c(0,6))
+# points(y=dat$NPP/dat$GPP*4, x=dat$YEAR, type="l", lty=1, col=c("yellow1"))
+# abline(h=c(3,3.5), col="grey")
+add_hband(c(3,3.5))#, col=scales::alpha("black",0.3))
+add_hband(c(1.31,1.3555))#, col=scales::alpha("black",0.3))
+# abline(h=c(1.31), col=scales::muted("green3"))
+add_band()
+add_hband(c(min(dd$GPP614),max(dd$GPP614)), xlim = c(2000,5000), col=scales::alpha("pink",0.5))
+add_hband(c(min(dd$GPP414),max(dd$GPP414)), xlim = c(-1000,2000), col=scales::alpha("cyan",0.5))
+abline(h=mean(dd$GPP414), col="cyan3")
+abline(h=mean(dd$GPP614), col="brown")
+lw1 <- loess(dat$GPP ~ dat$YEAR, span = .01)
+j <- order(dat$YEAR)
+lines(dat$YEAR[j],lw1$fitted[j]*365*1e-3,col="green4",lwd=3)
+
+rrdat = dat %>% filter(YEAR %in% (2001+16*(-1:0))) %>% t() %>% as.data.frame()
+colnames(rrdat) = c("AMB", "ELE")
+
+rrdat = rrdat %>% mutate(rr_short = log(ELE/AMB),
+                         pc_short = (ELE/AMB-1)*100)
+rrdat
+
+rrdat %>% write.csv("response_short_term.csv")
+
+
+mat = cbind(dat$YEAR,
+            dat$GPP*1e-3*365, 
+            dat$NPP*1e-3*365, 
+            dat$RAU*1e-3*365,
+            dat$GS,
+            dat$LAI,
+            dat$VCMAX,
+            rowSums(BA[,-1], na.rm=T)*1e4,
+            (dat$CL)*1e-3,
+            (dat$CW+dat$CL)*1e-3,
+            (dat$CCR+dat$CFR)*1e-3)
+colnames(mat) = c("YEAR", "GPP", "NPP", "RAU", "GS", "LAI", "VCMAX", "BA", "CL", "AGB", "BGB")
+
+P_change = data.frame(AMB = mat %>% as.data.frame() %>% filter(YEAR > 1800 & YEAR <= 2000) %>% colMeans(),
+                      ELE = mat %>% as.data.frame() %>% filter(YEAR > 4800 & YEAR <= 5000) %>% colMeans()
+)
+
+P_change = P_change %>% mutate(rr_long = log(ELE/AMB),
+                               pc_long = (ELE/AMB-1)*100)
+P_change
+
+P_change %>% write.csv("response_long_term.csv")
+
+
+P_mid = data.frame(AMB = mat %>% as.data.frame() %>% filter(YEAR > 2000-16*4 & YEAR <= 2000) %>% colMeans(),
+                   ELE = mat %>% as.data.frame() %>% filter(YEAR > 2000 & YEAR <= 2000+16*4) %>% colMeans()
+)
+
+P_mid = P_mid %>% mutate(rr_mid = log(ELE/AMB),
+                         pc_mid = (ELE/AMB-1)*100)
+
+
+P_mid %>% write.csv("response_mid_term.csv")
+

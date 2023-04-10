@@ -52,7 +52,7 @@ dist_ele = dist %>% filter(YEAR>4100 & YEAR<5000) %>% pivot_longer(cols=-(YEAR:S
 n_species = length(unique(dat2$PID))
 n_year = length(unique(dat2$YEAR))
 
-if (plot_to_file) png(paste0(output_dir,"/figures_614ppm/","emg_", expt_dir,".png"), width=2412*1.5*4/5, height = 1472*1.5, res=300)
+if (plot_to_file) png(paste0(output_dir, "emg_props_", expt_dir,".png"), width=2412*1.5*4/5, height = 1472*1.5, res=300)
 
 par(mfcol=c(4,4), mar=c(4.5,6,.5,1), oma=c(1,1,2,1), cex.lab=1.1, cex.axis=1.1, mgp=c(3.2,1,0), las=1)
 seeds = dat2 %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID")

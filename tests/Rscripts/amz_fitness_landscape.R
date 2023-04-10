@@ -61,13 +61,29 @@ N = 100
 df = 
   list(e_alpha = -1.1493, # seq(-2,-1, length.out = 5),
        e_gamma = -1.8392, # seq(-2,-1, length.out = 5),
-       ewd0 = -1.0, # seq(-2,-0.5, length.out = 4),
+       ewd0 = -0.5, # seq(-2,-0.5, length.out = 4),
        i = 1:N
   ) %>% 
   cross_df() %>% 
   mutate(fitness_aCaE = pmap(.l = cur_data(), .f = fitness_spp, zp=zp_amb, co=co_amb, co2=368) %>% unlist(), 
          fitness_eCaE = pmap(.l = cur_data(), .f = fitness_spp, zp=zp_amb, co=co_amb, co2=614) %>% unlist(),
          fitness_eCeE = pmap(.l = cur_data(), .f = fitness_spp, zp=zp_ele, co=co_ele, co2=614) %>% unlist())
+
+par(mfrow = c(1,1))
+boxplot(cbind(df$fitness_aCaE, df$fitness_eCaE, df$fitness_eCeE))
+
+
+wd_aCaE   = wd_opt(traits_used$meanWoodDensity..g.cm3.[1:N]*1000, ((df$fitness_aCaE^10)))
+wd_eCaE   = wd_opt(traits_used$meanWoodDensity..g.cm3.[1:N]*1000, ((df$fitness_eCaE^10)))
+wd_eCeE   = wd_opt(traits_used$meanWoodDensity..g.cm3.[1:N]*1000, ((df$fitness_eCeE^10)))
+
+par(mfrow=c(1,1))
+barplot(c(wd_aCaE,
+          wd_eCaE,
+          wd_eCeE
+), ylim=c(700,900), xpd=F)
+
+
 
 fitness_landscape = df$fitness_aCaE
 
@@ -123,20 +139,6 @@ q2 = dat2 %>% select(YEAR, PID, BA) %>%
 
 print(cowplot::plot_grid(p1,p2,q1,q2, align="hv"))
 
-
-par(mfrow = c(1,1))
-boxplot(cbind(df$fitness_aCaE, df$fitness_eCaE, df$fitness_eCeE))
-
-
-wd_aCaE   = wd_opt(traits_used$meanWoodDensity..g.cm3.[1:N]*1000, ((df$fitness_aCaE^10)))
-wd_eCaE   = wd_opt(traits_used$meanWoodDensity..g.cm3.[1:N]*1000, ((df$fitness_eCaE^10)))
-wd_eCeE   = wd_opt(traits_used$meanWoodDensity..g.cm3.[1:N]*1000, ((df$fitness_eCeE^10)))
-
-par(mfrow=c(1,1))
-barplot(c(wd_aCaE,
-          wd_eCaE,
-          wd_eCeE
-          ), ylim=c(700,900), xpd=F)
 
 
 
