@@ -238,8 +238,10 @@ class PlantParameters{
 	// double cWD, cWD0;     // wood density related mortality params
 	// double cS, cS0;       // light related mortality params
 	
-	double cD0, cD1;
+	double cD0, cD1, eD0;
 	double m_alpha, m_beta, m_gamma;
+	double eWD_alpha, eWD_gamma;
+	double cWD0, eWD;
 
 	// **
 	// ** Patch structure and successsion
@@ -285,11 +287,15 @@ class PlantParameters{
 		npp_Sghalf         = I.getScalar("npp_Sghalf");
 
 		cD0                = I.getScalar("cD0");
+		eD0                = I.getScalar("eD0");
 		cD1                = I.getScalar("cD1");
 		m_alpha            = I.getScalar("m_alpha");
 		m_beta             = I.getScalar("m_beta");
 		m_gamma            = I.getScalar("m_gamma");
-
+		eWD_alpha          = I.getScalar("eWD_alpha");
+		eWD_gamma          = I.getScalar("eWD_gamma");
+		cWD0               = I.getScalar("cWD0");
+		eWD                = I.getScalar("eWD");
 	}
 	
 	
@@ -309,7 +315,7 @@ class PlantParameters{
 	}
 
 	inline void save(std::ostream &fout){
-		fout << "Params::v1 ";
+		fout << "Params::v2 ";
 		fout << std::make_tuple(
 			  kphio
 			, alpha
@@ -341,10 +347,15 @@ class PlantParameters{
 			, Sd
 			, npp_Sghalf
 			, cD0
+			, eD0
 			, cD1
 			, m_alpha
 			, m_beta
 			, m_gamma
+			, eWD_alpha
+			, eWD_gamma
+			, cWD0
+			, eWD
 				);
 		fout << '\n';
 	}
@@ -352,7 +363,7 @@ class PlantParameters{
 
 	inline void restore(std::istream &fin){
 		std::string s; fin >> s; // discard version number
-		assert(s == "Params::v1");
+		assert(s == "Params::v2");
 
 		fin >> kphio
 			>> alpha
@@ -384,10 +395,15 @@ class PlantParameters{
 			>> Sd
 			>> npp_Sghalf
 			>> cD0
+			>> eD0
 			>> cD1
 			>> m_alpha
 			>> m_beta
 			>> m_gamma
+			>> eWD_alpha
+			>> eWD_gamma
+			>> cWD0
+			>> eWD
 		;
 	}
 

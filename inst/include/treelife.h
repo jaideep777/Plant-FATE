@@ -22,9 +22,14 @@ class LifeHistoryOptimizer{
 	plant::Plant P;
 	ErgodicEnvironment C;
 
-	std::string params_file;
+	// std::string paramsFile;
 	// std::string met_file = "";
 	// std::string co2_file = "";
+
+	plant::PlantParameters par0;
+	plant::PlantTraits traits0;
+
+	io::Initializer I;
 
 	double dt = 0.1; 
 
@@ -35,7 +40,7 @@ class LifeHistoryOptimizer{
 
 	public:
 
-	LifeHistoryOptimizer();
+	LifeHistoryOptimizer(std::string params_file);
 	
 	void set_metFile(std::string metfile);
 	void set_co2File(std::string co2file);

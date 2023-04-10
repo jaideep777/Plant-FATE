@@ -28,7 +28,10 @@ int Climate::init(){
 			v_met.push_back(clim1);
 		}
 		
-		delta = *t_met.rbegin() - *t_met.begin() + t_met[1]-t_met[0]+ 1e-6;
+		int n = t_met.size();
+		if (n == 0) throw std::runtime_error("Climate time vector is empty");
+		// delta = t_met[n-1] - t_met[0] + (t_met[n-1]-t_met[0])/(n-1)*(1+1e-20); //+ 1e-20;
+		delta = t_met[n-1] - t_met[0] + (t_met[1]-t_met[0]); //+ 1e-20;
 	}
 
 	if (update_co2){
@@ -92,13 +95,17 @@ void Climate::updateClimate(double t){
 	// while(tadj < *t_met.begin()) tadj += delta;
 		
 	if (update_met){
-		if (t_met.size() == 0) throw std::runtime_error("Climate time vector is empty");
-
-		double tadj = t;  // adjusted t to lie between limits of observed data
-		while(tadj < *t_met.begin()) tadj += delta;
-		int idx_now = id(tadj);
-		int idx_next = (idx_now+1) % t_met.size();
-		clim = interp(v_met[idx_now], v_met[idx_next]);
+		int n = t_met.size();
+		if (n == 1){
+			clim = v_met[0];
+		}
+		else{
+			double tadj = t;  // adjusted t to lie between limits of observed data
+			while(tadj < t_met[0])   tadj += delta;
+			int idx_now = id(tadj);
+			int idx_next = (idx_now+1) % t_met.size();
+			clim = interp(v_met[idx_now], v_met[idx_next]);
+		}
 	}
 
 	if (update_co2){
