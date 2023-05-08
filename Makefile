@@ -61,6 +61,10 @@ LIBS = 	 -lpspm	# additional libs
 OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 
 
+add_subdirectory(pybinds)
+pybind11_add_module(simulator simulator_pybind.cpp)
+
+
 all: dir $(TARGET)
 
 dir:
