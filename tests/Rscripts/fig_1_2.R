@@ -59,14 +59,16 @@ n_year = length(unique(dat2$YEAR))
 eco2_col = rgb(190/255,190/255,0)
 
 
-if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props.pdf", width=7*1.1, height = 6.5*1.1)
+if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props.pdf", width=7*1.1, height = 4.5*1.1)
 
 
-par(mfrow=c(3,3), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=0)
+# par(mfrow=c(3,3), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=0)
 
+par(mfrow=c(2,3), mar=c(4.5,6,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(3.5,1,0), las=1)
 
-
-matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=scales::alpha(c("darkgreen", "green3"), 0.7), ylab="GPP, NPP\n(kgC m-2 yr-1)", xlab="Year")
+matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=scales::alpha("red4", 0.2), ylab="GPP, NPP\n(kgC m-2 yr-1)", xlab="Year")
+matlines(y=cbind(fitted(loess(dat$GPP~dat$YEAR, span=0.006)), 
+                 fitted(loess(dat$NPP~dat$YEAR, span=0.006)))*1e-3*365, x=dat$YEAR, type="l", lty=1, col="black", lwd=c(1,0.5))
 # points(y=dat$NPP/dat$GPP*4, x=dat$YEAR, type="l", lty=1, col=c("yellow1"))
 # abline(h=c(3,3.5), col="grey")
 add_hband(c(3,3.5))#, col=scales::alpha("black",0.3))
@@ -75,15 +77,16 @@ add_hband(c(1.31,1.3555))#, col=scales::alpha("black",0.3))
 add_band()
 add_label(label = "A")
 
-matplot(y=cbind(dat$GS), x=dat$YEAR, type="l", lty=1, col=scales::alpha(c("cyan3"),0.6), ylab="Stomatal conductance\n(mol m-2 s-1)", xlab="Year")
+matplot(y=cbind(dat$GS), x=dat$YEAR, type="l", lty=1, col=scales::alpha(c("red4"),0.2), ylab="Stomatal conductance\n(mol m-2 s-1)", xlab="Year")
+matlines(y=cbind(fitted(loess(dat$GS~dat$YEAR, span=0.006))), x=dat$YEAR, type="l", lty=1, col="black", ylab="GPP, NPP\n(kgC m-2 yr-1)", xlab="Year")
 add_hband(c(0.16, 0.16555))#, col=scales::alpha("cyan4", 0.6))
 # abline(h=c(0.16), col=scales::muted("cyan3"))
 add_band()
 add_label(label = "B")
 
 
-
-matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=scales::alpha(c("green4"), 0.6), ylab="Vcmax\n(umol m-2 s-1)", xlab="Year")
+matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=scales::alpha(c("red4"), 0.2), ylab="Vcmax\n(umol m-2 s-1)", xlab="Year")
+matlines(y=cbind(fitted(loess(dat$VCMAX~dat$YEAR, span=0.006))), x=dat$YEAR, type="l", lty=1, col="black", ylab="GPP, NPP\n(kgC m-2 yr-1)", xlab="Year")
 add_hband(c(20,45)) #, col=scales::muted("green4"))
 add_band()
 add_label(label = "C")
@@ -100,18 +103,37 @@ add_label(label = "D")
 
 
 BA = dat2 %>% select(YEAR, PID, BA) %>% spread(value = "BA", key = "PID")
-matplot(BA$YEAR, cbind(BA[,-1], rowSums(BA[,-1], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species, start = 0, end = 0.85), "black"), type="l",
+col_spp = sample(rainbow(n = n_species, start = 0, end = 0.9, alpha = 0.4), replace = F)
+# col_spp = rep(scales::alpha("blue", 0.2), n_species)
+matplot(BA$YEAR, cbind(BA[,-1], rowSums(BA[,-1], na.rm=T))*1e4, lty=1, col=c(col_spp, "black"), type="l",
         las=1, xlab="Year", ylab="Basal area (m2)", log="")
 add_hband(c(31.29, 31.29*1.02))
 add_band()
 add_label(label = "E")
 
 
+matplot(Zp[,1], Zp[,-1], lty=1, col=scales::viridis_pal(direction = -1, end=0.95)(4), type="l",
+        las=1, xlab="Year", ylab="Canopy layer\nheights (m)", log="")
+add_band()
+add_label(label = "F")
+
+dev.off()
+
+
+##### Structural Calib ####
+
+
+cols_amb_ele = scales::viridis_pal(begin = 0.3, end = 0.8)(3)[c(1,3)]
+
+if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props_structural.pdf", width=6*1.1, height = 5.5*1.1)
+
+# par(mfrow=c(3,3), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=0)
+par(mfrow=c(2,2), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=1)
 
 matplot(y=cbind(as.numeric(dist_amb[gtools::mixedsort(names(dist_amb))][-1]),
                 as.numeric(dist_ele[gtools::mixedsort(names(dist_ele))][-1])
 )*1e-2*1e4, # Convert stems m-1 m-2 --> stems cm-1 ha-1
-x=x, type="l", log="y", lty=1, col=c("black", eco2_col), 
+x=x, type="l", log="y", lty=1, col=cols_amb_ele, lwd=2,
 xlim=c(0.01, 1.2), ylim=c(1e-4, 1000), ylab="Density\n(stems cm-1 ha-1)", xlab="Diameter (m)", las=0)
 # abline(v=1, col=scales::alpha("red", 0.2))
 xobs = c(15,25,35,45,55,65,75,85,95,105)/100
@@ -127,7 +149,7 @@ yobs=c(350.5221340921042,
        0.7006940913385968,
        0.5597156879584093)/10
 points(yobs~xobs, pch=20, col=scales::alpha("grey30", 0.4), cex=1.7)
-add_label(label = "F")
+add_label(label = "A", xfrac = 0.85, yfrac=-50)
 
 
 
@@ -138,14 +160,14 @@ traits_obs %>% select(Leaf.LMA..g.m2., Total.BasalArea_2017.cm2.) %>% drop_na %>
 dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
   filter(YEAR == min(2000, max(dat2$YEAR)-1)) %>% 
-  with(density(x =LMA*1000, weights=BA/sum(BA))) %>% points(col="black", type="l", lwd=1.5)
+  with(density(x =LMA*1000, weights=BA/sum(BA))) %>% points(col=cols_amb_ele[1], type="l", lwd=2)
 try(
   dat2 %>% select(YEAR, PID, BA) %>% 
     left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
     filter(YEAR == 5000) %>% 
-    with(density(x =LMA*1000, weights=BA/sum(BA))) %>% points(col="yellow3", type="l", lwd=1.5)
+    with(density(x =LMA*1000, weights=BA/sum(BA))) %>% points(col=cols_amb_ele[2], type="l", lwd=2)
 )
-add_label(label = "G")
+add_label(label = "B")
 
 
 traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.006), las=0, main="", xlab="Wood density (kg m-3)", col=NA, lwd=2)
@@ -153,14 +175,14 @@ traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% dr
 dat2 %>% select(YEAR, PID, BA) %>% 
   left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
   filter(YEAR == min(2000, max(dat2$YEAR)-1)) %>% 
-  with(density(x =WD, weights=BA/sum(BA))) %>% points(col="black", type="l", lwd=1.5)
+  with(density(x =WD, weights=BA/sum(BA))) %>% points(col=cols_amb_ele[1], type="l", lwd=2)
 try(
   dat2 %>% select(YEAR, PID, BA) %>% 
     left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
     filter(YEAR == 5000) %>% 
-    with(density(x =WD, weights=BA/sum(BA))) %>% points(col="yellow3", type="l", lwd=1.5)
+    with(density(x =WD, weights=BA/sum(BA))) %>% points(col=cols_amb_ele[2], type="l", lwd=2)
 )
-add_label(label = "H")
+add_label(label = "C")
 
 traits_obs %>% select(Height_Max.m., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Height_Max.m., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.25), las=0, main="", xlab="Max. height", col=NA, lwd=2)
 traits_obs %>% select(Height_Max.m., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Height_Max.m., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% polygon(col=scales::alpha("grey30", 0.2), border=scales::alpha("grey30",0.4))
@@ -168,15 +190,15 @@ try(
   dat2 %>% select(YEAR, PID, BA) %>% 
     left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>% 
     filter(YEAR == min(2000, max(dat2$YEAR)-1)) %>% 
-    with(density(x =HMAT, weights=BA/sum(BA))) %>% points(col="black", type="l", lwd=1.5)
+    with(density(x =HMAT, weights=BA/sum(BA))) %>% points(col=cols_amb_ele[1], type="l", lwd=2)
 )
 try(
   dat2 %>% select(YEAR, PID, BA) %>%
     left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>%
     filter(YEAR == min(5000, max(dat2$YEAR)-1)) %>%
-    with(density(x =HMAT, weights=BA/sum(BA))) %>% points(col="yellow3", type="l", lwd=1.5)
+    with(density(x =HMAT, weights=BA/sum(BA))) %>% points(col=cols_amb_ele[2], type="l", lwd=2)
 )
-add_label(label = "I")
+add_label(label = "D")
 
 
 

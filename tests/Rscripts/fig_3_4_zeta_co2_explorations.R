@@ -47,7 +47,7 @@ for(i in 1:N){
 
 
 cairo_pdf(filename = "~/codes/Plant-FATE/paper_figs2/zeta_x_co2_barplots.pdf", height = 19/2.6*3/5, width = 13/2.6)
-par(mfrow=c(3,2), mar=c(3,6,.2,1), oma=c(1,1,1,1))
+par(mfrow=c(3,2), mar=c(4.5,6,.2,1.5), oma=c(1,1,1,1), mgp=c(2.5,1,0))
 
 wd1 = wd_mat_t
 wd1[1:3000,] = NA
