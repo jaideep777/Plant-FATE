@@ -16,7 +16,7 @@ int main(){
 	C.update_co2 = true;
 
 	C.init();
-	C.print(2000);
+	C.print();
 
 	C.print_all();
 
@@ -25,13 +25,13 @@ int main(){
 //	C.updateClimate(2001.92);
 
 	ofstream fout("climate.txt");
-	for (double t = 1975; t < 2025; t += 1/120.0){
+	for (double t = 1921; t < 2081; t += 1/120.0){
 		int year = int(t);
 		double month = (t-int(t))*12;
 		int id = C.id(t);
 		//cout << "t = " << t << " id = " << id << " (" << year << "/" << month << ")\n";
 		C.updateClimate(t);
-		C.print(t);
+		C.print_line(t);
 		fout << t << "\t" << C.clim.tc << "\t" << C.clim.vpd << "\t" << C.clim.ppfd << "\t" << C.clim.swp << "\t" << C.clim.co2 << "\n";
 	}
 	fout.close();

@@ -17,17 +17,46 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	continueFrom_stateFile = I.get<string>("continueFromState");
 	continueFrom_configFile = I.get<string>("continueFromConfig");
 	continuePrevious = (continueFrom_configFile != "null") && (continueFrom_stateFile != "null");
+	saveStateInterval = I.getScalar("saveStateInterval");
 
+	traits_file = I.get<string>("traitsFile");
+	n_species = I.getScalar("nSpecies");
 	evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
 
 	timestep = I.getScalar("timestep");  // ODE Solver timestep
  	delta_T = I.getScalar("delta_T");    // Cohort insertion timestep
 
-	met_file = I.get<string>("metFile");
-	co2_file = I.get<string>("co2File");
-
 	solver_method = I.get<string>("solver");
+	res = I.getScalar("resolution");
+
+	T_invasion = I.getScalar("T_invasion");
+
+	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+
+	T_return = I.getScalar("T_return");
+
+	E.metFile = I.get<string>("metFile");
+	E.co2File = I.get<string>("co2File");
+	E.update_met = (E.metFile == "null")? false : true;
+	E.update_co2 = (E.co2File == "null")? false : true;
+	E.use_ppa = true;
+
+	traits0.init(I);
+	par0.init(I);
 }
+
+
+void Simulator::set_metFile(std::string metfile){
+	E.metFile = metfile;
+	E.update_met = (metfile == "")? false : true;
+}
+
+
+void Simulator::set_co2File(std::string co2file){
+	E.co2File = co2file;
+	E.update_co2 = (co2file == "")? false : true;
+}
+
 
 void Simulator::init(double tstart, double tend){
 	out_dir  = parent_dir  + "/" + expt_dir;
@@ -47,13 +76,10 @@ void Simulator::init(double tstart, double tend){
 	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
-	E.metFile = met_file;
-	E.co2File = co2_file;
+	// E.metFile = met_file;
+	// E.co2File = co2_file;
 	E.init();
 	E.print(0);
-	E.use_ppa = true;
-	E.update_met = true;
-	E.update_co2 = true;
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
 	S = Solver(solver_method, "rk45ck");
@@ -73,15 +99,14 @@ void Simulator::init(double tstart, double tend){
 	else {
 		// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
 		TraitsReader Tr;
-		Tr.readFromFile(I.get<string>("traitsFile"));
+		Tr.readFromFile(traits_file);
 		Tr.print();
 
 		// ~~~ Create initial resident species pool from traits file ~~~~
-		int nspp = I.getScalar("nSpecies");
+		//int nspp = I.getScalar("nSpecies");
 		// int res = I.getScalar("resolution");
-		for (int i=0; i<nspp; ++i){
-			addSpeciesAndProbes(&S, paramsFile, I,
-								y0, 
+		for (int i=0; i<n_species; ++i){
+			addSpeciesAndProbes(y0, 
 								Tr.species[i].species_name, 
 								Tr.species[i].lma, 
 								Tr.species[i].wood_density, 
@@ -158,28 +183,27 @@ void Simulator::calc_r0(double t, double dt, Solver& S){
 	}
 }
 
-void Simulator::removeSpeciesAndProbes(Solver* S, MySpecies<PSPM_Plant>* spp){
+void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 	// delete species probes and remove their pointers from solver
 	for (auto p : spp->probes){ // probes vector is not modified in the loop, so we can use it directly to iterate
 		delete p;               // this will delete the object, but the pointer p and its copy in the solver remain
-		S->removeSpecies(p);    // this will remove its pointer from the solver
+		S.removeSpecies(p);    // this will remove its pointer from the solver
 	}
 
 	// delete the resident itself and remove its pointer from solver
 	delete spp;
-	S->removeSpecies(spp);
+	S.removeSpecies(spp);
 
 	// update state vector
-	S->copyCohortsToState();
+	S.copyCohortsToState();
 }
 
-void Simulator::addSpeciesAndProbes(Solver *S, string params_file, io::Initializer &I, double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
-	int res = I.getScalar("resolution");
-	bool evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
-	double T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
 
 	PSPM_Plant p1;
-	p1.initParamsFromFile(params_file);
+	//p1.initFromFile(paramsFile);
+	p1.par = par0;
+	p1.traits = traits0;
 	p1.traits.species_name = species_name;
 	p1.traits.lma = lma;
 	p1.traits.wood_density = wood_density;
@@ -206,16 +230,16 @@ void Simulator::addSpeciesAndProbes(Solver *S, string params_file, io::Initializ
 	if (evolve_traits) spp->createVariants(p1);
 
 	// Add resident species to solver
-	S->addSpecies(res, 0.01, 10, true, spp, 2, 1e-3);
+	S.addSpecies(res, 0.01, 10, true, spp, 2, 1e-3);
 	//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 
 	// Add variants (probes) to solver
 	if (evolve_traits){
 		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-			S->addSpecies(res, 0.01, 10, true, m, 2, 1e-3);
+			S.addSpecies(res, 0.01, 10, true, m, 2, 1e-3);
 	}
 
-	S->copyCohortsToState();
+	S.copyCohortsToState();
 }
 
 
@@ -224,6 +248,14 @@ void Simulator::simulate(){
 	auto after_step = [this](double t){
 		calc_seed_output(t, S);
 		calc_r0(t, timestep, S);
+		// sio.fclim << t << "\t" 
+		//           << E.clim.tc << "\t"
+		//           << E.clim.ppfd_max << "\t"
+		//           << E.clim.ppfd << "\t"
+		//           << E.clim.vpd << "\t"
+		//           << E.clim.co2 << "\t"
+		//           << E.clim.elv << "\t"
+		//           << E.clim.swp << "\n";
 	};
 
 	for (double t=y0; t <= yf; t=t+delta_T) {
@@ -252,15 +284,15 @@ void Simulator::simulate(){
 			}
 		}
 
-		// // Remove dead species
-		// vector<MySpecies<PSPM_Plant>*> toRemove;
-		// for (int k=0; k<S.species_vec.size(); ++k){
-		// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-		// 	if (spp->isResident){
-		// 		if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
-		// 	}
-		// }
-		// for (auto spp : toRemove) removeSpeciesAndProbes(&S, spp);
+		// Remove dead species
+		vector<MySpecies<PSPM_Plant>*> toRemove;
+		for (int k=0; k<S.species_vec.size(); ++k){
+			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+			if (spp->isResident){
+				if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+			}
+		}
+		for (auto spp : toRemove) removeSpeciesAndProbes(spp);
 
 		// // Shuffle species in the species vector -- just for debugging
 		// if (int(t) % 10 == 0){
@@ -269,18 +301,17 @@ void Simulator::simulate(){
 		// 	S.copyCohortsToState();
 		// }
 
-		// // Invasion by a random new species
-		// if (int(t) % 300 == 0){
-		// 	cout << "**** Invasion ****\n";
-		// 	addSpeciesAndProbes(&S, paramsFile, I,
-		// 	                    t, 
-		// 	                    "spp_t"+to_string(t), 
-		// 	                    runif(0.05, 0.25),    //Tr.species[i].lma, 
-		// 	                    runif(300, 900),   //Tr.species[i].wood_density, 
-		// 	                    runif(2, 35),      //Tr.species[i].hmat, 
-		// 	                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
-		// 	);
-		// }
+		// Invasion by a random new species
+		if (int(t) % int(T_invasion) == 0){
+			cout << "**** Invasion ****\n";
+			addSpeciesAndProbes(t, 
+			                    "spp_t"+to_string(t), 
+			                    runif(0.05, 0.25),    //Tr.species[i].lma, 
+			                    runif(300, 900),   //Tr.species[i].wood_density, 
+			                    runif(2, 35),      //Tr.species[i].hmat, 
+			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
+			);
+		}
 
 		// clear patch after 50 year	
 		if (t >= t_clear){
@@ -294,10 +325,19 @@ void Simulator::simulate(){
 				spp->setX(spp->xsize()-1, 0);
 			}
 			S.copyCohortsToState();
-			double t_int = -log(double(rand())/RAND_MAX) * I.getScalar("T_return");
+			double t_int = -log(double(rand())/RAND_MAX) * T_return;
 			t_clear = t + fmin(t_int, 1000);
 		}
-		
+
+		// Save simulation state at specified intervals
+		if (int(t) % saveStateInterval == 0){
+			saveState(&S, 
+	          out_dir + "/" + std::to_string(t) + "_" + state_outfile, 
+			  out_dir + "/" + std::to_string(t) + "_" + config_outfile, 
+			  paramsFile);
+		}
+
 	}
 	
 }
+

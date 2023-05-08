@@ -11,12 +11,10 @@ using namespace std;
 
 int main(int argc, char ** argv){
 
-	if (argc < 2){
-		cout << "Parameters file not specified!";
-		return 1;
+	string par_file = "tests/params/p_cont_test.ini";
+	if (argc == 2){
+		par_file = argv[1];
 	}
-
-	string par_file = argv[1];
 
 	// reference run
 	{

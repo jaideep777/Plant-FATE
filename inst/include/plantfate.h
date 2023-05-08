@@ -23,8 +23,8 @@ class Simulator{
 	std::string paramsFile;
 	std::string parent_dir, expt_dir;
 
-	std::string met_file;
-	std::string co2_file;
+	// std::string met_file;
+	// std::string co2_file;
 
 	bool        save_state;
 	std::string state_outfile;
@@ -33,7 +33,10 @@ class Simulator{
 	std::string continueFrom_stateFile;
 	std::string continueFrom_configFile;
 	bool        continuePrevious;
+	int         saveStateInterval;
 
+	int         n_species;
+	std::string traits_file;
 	bool        evolve_traits;
 
 	// Set up simulation start and end points
@@ -45,8 +48,16 @@ class Simulator{
 	// t is years since 2000-01-01
 	double delta_T;
 	double timestep;
+	double T_seed_rain_avg;
+	double T_return; // return interval of disturbance
+	double T_invasion; 	// interval between successive species invasions
+
+	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 
 	std::string solver_method;
+
+	plant::PlantParameters par0;
+	plant::PlantTraits traits0;
 
 	io::Initializer          I;
 	Solver                   S;
@@ -59,6 +70,9 @@ class Simulator{
 	public:
 	Simulator(std::string params_file);
 	
+	void set_metFile(std::string metfile);
+	void set_co2File(std::string co2file);
+
 	void init(double tstart, double tend);
 
 	void simulate();
@@ -87,9 +101,9 @@ class Simulator{
 	///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species)
 	void calc_r0(double t, double dt, Solver &S);
 
-	void removeSpeciesAndProbes(Solver* S, MySpecies<PSPM_Plant>* spp);
+	void removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp);
 
-	void addSpeciesAndProbes(Solver *S, std::string params_file, io::Initializer &I, double t, std::string species_name, double lma, double wood_density, double hmat, double p50_xylem);
+	void addSpeciesAndProbes(double t, std::string species_name, double lma, double wood_density, double hmat, double p50_xylem);
 	
 
 

@@ -12,6 +12,23 @@ dat = dat %>% mutate(P50..Mpa. = purrr::map_dbl(P50..Mpa.,
 
 write.csv(dat, file = "Amz_trait_filled_HD.csv", row.names = F)
 
+## GENERATE RANDOM TRAIT DIST
+
+dat = data.frame(
+  Family = "F",
+  Species = paste0("Spp_",1:100),
+  Number.of.individuals = 0,
+  Total.BasalArea_2017.cm2. = 0,
+  meanWoodDensity..g.cm3. = runif(100, 0.3, 0.95),
+  Height_Max.m. = runif(100, 5,35),
+  Leaf.LMA..g.m2. = runif(100, 50, 250),
+  P50..Mpa. = runif(100, -5.5, -2.5)
+  )
+
+write.csv(dat, file = "Traits_random_HD2.csv", row.names = F)
+
+plot(dat$Leaf.LMA..g.m2.~dat$meanWoodDensity..g.cm3.)
+
 # CWM traits
 
 dat %>% select(Leaf.LMA..g.m2., Number.of.individuals) %>% na.omit %>% summarize(meanLMA = sum(Leaf.LMA..g.m2.*Number.of.individuals)/sum(Number.of.individuals))

@@ -8,7 +8,7 @@ namespace env{
 
 class LightEnvironment {
 	public:
-	bool use_ppa = false;
+	bool use_ppa = true;
 
 	// Smooth environment 
 

@@ -291,6 +291,6 @@ void PSPM_Dynamic_Environment::computeEnv(double t, Solver *S, std::vector<doubl
 
 
 void PSPM_Dynamic_Environment::print(double t){
-	Climate::print(t);
+	Climate::print_line(t);
 	LightEnvironment::print();
 }

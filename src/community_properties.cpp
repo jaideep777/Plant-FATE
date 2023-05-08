@@ -174,6 +174,7 @@ void SpeciesProps::update(double t, Solver &S){
 	p50_vec.resize(S.n_species(), 0);
 	// for (int k=0; k<S.n_species(); ++k) p50_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.p50_xylem;
 
+	// This should not be used
 	gs = 0;
 	for (int k=0; k<S.n_species(); ++k)
 		if (isResident(S.species_vec[k]))
@@ -284,10 +285,12 @@ EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
 
 void SolverIO::openStreams(std::string dir, io::Initializer &I){
 
-	cohort_props_out.open(dir + "/cohort_props.txt");
-	cohort_props_out << "t\tspeciesID\tcohortID\t";
-	for (auto vname : varnames) cohort_props_out << vname << "\t";
-	cohort_props_out << std::endl;
+	if (b_output_cohort_props){
+		cohort_props_out.open(dir + "/cohort_props.txt");
+		cohort_props_out << "t\tspeciesID\tcohortID\t";
+		for (auto vname : varnames) cohort_props_out << vname << "\t";
+		cohort_props_out << std::endl;
+	}
 
 	size_dists_out.open(dir + "/size_distributions.txt");
 
@@ -318,11 +321,13 @@ void SolverIO::openStreams(std::string dir, io::Initializer &I){
 	fouty.open(std::string(dir + "/" + I.get<std::string>("cwmAvg")).c_str());
 	fouty_spp.open(std::string(dir + "/" + I.get<std::string>("cwmperSpecies")).c_str());
 	ftraits.open(std::string(dir + "/" + I.get<std::string>("traits")).c_str());
+	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
-	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
+	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
+	// fclim << "t\ttc\tppfd_max\tppfd\tvpd\tco2\telv\tswp\n";
 
 }
 
@@ -332,7 +337,7 @@ void SolverIO::closeStreams(){
 	// 		streams[s][j].close();
 	// 	}
 	// }
-	cohort_props_out.close();
+	if (b_output_cohort_props) cohort_props_out.close();
 	size_dists_out.close();
 	
 	fzst.close();
@@ -344,7 +349,7 @@ void SolverIO::closeStreams(){
 	fouty.close();
 	fouty_spp.close();
 	ftraits.close();
-
+	// fclim.close();
 }
 
 void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
@@ -382,20 +387,21 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		// }
 		
 		// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << endl; //"\n";
-	
-		if (spp->isResident){
-			for (int j=0; j<spp->xsize()-1; ++j){
-				auto& C = spp->getCohort(j);
-				cohort_props_out << t << "\t" 
-								<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
-								<< j << "\t"
-								<< C.geometry.height << "\t"
-								<< C.geometry.lai << "\t"
-								<< C.rates.dmort_dt << "\t"
-								<< C.rates.dseeds_dt << "\t"
-								<< C.rates.rgr << "\t"
-								<< C.res.gpp/C.geometry.crown_area << "\t";
-				cohort_props_out << "\n";
+		if (b_output_cohort_props){
+			if (spp->isResident){
+				for (int j=0; j<spp->xsize()-1; ++j){
+					auto& C = spp->getCohort(j);
+					cohort_props_out << t << "\t" 
+									<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
+									<< j << "\t"
+									<< C.geometry.height << "\t"
+									<< C.geometry.lai << "\t"
+									<< C.rates.dmort_dt << "\t"
+									<< C.rates.dseeds_dt << "\t"
+									<< C.rates.rgr << "\t"
+									<< C.res.gpp/C.geometry.crown_area << "\t";
+					cohort_props_out << "\n";
+				}
 			}
 		}
 	}
@@ -458,6 +464,8 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		std::vector<double> v = spp->get_traits();
 		for (auto vv : v)
 		ftraits << vv << "\t";
+		ftraits << spp->getCohort(-1).traits.hmat << "\t"
+		        << spp->getCohort(-1).traits.p50_xylem << "\t";
 		ftraits << spp->r0_hist.get_last() << "\t"
 				<< spp->r0_hist.get() << "\t"
 				<< spp->r0_hist.get_exp(0.02) << "\t"
