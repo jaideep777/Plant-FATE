@@ -235,15 +235,19 @@ setwd("~/codes/Plant-FATE/")
 fitness_wd = function(wd, zp, co, co2, zeta=0.2, lma, hmat, p50, pfile="tests/params/p_base.ini"){
   lho = new(LifeHistoryOptimizer, pfile)
   lho$set_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv")
+  
   lho$traits0$lma = lma
   lho$traits0$hmat = hmat
+  lho$traits0$wood_density = wd
   lho$traits0$p50_xylem = p50
   lho$traits0$zeta = zeta
+  
   lho$env$clim$co2 = co2
   lho$env$z_star = zp
   lho$env$canopy_openness = co
+  
   lho$init()
-  lho$set_traits(c(lma, wd))
+  # lho$set_traits(c(lma, wd))
   # lho$printPlant()
   lho$calcFitness()
 }

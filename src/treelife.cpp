@@ -152,14 +152,14 @@ void LifeHistoryOptimizer::printState(double t, ostream& lfout){
 	lfout << '\n';
 }
 
-void LifeHistoryOptimizer::set_traits(std::vector<double> tvec){
-	P.set_evolvableTraits(tvec);
-}
+// void LifeHistoryOptimizer::set_traits(std::vector<double> tvec){
+// 	P.set_evolvableTraits(tvec);
+// }
 
 
-std::vector<double> LifeHistoryOptimizer::get_traits(){
-	return P.get_evolvableTraits();
-}
+// std::vector<double> LifeHistoryOptimizer::get_traits(){
+// 	return P.get_evolvableTraits();
+// }
 
 
 void LifeHistoryOptimizer::printMeta(){
