@@ -284,15 +284,15 @@ void Simulator::simulate(){
 			}
 		}
 
-		// Remove dead species
-		vector<MySpecies<PSPM_Plant>*> toRemove;
-		for (int k=0; k<S.species_vec.size(); ++k){
-			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-			if (spp->isResident){
-				if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
-			}
-		}
-		for (auto spp : toRemove) removeSpeciesAndProbes(spp);
+		// // Remove dead species
+		// vector<MySpecies<PSPM_Plant>*> toRemove;
+		// for (int k=0; k<S.species_vec.size(); ++k){
+		// 	auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+		// 	if (spp->isResident){
+		// 		if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+		// 	}
+		// }
+		// for (auto spp : toRemove) removeSpeciesAndProbes(spp);
 
 		// // Shuffle species in the species vector -- just for debugging
 		// if (int(t) % 10 == 0){

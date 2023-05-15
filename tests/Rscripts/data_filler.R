@@ -1,5 +1,5 @@
 setwd("~/codes/Plant-FATE/tests/data/")
-dat = read.csv("trait.csv")
+dat = read.csv("traits.csv")
 
 library(dplyr)
 
@@ -41,7 +41,7 @@ plot(h$counts~h$mids, log="xy")
 
 # Reduce diversity
 
-dat = read.csv("Amz_trait_filled_HD.csv")
+dat = read.csv("Traits_random_HD2.csv")
 dat = dat[1:100,]
 qlma = quantile(dat$Leaf.LMA..g.m2., na.rm=T)
 qwd =  quantile(dat$meanWoodDensity..g.cm3., na.rm=T)
@@ -54,4 +54,4 @@ dat_reduced = dat %>%
   filter((Height_Max.m. < qhmat[4] & Height_Max.m. > qhmat[2]) | is.na(Height_Max.m.) ) %>% 
   filter((P50..Mpa. < qp50[4] & P50..Mpa. > qp50[2]) | is.na(P50..Mpa.) )  
 
-write.csv(dat_reduced, file = "Amz_trait_filled_LD.csv", row.names = F)
+write.csv(dat_reduced, file = "Traits_random_LD2.csv", row.names = F)
