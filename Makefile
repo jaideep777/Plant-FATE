@@ -3,7 +3,8 @@
 TARGET := 1
 
 # files
-SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp))
+SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp)) # pybind/simulator_pybind.cpp)  #$(wildcard pybind/*.cpp))
+PYBINDSRC := pybind/simulator_pybind.cpp
 HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 # ------------------------------------------------------------------------------
 
@@ -18,7 +19,8 @@ ROOT_DIR := ${shell dirname ${shell pwd}}
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
-INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
+INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include -fPIC  #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
+PTH_PATH := $(python3 -m pybind11 --includes)
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags
@@ -61,11 +63,14 @@ LIBS = 	 -lpspm	# additional libs
 OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 
 
-add_subdirectory(pybinds)
-pybind11_add_module(simulator simulator_pybind.cpp)
+# add_subdirectory(pybinds)
+# pybind11_add_module(simulator simulator_pybind.cpp)
 
 
 all: dir $(TARGET)
+
+python: dir $(OBJECTS)
+	pip3 install .
 
 dir:
 	mkdir -p lib build tests/build
@@ -74,7 +79,7 @@ $(TARGET): $(OBJECTS)
 	g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
-	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
+	g++ -c $(CPPFLAGS) $(INC_PATH) $(PTH_PATH) $< -o $@
 
 libclean:
 	rm -f $(TARGET) build/*.o log.txt gmon.out 
