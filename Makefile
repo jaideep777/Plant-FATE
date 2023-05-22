@@ -3,8 +3,7 @@
 TARGET := 1
 
 # files
-SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp)) # pybind/simulator_pybind.cpp)  #$(wildcard pybind/*.cpp))
-PYBINDSRC := pybind/simulator_pybind.cpp
+SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp))
 HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 # ------------------------------------------------------------------------------
 
@@ -78,7 +77,7 @@ $(TARGET): $(OBJECTS)
 	g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
-	g++ -c $(CPPFLAGS) $(INC_PATH) $(PTH_PATH) $< -o $@
+	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 libclean:
 	rm -f $(TARGET) build/*.o log.txt gmon.out 
