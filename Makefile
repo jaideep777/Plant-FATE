@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # executable name
-TARGET := 1
+TARGET := plantFATE
 
 # files
 SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp))
@@ -54,6 +54,7 @@ CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-parameter
 
 # libs
+AR = ar
 LIBS = 	 -lpspm	# additional libs
 #LIBS = -lcudart 			# cuda libs
 
@@ -67,20 +68,21 @@ OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 
 all: dir $(TARGET)
 
-python: dir $(OBJECTS)
+python: dir $(TARGET)
 	pip3 install .
 
 dir:
 	mkdir -p lib build tests/build
 
 $(TARGET): $(OBJECTS)
-	g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
+	$(AR) rcs lib/$(TARGET).a $(OBJECTS) $(LIBS) 
+# 	g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 libclean:
-	rm -f $(TARGET) build/*.o log.txt gmon.out 
+	rm -f $(TARGET) build/*.o lib/*.a log.txt gmon.out 
 	
 re: clean all
 

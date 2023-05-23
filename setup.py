@@ -8,7 +8,7 @@ __version__ = "0.0.1"
 root_dir = '/home/admini/my_work/plantFATE_root/'
 package_dir = {name: "pybinds"}
 libraries = ["pspm", "stdc++fs"]
-library_dirs = [root_dir +  "libpspm/lib", "./build"]
+library_dirs = [root_dir +  "libpspm/lib", "./lib"]
 extra_compile_args = ["-O3", 
                       "-g", 
                       "-pg", 
