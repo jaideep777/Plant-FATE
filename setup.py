@@ -7,12 +7,17 @@ __version__ = "0.0.1"
 
 root_dir = '/home/admini/my_work/plantFATE_root/'
 package_dir = {name: "pybinds"}
+depends = ["./inst/include/plantfate.h",
+           "./inst/include/pspm_interface.h",
+           "./src/plantfate.cpp",
+           "./src/plantfate.o",
+           "./src/plantFATE.so",
+           "./src/pspm_interface.cpp",
+           "./src/pspm_interface.o"]
 libraries = ["pspm", "stdc++fs"]
 library_dirs = [root_dir +  "libpspm/lib", "./lib"]
-extra_compile_args = ["-O3", 
-                      "-g", 
+extra_compile_args = ["-O3",
                       "-pg", 
-                      "-std=c++17", 
                       "-Wall", 
                       "-Wextra", 
                       "-DPHYDRO_ANALYTICAL_ONLY", 
@@ -21,7 +26,10 @@ extra_compile_args = ["-O3",
                       "-Wno-unused-but-set-variable", 
                       "-Wno-float-conversion", 
                       "-Wno-unused-parameter", 
-                      "-fPIC"]
+                      "-L" + root_dir + "libpspm/lib",
+                      "-L./lib",
+                      "-lpspm",
+                      ]
 include_dirs = ['./inst/include', 
                 root_dir + 'phydro/inst/include', 
                 root_dir + "libpspm/include", 

@@ -1,5 +1,5 @@
-#ifndef PLANT_FATE_LIGHT_ENVIRONMENT_H_
-#define PLANT_FATE_LIGHT_ENVIRONMENT_H_
+#ifndef PLANT_FATE_TEST_ENVIRONMENT_H_
+#define PLANT_FATE_TEST_ENVIRONMENT_H_
 
 #include <iostream>
 #include <vector>
@@ -8,30 +8,27 @@
 
 // namespace env{
 
-class LightEnvironment : public EnvironmentBase {
+class TestEnvironment: public EnvironmentBase {
 	public:
-	bool use_ppa = false;
+    bool use_ppa = false;
 
-	// Smooth environment 
+	//smooth environment
 
-	// PPA environment	
+    //PPA Environment:
 	int n_layers;
 	double total_crown_area;
 	std::vector<double> z_star;
 	std::vector<double> fapar_tot;
 	std::vector<double> canopy_openness;
-	
-	
-	public:
-	LightEnvironment();
+
+
+    public:
+	TestEnvironment();
 	void computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt);
 	void print();
-	
+
 };
 
 // } // env
 
-/*#include "../src/light_environment.tpp"*/
-
 #endif
-

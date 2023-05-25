@@ -4,7 +4,7 @@
 
 #include "light_environment.h"
 
-namespace env{
+// namespace env{
 
 LightEnvironment::LightEnvironment(){ 
 	n_layers = 0;
@@ -13,6 +13,10 @@ LightEnvironment::LightEnvironment(){
 	canopy_openness = {1};
 	z_star.reserve(20);
 	canopy_openness.reserve(20);
+}
+
+void LightEnvironment::computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt){
+	std::cout<< "working" << std::endl;
 }
 
 
@@ -27,6 +31,6 @@ void LightEnvironment::print(){
 }
 
 
-} // env
+// } // env
 
 
