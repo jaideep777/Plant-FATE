@@ -1,14 +1,14 @@
 library(tidyverse)
 rm(list=ls())
 
-output_dir = "~/codes/Plant-FATE/pspm_output_amazon_mip_final/"
+output_dir = "~/codes/Plant-FATE/pspm_output_alloc_change/"
 # output_dir = "~/output_data/pspm_output_36sims"
-expt_dir = "hist_ele_ld" #_old_params"
+expt_dir = "zeta_0.2_to_0.400000" #_old_params"
 
 setwd(paste0(output_dir,"/",expt_dir))
 
 plot_to_file = T
-plot_trait_space = T
+plot_trait_space = F
 
 add_band = function(){
   polygon(x=c(2000,5000,5000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
@@ -23,9 +23,9 @@ Zp = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
 # BA1 = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
 co = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50))
 lai_v = read.delim("lai_profile.txt", header=F, col.names = paste0("V", 1:27))
-traits = read.delim("traits_ELE_LD.txt")
-dat = read.delim("AmzFACE_D_PFATE_ELE_LD.txt")
-dat2 = read.delim("AmzFACE_Y_PFATE_ELE_LD.txt")
+traits = read.delim("traits_ELE_HD.txt")
+dat = read.delim("AmzFACE_D_PFATE_ELE_HD.txt")
+dat2 = read.delim("AmzFACE_Y_PFATE_ELE_HD.txt")
 dist = read.delim("size_distributions.txt", header=F)
 dist = dist[,-ncol(dist)]
 x = exp(seq(log(0.01), log(10), length.out=100))
@@ -283,7 +283,17 @@ P_change = t(cbind(dat$GPP*1e-3*365,
 rownames(P_change) = c("GPP", "NPP", "RAU", "BA", "CL", "AGB", "BGB")
 colnames(P_change) = c("AMB", "ELE")
 P_change$Delta = (P_change[,2]-P_change[,1])/P_change[,1]*100
+P_change$rr = log(P_change[,2]/P_change[,1])/log(614/414)
 P_change
+
+dat$AGB = dat$CL + dat$CW
+dat$TB =dat$CCR + dat$CFR + dat$CL + dat$CW
+amb_ele = dat %>% filter((YEAR > 1950 & YEAR < 2000) | (YEAR > 4950 & YEAR < 5000)) %>% group_by(CO2) %>% summarize_all(mean) %>% t() %>% as.data.frame()
+colnames(amb_ele) = c("AMB", "ELE")
+amb_ele = amb_ele %>% mutate(PC = (ELE-AMB)/AMB*100) 
+amb_ele = amb_ele %>% mutate(RRR = log(ELE/AMB)/log(614/414)) 
+
+amb_ele %>% write.csv(paste0(expt_dir,"_rr.csv"))
 
 # cprops = read.delim("cohort_props.txt")
 # 

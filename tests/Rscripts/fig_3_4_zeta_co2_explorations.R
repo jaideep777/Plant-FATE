@@ -19,16 +19,18 @@ scale_minmax = function(x, xmin, xmax){
 }
 
 
-N=2
-zeta = c(0.05, 0.2)
-output_dir = "pspm_output_ewd_scan"
-expt_dirs = c("zeta_0.05","par_ea-1.1493_eg-1.8392_ewd-0.8")
+N=4
+zeta = c(0.2, 0.25, 0.3, 0.4)
+output_dir = "pspm_output_alloc_change"
+expt_dirs = sprintf("zeta_0.2_to_%0.6f", zeta)
 wd_mat_t = matrix(nrow = 6001, ncol = N)
 wd_amb_ele_mat = matrix(nrow=2, ncol=N)
 ba_amb_ele_mat = matrix(nrow=2, ncol=N)
+gpp_amb_ele_mat = matrix(nrow=2, ncol=N)
 npp_amb_ele_mat = matrix(nrow=2, ncol=N)
 agb_amb_ele_mat = matrix(nrow=2, ncol=N)
 cfr_amb_ele_mat = matrix(nrow=2, ncol=N)
+lai_amb_ele_mat = matrix(nrow=2, ncol=N)
 for(i in 1:N){
   expt_dir = expt_dirs[i]
   cat(expt_dir, "\n")
@@ -36,76 +38,305 @@ for(i in 1:N){
   dat1 = read.delim(paste0("~/codes/Plant-FATE/",output_dir,"/",expt_dir,"/AmzFACE_D_PFATE_ELE_HD.txt"))
   traits = read.delim(paste0("~/codes/Plant-FATE/",output_dir,"/",expt_dir,"/traits_ELE_HD.txt"))
   wd_amb_ele_mat[,i] = c(get_wd_cwm(dat, traits, 2000), get_wd_cwm(dat, traits, 5000))
+  gpp_amb_ele_mat[1,i] = dat1 %>% filter(YEAR > 1950 & YEAR < 2000) %>% select(GPP) %>% colMeans()
+  gpp_amb_ele_mat[2,i] = dat1 %>% filter(YEAR > 4950 & YEAR < 5000) %>% select(GPP) %>% colMeans()
   npp_amb_ele_mat[1,i] = dat1 %>% filter(YEAR > 1950 & YEAR < 2000) %>% select(NPP) %>% colMeans()
   npp_amb_ele_mat[2,i] = dat1 %>% filter(YEAR > 4950 & YEAR < 5000) %>% select(NPP) %>% colMeans()
   agb_amb_ele_mat[1,i] = dat1 %>% filter(YEAR > 1950 & YEAR < 2000) %>% mutate(AGB=CL+CW) %>% select(AGB) %>% colMeans()
   agb_amb_ele_mat[2,i] = dat1 %>% filter(YEAR > 4950 & YEAR < 5000) %>% mutate(AGB=CL+CW) %>% select(AGB) %>% colMeans()
   cfr_amb_ele_mat[1,i] = dat1 %>% filter(YEAR > 1950 & YEAR < 2000) %>% select(CFR) %>% colMeans()
   cfr_amb_ele_mat[2,i] = dat1 %>% filter(YEAR > 4950 & YEAR < 5000) %>% select(CFR) %>% colMeans()
+  lai_amb_ele_mat[1,i] = dat1 %>% filter(YEAR > 1950 & YEAR < 2000) %>% select(LAI) %>% colMeans()
+  lai_amb_ele_mat[2,i] = dat1 %>% filter(YEAR > 4950 & YEAR < 5000) %>% select(LAI) %>% colMeans()
   wd_mat_t[,i] = get_wd_cwm_t(dat, traits)$cwm
 }
 
+# 
+# 
+# cairo_pdf(filename = "~/codes/Plant-FATE/paper_figs3/zeta_x_co2_barplots.pdf", height = 19/2.6*4/5, width = 13/2.6)
+# par(mfrow=c(4,2), mar=c(4.5,6,.2,1.5), oma=c(1,1,1,1), mgp=c(2.5,1,0))
+# 
+# wd1 = wd_mat_t
+# wd1[1:3000,] = NA
+# # matplot(y=wd_mat_t, x=-1000:5000, type="l", lty=c(1,2), lwd=c(2,1.5), col=scales::viridis_pal(end = 0.8)(N*2)[c(1,3)], ylab="CWM wood\ndensity (kg m-3)", xlab="Year", ylim=c(500,850))
+# matplot(y=wd_mat_t, x=-1000:5000, type="l", lty=1, lwd=2, col="grey25", ylab="CWM wood\ndensity (kg m-3)", xlab="Year", ylim=c(500,850))
+# matlines(y=wd1, x=-1000:5000, type="l", lty=1, lwd=2, col=scales::viridis_pal(end = 0.8)(N*2)[c(2,4)], ylab="Wood density", xlab="Year")
+# polygon(x=c(2000,6000,6000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
+# add_label(label = "A", cex=1)
+# 
+# 
+# barplot(cfr_amb_ele_mat*1e-3, beside = T, ylim=c(0,1.2), xpd=F, 
+#         #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=scales::viridis_pal(end = 0.8)(N*2),
+#         ylab="Aboveground\nbiomass (kgC m-2)",
+#         names.arg=c("High N", "Low N"))
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "B", cex=1)
+# 
+# 
+# barplot(npp_amb_ele_mat*1e-3*365, beside = T, ylim=c(0,3), xpd=F, 
+#         #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=scales::viridis_pal(end = 0.8)(N*2),
+#         ylab="Net productivity\n(gC m-2 day-1)",
+#         names.arg=c("High N", "Low N"))
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "C", cex=1)
+# 
+# barplot(lai_amb_ele_mat, beside = T, ylim=c(4,8), xpd=F, 
+#         #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=scales::viridis_pal(end = 0.8)(N*2),
+#         ylab="Leaf area\nindex (m2 m-2)",
+#         names.arg=c("High N", "Low N"))
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "D", cex=1)
+# 
+# 
+# barplot(agb_amb_ele_mat*1e-3, beside = T, ylim=c(20,45), xpd=F, 
+#         #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=scales::viridis_pal(end = 0.8)(N*2),
+#         ylab="Aboveground\nbiomass (kgC m-2)",
+#         names.arg=c("High N", "Low N"))
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "E", cex=1)
+# 
+# 
+# barplot(wd_amb_ele_mat, beside = T, ylim=c(600, 850), xpd=F, 
+#         #        legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=scales::viridis_pal(end = 0.8)(N*2),
+#         ylab="Wood density\n(kg m-3)",
+#         names.arg=c("High N", "Low N"))
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "F", cex=1)
+# 
+# 
+# barplot(wd_amb_ele_mat*NA, beside = T, ylim=c(0, 1), xlim=c(0,1), xpd=F, 
+#         # legend.text = c("Ambient CO2 (414 ppm)", "Elevated CO2 (614 ppm)"),
+#         axis.lty = 0, axes = F,
+#         # col=scales::viridis_pal(end = 0.8)(N*2),
+#         ylab="",
+#         args.legend = list(x=0.9,y=0.35, bty = "n")
+# )
+# legend(x=-0.15,y=0.95, title = "Zeta", 
+#        c("Ambient CO2", "Elevated CO2"),
+#        # fill = scales::viridis_pal(end = 0.8)(4)[3:4], 
+#        bty="n", cex=1)
+# legend(x=0.55,y=0.95, title = "0.2", 
+#        legend = c("", ""),
+#        fill = scales::viridis_pal(end = 0.8)(4)[1:2], 
+#        bty="n", cex=1)
+# legend(x=0.75,y=0.95, title = "0.4", 
+#        legend = c("",""), #c("Ambient CO2 (414 ppm)", "Elevated CO2 (614 ppm)"),
+#        fill = scales::viridis_pal(end = 0.8)(4)[3:4], 
+#        bty="n", cex=1)
+# 
+# dev.off()
+# 
 
-cairo_pdf(filename = "~/codes/Plant-FATE/paper_figs2/zeta_x_co2_barplots.pdf", height = 19/2.6*3/5, width = 13/2.6)
-par(mfrow=c(3,2), mar=c(4.5,6,.2,1.5), oma=c(1,1,1,1), mgp=c(2.5,1,0))
+# 
+# cairo_pdf(filename = "~/codes/Plant-FATE/paper_figs3/zeta_x_co2_barplots.pdf", height = 19/2.6*4/5, width = 13/2.6)
+# par(mfrow=c(4,2), mar=c(3.5,6,1,1.5), oma=c(1,1,1,1), mgp=c(2.5,1,0), cex.lab=1.05, cex.axis=1)
+# 
+# wd1 = wd_mat_t
+# wd1[1:3000,] = NA
+# # matplot(y=wd_mat_t, x=-1000:5000, type="l", lty=c(1,2), lwd=c(2,1.5), col=scales::viridis_pal(end = 0.8)(N*2)[c(1,3)], ylab="CWM wood\ndensity (kg m-3)", xlab="Year", ylim=c(500,850))
+# matplot(y=wd_mat_t, x=-1000:5000, type="l", lty=1, lwd=2, col="grey40", ylab="CWM wood\ndensity (kg m-3)", xlab="Year", ylim=c(500,850), frame.plot=F)
+# polygon(x=c(2000,6000,6000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
+# matlines(y=wd1, x=-1000:5000, type="l", lty=1, lwd=2, col=scales::viridis_pal(end = 0.8)(N*2)[c(2,4)], ylab="Wood density", xlab="Year")
+# add_label(label = "A", cex=1)
+# 
+# cols = c("grey40", scales::viridis_pal(end = 0.8)(N*2)[c(2,4)])
+# xlabs = c("aC+aR", "eC+aR", "eC+eR")
+# barplot(as.numeric(cfr_amb_ele_mat)[-3]*1e-3, beside = T, ylim=c(0,1.2), xpd=F, 
+#         #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=cols,
+#         ylab="Fine root\nbiomass (kgC m-2)",
+#         names.arg=xlabs)
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "B", cex=1)
+# 
+# 
+# barplot(as.numeric(npp_amb_ele_mat)[-3]*1e-3*365, beside = T, ylim=c(0,3), xpd=F, 
+#         #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=cols,
+#         ylab="Net productivity\n(gC m-2 day-1)",
+#         names.arg=xlabs)
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "C", cex=1)
+# 
+# barplot(as.numeric(lai_amb_ele_mat)[-3], beside = T, ylim=c(4,8), xpd=F, 
+#         #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=cols,
+#         ylab="Leaf area\nindex (m2 m-2)",
+#         names.arg=xlabs)
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "D", cex=1)
+# 
+# 
+# barplot(as.numeric(agb_amb_ele_mat)[-3]*1e-3, beside = T, ylim=c(20,40), xpd=F, 
+#         #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=cols,
+#         ylab="Aboveground\nbiomass (kgC m-2)",
+#         names.arg=xlabs)
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "E", cex=1)
+# 
+# 
+# barplot(as.numeric(wd_amb_ele_mat)[-3], beside = T, ylim=c(600, 850), xpd=F, 
+#         #        legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
+#         axis.lty = 1, 
+#         col=cols,
+#         ylab="Wood density\n(kg m-3)",
+#         names.arg=xlabs)
+# # names.arg=paste0("zeta = ", zeta))
+# add_label(label = "F", cex=1)
+# 
+# par(xpd=TRUE)
+# 
+# barplot(wd_amb_ele_mat*NA, beside = T, ylim=c(0, 1), xlim=c(0,1), xpd=T, 
+#         # legend.text = c("Ambient CO2 (414 ppm)", "Elevated CO2 (614 ppm)"),
+#         axis.lty = 0, axes = F,
+#         # col=cols,
+#         ylab="",
+#         args.legend = list(x=0.9,y=0.35, bty = "n")
+# )
+# legend(x=0.15,y=0.95, title = "Scenario", 
+#        xlabs,
+#        fill = cols, 
+#        bty="n", cex=1, horiz = F)
+# 
+# dev.off()
 
+
+
+cairo_pdf(filename = "~/codes/Plant-FATE/paper_figs3/zeta_x_co2_plots.pdf", height = 19/2.6*4/5, width = 13/2.6)
+par(mfrow=c(4,2), mar=c(3.5,6,1,0.5), oma=c(1,1,1,1), mgp=c(2.5,1,0), cex.lab=1.05, cex.axis=1, xpd=F)
+
+cols_zeta = scales::viridis_pal(end = 0.8)(N)
 wd1 = wd_mat_t
 wd1[1:3000,] = NA
-matplot(y=wd_mat_t, x=-1000:5000, type="l", lty=1, lwd=2, col=scales::viridis_pal(end = 0.8)(N*2)[c(1,3)], ylab="CWM wood\ndensity (kg m-3)", xlab="Year", ylim=c(500,850))
-matlines(y=wd1, x=-1000:5000, type="l", lty=1, lwd=2, col=scales::viridis_pal(end = 0.8)(N*2)[c(2,4)], ylab="Wood density", xlab="Year")
+# matplot(y=wd_mat_t, x=-1000:5000, type="l", lty=c(1,2), lwd=c(2,1.5), col=scales::viridis_pal(end = 0.8)(N*2)[c(1,3)], ylab="CWM wood\ndensity (kg m-3)", xlab="Year", ylim=c(500,850))
+matplot(y=wd_mat_t, x=-1000:5000, type="l", lty=1, lwd=2, col="grey40", ylab="CWM wood\ndensity (kg m-3)", xlab="Year", ylim=c(500,850), frame.plot=F)
 polygon(x=c(2000,6000,6000,2000), y=c(-1e20,-1e20,1e20,1e20), border = NA, col=scales::alpha("yellow2",0.2))
+matlines(y=wd1, x=-1000:5000, type="l", lty=1, lwd=2, col=cols_zeta, ylab="Wood density", xlab="Year")
 add_label(label = "A", cex=1)
 
-barplot(wd_amb_ele_mat, beside = T, ylim=c(600, 850), xpd=F, 
-        #        legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
-        axis.lty = 1, 
-        col=scales::viridis_pal(end = 0.8)(N*2),
-        ylab="Wood density\n(kg m-3)",
-        names.arg=c("High N", "Low N"))
-# names.arg=paste0("zeta = ", zeta))
-add_label(label = "B", cex=1)
-
-barplot(npp_amb_ele_mat*1e-3*365, beside = T, ylim=c(0,3), xpd=F, 
-        #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
-        axis.lty = 1, 
-        col=scales::viridis_pal(end = 0.8)(N*2),
-        ylab="Net productivity\n(gC m-2 day-1)",
-        names.arg=c("High N", "Low N"))
-# names.arg=paste0("zeta = ", zeta))
-add_label(label = "C", cex=1)
-
-
-barplot(agb_amb_ele_mat*1e-3, beside = T, ylim=c(20,45), xpd=F, 
-        #legend.text = c("Ambient CO2 (368.9 ppm)", "Elevated CO2 (614 ppm)"), 
-        axis.lty = 1, 
-        col=scales::viridis_pal(end = 0.8)(N*2),
-        ylab="Aboveground\nbiomass (kgC m-2)",
-        names.arg=c("High N", "Low N"))
-# names.arg=paste0("zeta = ", zeta))
-add_label(label = "D", cex=1)
-
-
-barplot(wd_amb_ele_mat*NA, beside = T, ylim=c(0, 1), xlim=c(0,1), xpd=F, 
+barplot(wd_amb_ele_mat*NA, beside = T, ylim=c(0, 1), xlim=c(0,1), xpd=T,
         # legend.text = c("Ambient CO2 (414 ppm)", "Elevated CO2 (614 ppm)"),
         axis.lty = 0, axes = F,
-        # col=scales::viridis_pal(end = 0.8)(N*2),
+        # col=cols,
         ylab="",
         args.legend = list(x=0.9,y=0.35, bty = "n")
 )
-legend(x=-0.15,y=0.95, title = "Zeta", 
-       c("Ambient CO2", "Elevated CO2"),
-       # fill = scales::viridis_pal(end = 0.8)(4)[3:4], 
-       bty="n", cex=1)
-legend(x=0.55,y=0.95, title = "0.05", 
-       legend = c("", ""),
-       fill = scales::viridis_pal(end = 0.8)(4)[1:2], 
-       bty="n", cex=1)
-legend(x=0.75,y=0.95, title = "0.20", 
-       legend = c("",""), #c("Ambient CO2 (414 ppm)", "Elevated CO2 (614 ppm)"),
-       fill = scales::viridis_pal(end = 0.8)(4)[3:4], 
-       bty="n", cex=1)
+legend(x=0.0,y=0.95, title = "aCO2",
+       legend = "",
+       lty=1, lwd=2,
+       col = "grey40",
+       bty="n", cex=1, horiz = F)
+legend(x=0.35,y=0.95, title = "eCO2",
+       legend = paste0("Dz = ", c(0,25,50,100), "%"),
+       lty=1, pch=20, lwd=2,
+       col = cols_zeta,
+       bty="n", cex=1, horiz = F)
+
+
+cols = c("grey40", cols_zeta)
+xlabs = c("aC+aR", "eC+aR", "eC+eR")
+plot(y=cfr_amb_ele_mat[2,]*1e-3, x=c(0,25,50,100), ylim=c(0.4,1.2), xlim=c(-20,120),
+        pch=20, cex=2,
+        col=cols_zeta,
+        ylab="Fine root\nbiomass (kgC m-2)",
+        xlab="Increase in root:shoot ratio (%)",
+        xaxt="n"
+     )
+axis(side = 1, at=c(0,25,50,100), labels=c(0,25,50,100))
+abline(h=cfr_amb_ele_mat[1,1]*1e-3, col="grey40")
+add_label(label = "B", cex=1)
+
+
+plot(y=gpp_amb_ele_mat[2,]*1e-3*365, x=c(0,25,50,100), ylim=c(3,5), xlim=c(-20,120),
+     pch=20, cex=2,
+     col=cols_zeta,
+     ylab="Gross productivity\n(gC m-2 day-1)",
+     xlab="Increase in root:shoot ratio (%)",
+     xaxt="n"
+)
+axis(side = 1, at=c(0,25,50,100), labels=c(0,25,50,100))
+abline(h=gpp_amb_ele_mat[1,1]*1e-3*365, col="grey40")
+add_label(label = "C", cex=1)
+
+
+plot(y=npp_amb_ele_mat[2,]*1e-3*365, x=c(0,25,50,100), ylim=c(0.9,2.5), xlim=c(-20,120),
+     pch=20, cex=2,
+     col=cols_zeta,
+     ylab="Net productivity\n(gC m-2 day-1)",
+     xlab="Increase in root:shoot ratio (%)",
+     xaxt="n"
+)
+axis(side = 1, at=c(0,25,50,100), labels=c(0,25,50,100))
+abline(h=npp_amb_ele_mat[1,1]*1e-3*365, col="grey40")
+add_label(label = "D", cex=1)
+
+
+plot(y=lai_amb_ele_mat[2,], x=c(0,25,50,100), ylim=c(4,8), xlim=c(-20,120),
+     pch=20, cex=2,
+     col=cols_zeta,
+     ylab="Leaf area\nindex (m2 m-2)",
+     xlab="Increase in root:shoot ratio (%)",
+     xaxt="n"
+)
+axis(side = 1, at=c(0,25,50,100), labels=c(0,25,50,100))
+abline(h=lai_amb_ele_mat[1,1], col="grey40")
+add_label(label = "E", cex=1)
+
+
+plot(y=agb_amb_ele_mat[2,]*1e-3, x=c(0,25,50,100), ylim=c(25,38), xlim=c(-20,120),
+     pch=20, cex=2,
+     col=cols_zeta,
+     ylab="Aboveground\nbiomass (kgC m-2)",
+     xlab="Increase in root:shoot ratio (%)",
+     xaxt="n"
+)
+axis(side = 1, at=c(0,25,50,100), labels=c(0,25,50,100))
+abline(h=agb_amb_ele_mat[1,1]*1e-3, col="grey40")
+add_label(label = "F", cex=1)
+
+plot(y=wd_amb_ele_mat[2,], x=c(0,25,50,100), ylim=c(600,850), xlim=c(-20,120),
+     pch=20, cex=2,
+     col=cols_zeta,
+     ylab="CWM Wood\ndensity (kg m-3)",
+     xlab="Increase in root:shoot ratio (%)",
+     xaxt="n"
+)
+axis(side = 1, at=c(0,25,50,100), labels=c(0,25,50,100))
+abline(h=wd_amb_ele_mat[1,1], col="grey40")
+add_label(label = "G", cex=1)
+
+# par(xpd=TRUE)
+# 
+# barplot(wd_amb_ele_mat*NA, beside = T, ylim=c(0, 1), xlim=c(0,1), xpd=T, 
+#         # legend.text = c("Ambient CO2 (414 ppm)", "Elevated CO2 (614 ppm)"),
+#         axis.lty = 0, axes = F,
+#         # col=cols,
+#         ylab="",
+#         args.legend = list(x=0.9,y=0.35, bty = "n")
+# )
+# legend(x=0.15,y=0.95, title = "Scenario", 
+#        xlabs,
+#        fill = cols, 
+#        bty="n", cex=1, horiz = F)
 
 dev.off()
+
+
 
 # 
 # 
@@ -261,7 +492,6 @@ for (i in 1:50){
   dat_amb[i,] = fitness
 }
 matplot(y=t(dat_amb), x=wd, lty=1, type="l", col=scales::alpha("black", 0.2))
-dat_amb_opt = wd[apply(dat_amb, MARGIN=1, FUN = function(x){which(x==max(x))})]
 
 dat_ecae = matrix(nrow=50, ncol=length(wd))
 for (i in 1:50){
@@ -270,7 +500,6 @@ for (i in 1:50){
   dat_ecae[i,] = fitness
 }
 matplot(y=t(dat_ecae), x=wd, lty=1, type="l", col=scales::alpha("black", 0.2))
-dat_ecae_opt = wd[apply(dat_ecae, MARGIN=1, FUN = function(x){which(x==max(x))})]
 
 dat_ecee = matrix(nrow=50, ncol=length(wd))
 for (i in 1:50){
@@ -279,7 +508,6 @@ for (i in 1:50){
   dat_ecee[i,] = fitness
 }
 matplot(y=t(dat_ecee), x=wd, lty=1, type="l", col=scales::alpha("black", 0.2))
-dat_ecee_opt = wd[apply(dat_ecee, MARGIN=1, FUN = function(x){which(x==max(x))})]
 
 
 cbind(dat_amb_opt, dat_ecae_opt, dat_ecee_opt) %>% write.csv("~/codes/Plant-FATE/lho_vs_wd.csv")
@@ -287,12 +515,25 @@ dat_amb %>% write.csv("~/codes/Plant-FATE/lho_dat_amb.csv")
 dat_ecae %>% write.csv("~/codes/Plant-FATE/lho_dat_ecae.csv")
 dat_ecee %>% write.csv("~/codes/Plant-FATE/lho_dat_ecee.csv")
 
-cairo_pdf(filename = "paper_figs2/optimal_wd.pdf", height = 7, width = 5.5)
+
+dat_amb  = read.csv("~/codes/Plant-FATE/lho_dat_amb.csv")  %>% select(-X) 
+dat_ecae = read.csv("~/codes/Plant-FATE/lho_dat_ecae.csv") %>% select(-X)
+dat_ecee = read.csv("~/codes/Plant-FATE/lho_dat_ecee.csv") %>% select(-X)
+
+dat_amb_opt = wd[apply(dat_amb, MARGIN=1, FUN = function(x){which(x==max(x))})]
+dat_ecae_opt = wd[apply(dat_ecae, MARGIN=1, FUN = function(x){which(x==max(x))})]
+dat_ecee_opt = wd[apply(dat_ecee, MARGIN=1, FUN = function(x){which(x==max(x))})]
+
+cairo_pdf(filename = "~/codes/Plant-FATE/paper_figs3/optimal_wd.pdf", height = 7, width = 5.5)
 par(mfrow=c(2,1), mar=c(5,6,1,1), oma=c(1,1,1,1))
 
-matplot(y=t(dat_amb), x=wd, lty=1, type="l", col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.4)(3)[1], xlim=c(350,2500), xlab="Wood density (kg m-3)", ylab="Fitness", las=1)
-matlines(y=t(dat_ecee), x=wd, lty=1, type="l", col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.4)(3)[3], xlim=c(350,2500), xlab="Wood density (kg m-3)", ylab="Fitness", las=1)
-# matlines(y=t(dat_ecae), x=wd, lty=1, type="l", col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.4)(3)[2], xlim=c(350,2500), xlab="Wood density (kg m-3)", ylab="Fitness", las=1)
+id = sample(x = 1:50, size = 10)
+matplot(y=t(dat_amb[id,])/max(dat_amb[id,]), x=wd, lty=1, type="l", col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.4)(3)[1], xlim=c(350,2500), xlab="Wood density (kg m-3)", ylab="Fitness", las=1)
+points(x=dat_amb_opt[id], y=apply(dat_amb[id,]/max(dat_amb[id,]), MARGIN=1, FUN = function(x){x[which(x==max(x))]}), col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.5)(3)[1], pch=20)
+matlines(y=t(dat_ecee[id,])/max(dat_ecee[id,]), x=wd, lty=1, type="l", col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.4)(3)[3], xlim=c(350,2500), xlab="Wood density (kg m-3)", ylab="Fitness", las=1)
+points(x=dat_ecee_opt[id], y=apply(dat_ecee[id,]/max(dat_ecee[id,]), MARGIN=1, FUN = function(x){x[which(x==max(x))]}), col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.5)(3)[3], pch=20)
+matlines(y=t(dat_ecae[id,])/max(dat_ecae[id,]), x=wd, lty=1, type="l", col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.4)(3)[2], xlim=c(350,2500), xlab="Wood density (kg m-3)", ylab="Fitness", las=1)
+points(x=dat_ecae_opt[id], y=apply(dat_ecae[id,]/max(dat_ecae[id,]), MARGIN=1, FUN = function(x){x[which(x==max(x))]}), col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.5)(3)[2], pch=20)
 add_label(label = "A")
 
 boxplot(dat_ecee_opt, dat_ecae_opt, dat_amb_opt, horizontal=T, ylim=c(350,2500), col=scales::viridis_pal(begin = 0.3, end = 0.8, direction = -1)(3), range=0, xlab="Wood density (kg m-3)", names = c("eC+eE", "eC+aE", "aC+aE"), las=1)

@@ -42,15 +42,17 @@ double Plant::get_biomass() const{
 
 void Plant::set_evolvableTraits(std::vector<double> tvec){
 	vector<double>::iterator it = tvec.begin();
-	traits.lma = *it++;
-	traits.wood_density = *it++;
+	// traits.lma = *it++;
+	// traits.wood_density = *it++;
+	traits.zeta = *it++;
 	coordinateTraits();
 }
 
 std::vector<double> Plant::get_evolvableTraits(){
 	vector<double> tvec({
-		traits.lma,
-		traits.wood_density
+		// traits.lma,
+		// traits.wood_density
+		traits.zeta
 	});
 	return tvec;
 }

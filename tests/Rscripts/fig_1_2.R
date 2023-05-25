@@ -16,9 +16,9 @@ add_label <- function(xfrac = 0.0, yfrac = 0.1, label, pos = 4, ...) {
 }
 
 
-output_dir = "~/codes/Plant-FATE/pspm_output_ewd_scan"
+output_dir = "~/codes/Plant-FATE/pspm_output_alloc_change"
 # output_dir = "~/output_data/pspm_output_36sims"
-expt_dir = "par_ea-1.1493_eg-1.8392_ewd-0.8" #_old_params"
+expt_dir = "zeta_0.2_to_0.400000" #_old_params"
 
 setwd(paste0(output_dir,"/",expt_dir))
 
@@ -59,7 +59,7 @@ n_year = length(unique(dat2$YEAR))
 eco2_col = rgb(190/255,190/255,0)
 
 
-if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props.pdf", width=7*1.1, height = 4.5*1.1)
+if (plot_to_file) cairo_pdf("../../paper_figs3/emg_props.pdf", width=7*1.1, height = 4.5*1.1)
 
 
 # par(mfrow=c(3,3), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=0)
@@ -125,7 +125,7 @@ dev.off()
 
 cols_amb_ele = scales::viridis_pal(begin = 0.3, end = 0.8)(3)[c(1,3)]
 
-if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props_structural.pdf", width=6*1.1, height = 5.5*1.1)
+if (plot_to_file) cairo_pdf("../../paper_figs3/emg_props_structural.pdf", width=6*1.1, height = 5.5*1.1)
 
 # par(mfrow=c(3,3), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=0)
 par(mfrow=c(2,2), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=1)
@@ -209,7 +209,7 @@ if (plot_to_file) dev.off()
 
 ##### 
 
-if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props_si.pdf", width=7, height = 5)
+if (plot_to_file) cairo_pdf("../../paper_figs3/emg_props_si.pdf", width=7, height = 5)
 
 par(mfrow=c(2,3), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(3.2,1,0), las=1)
 

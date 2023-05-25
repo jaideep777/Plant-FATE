@@ -323,10 +323,10 @@ void SolverIO::openStreams(std::string dir, io::Initializer &I){
 	ftraits.open(std::string(dir + "/" + I.get<std::string>("traits")).c_str());
 	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
-	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\n";
+	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\tCO2\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
-	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
+	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tZETA\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
 	// fclim << "t\ttc\tppfd_max\tppfd\tvpd\tco2\telv\tswp\n";
 
 }
@@ -420,7 +420,8 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 			<< props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
 			<< props.lai << "\t"
 			<< cwm.vcmax << "\t"
-			<< props.cc_est << std::endl;
+			<< props.cc_est << "\t"
+			<< static_cast<PSPM_Dynamic_Environment*>(S->env)->clim.co2 << std::endl;
 	
 	fouty << int(t) << "\t"
 			<< -9999  << "\t"
@@ -461,14 +462,14 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 				<< t << "\t"
 				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 				<< spp->isResident << "\t";
-		std::vector<double> v = spp->get_traits();
-		for (auto vv : v)
-		ftraits << vv << "\t";
-		ftraits << spp->getCohort(-1).traits.hmat << "\t"
-		        << spp->getCohort(-1).traits.p50_xylem << "\t";
+		ftraits << spp->getCohort(-1).traits.lma << "\t"
+				<< spp->getCohort(-1).traits.wood_density << "\t"
+				<< spp->getCohort(-1).traits.hmat << "\t"
+		        << spp->getCohort(-1).traits.p50_xylem << "\t"
+				<< spp->getCohort(-1).traits.zeta << "\t";
 		ftraits << spp->r0_hist.get_last() << "\t"
 				<< spp->r0_hist.get() << "\t"
-				<< spp->r0_hist.get_exp(0.02) << "\t"
+				<< 0 << "\t"
 				<< 0 << "\n"; //spp->r0_hist.get_cesaro() << "\n";
 	}
 
