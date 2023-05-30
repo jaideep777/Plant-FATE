@@ -60,7 +60,7 @@ PYBIND11_MODULE(plantFATE, m)
 		.def("print", &ErgodicEnvironment::print);
 
 	py::class_<LifeHistoryOptimizer>(m,"LifeHistoryOptimizer")
-		.def(py::init<>())
+		.def(py::init<std::string>())
 		// .def("set_metFile", &LifeHistoryOptimizer::set_metFile)
 		// .def("set_co2File", &LifeHistoryOptimizer::set_co2File)
 		// .def("get_header", &LifeHistoryOptimizer::get_header)
@@ -70,8 +70,8 @@ PYBIND11_MODULE(plantFATE, m)
 		.def("init", &LifeHistoryOptimizer::init)
 		// .def("printMeta", &LifeHistoryOptimizer::printMeta)
 		.def("calcFitness", &LifeHistoryOptimizer::calcFitness)
-		.def("grow_for_dt", &LifeHistoryOptimizer::grow_for_dt)
-		.def_readwrite("params_file", &LifeHistoryOptimizer::params_file);
+		.def("grow_for_dt", &LifeHistoryOptimizer::grow_for_dt);
+		// .def_readwrite("params_file", &LifeHistoryOptimizer::params_file);
 		// .def_readwrite("env", &LifeHistoryOptimizer::C);
 		// .def_readwrite("traits0", &LifeHistoryOptimizer::traits0)
 		// .def_readwrite("par0", &LifeHistoryOptimizer::par0);
@@ -87,8 +87,8 @@ PYBIND11_MODULE(plantFATE, m)
         .def_readwrite("paramsFile", &Simulator::paramsFile)
 		.def_readwrite("parent_dir", &Simulator::parent_dir)
 		.def_readwrite("expt_dir", &Simulator::expt_dir)
-		.def_readwrite("met_file", &Simulator::met_file)
-		.def_readwrite("co2_file", &Simulator::co2_file)
+		// .def_readwrite("met_file", &Simulator::met_file)
+		// .def_readwrite("co2_file", &Simulator::co2_file)
 		.def_readwrite("save_state", &Simulator::save_state)
 		.def_readwrite("state_outfile", &Simulator::state_outfile)
 		.def_readwrite("config_outfile", &Simulator::config_outfile)
@@ -117,7 +117,7 @@ PYBIND11_MODULE(plantFATE, m)
 		.def_readwrite("K_xylem", &plant::PlantTraits::K_xylem)
 		.def_readwrite("b_leaf", &plant::PlantTraits::b_leaf)
 		.def_readwrite("b_xylem", &plant::PlantTraits::b_xylem)
-		.def_readwrite("ll", &plant::PlantTraits::ll)
+		// .def_readwrite("ll", &plant::PlantTraits::ll)
 		.def_readwrite("p50_leaf", &plant::PlantTraits::p50_leaf);
 
 	py::class_<plant::PlantParameters>(m, "PlantParameters")
