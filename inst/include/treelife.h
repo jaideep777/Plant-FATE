@@ -12,6 +12,7 @@
 
 class ErgodicEnvironment : public env::Climate, public env::LightEnvironment {
 	public:
+	ErgodicEnvironment();
 	void print(double t);
 };
 
@@ -21,9 +22,14 @@ class LifeHistoryOptimizer{
 	plant::Plant P;
 	ErgodicEnvironment C;
 
-	std::string params_file;
-	std::string met_file = "";
-	std::string co2_file = "";
+	// std::string paramsFile;
+	// std::string met_file = "";
+	// std::string co2_file = "";
+
+	plant::PlantParameters par0;
+	plant::PlantTraits traits0;
+
+	io::Initializer I;
 
 	double dt = 0.1; 
 
@@ -34,12 +40,20 @@ class LifeHistoryOptimizer{
 
 	public:
 
+	LifeHistoryOptimizer(std::string params_file);
+	
+	void set_metFile(std::string metfile);
+	void set_co2File(std::string co2file);
+	
 	void init();
 
+	std::vector<std::string> get_header();
 	void printHeader(std::ostream &lfout);
 
+	std::vector<double> get_state(double t);
 	void printState(double t, std::ostream& lfout);
-	void printPlant();
+
+	void printMeta();
 
 	void set_traits(std::vector<double> tvec);
 	std::vector<double> get_traits();

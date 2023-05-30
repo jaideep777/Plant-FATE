@@ -25,8 +25,7 @@ int main(){
 	
 	cout << setprecision(12);
 	
-	LifeHistoryOptimizer lho;
-	lho.params_file = "tests/params/p.ini";
+	LifeHistoryOptimizer lho("tests/params/p.ini");
 	lho.init();
 	double total_prod = lho.P.get_biomass();
 	cout << "Starting biomass = " << total_prod << "\n";

@@ -1,9 +1,40 @@
 #include "treelife.h"
+#include <io_utils.h>
 using namespace std;
 
+
+ErgodicEnvironment::ErgodicEnvironment() : LightEnvironment(){
+	z_star = {15, 10, 5, 0};
+	canopy_openness = {1, exp(-0.5*1.8), exp(-0.5*3.5), exp(-0.5*5.5)};
+}
+
 void ErgodicEnvironment::print(double t){
-	Climate::print(t);
-	LightEnvironment::print();
+	Climate::print_line(t);
+	// LightEnvironment::print();
+	cout << "z_star = " << z_star;
+	cout << "canopy_openness = " << canopy_openness;
+}
+
+LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file) : I(params_file){
+	//paramsFile = params_file; // = "tests/params/p.ini";
+	I.readFile();
+
+	traits0.init(I);
+	par0.init(I);
+
+	C.metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
+	C.co2File = ""; //"tests/data/CO2_AMB_AmzFACE2000_2100.csv";
+
+}
+
+void LifeHistoryOptimizer::set_metFile(std::string metfile){
+	C.metFile = metfile;
+	C.update_met = (metfile == "")? false : true;
+}
+
+void LifeHistoryOptimizer::set_co2File(std::string co2file){
+	C.co2File = co2file;
+	C.update_co2 = (co2file == "")? false : true;
 }
 
 
@@ -13,17 +44,18 @@ void LifeHistoryOptimizer::init(){
 	seeds = 0;
 	prod = 0;
 
-	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
-	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
-	//C.init();
-	C.z_star = {15, 10, 5, 0};
-	C.canopy_openness = {1, exp(-0.5*1.8), exp(-0.5*3.5), exp(-0.5*5.5)};
 	C.n_layers = C.z_star.size()-1;
+	C.init();
 
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
 	P = plant::Plant();
-	P.initParamsFromFile(params_file);
-	P.geometry.set_lai(1);
+	// P.initFromFile(params_file);
+	P.par = par0;
+	P.traits = traits0;
+
+	P.coordinateTraits();
+
+	P.geometry.set_lai(P.par.lai0);
 	P.set_size(0.01);
 	// Simulation below starts at seedling stage. So account for survival until seedling stage
 	P.state.mortality = -log(P.p_survival_dispersal(C)*P.p_survival_germination(C)); // p{fresh seed is still alive after germination} = p{it survives dispersal}*p{it survives germination}
@@ -34,78 +66,91 @@ void LifeHistoryOptimizer::init(){
 
 }
 
+vector<std::string> LifeHistoryOptimizer::get_header(){
+	return { 
+	      "i"
+		, "ppfd"
+		, "assim_net"
+		, "assim_gross"
+		, "rl"
+		, "rr"
+		, "rs"
+		, "tl"
+		, "tr"
+		, "dpsi"
+		, "vcmax"
+		, "transpiration"
+		, "height" 
+		, "diameter" 
+		, "crown_area" 
+		, "lai" 
+		, "sapwood_fraction"
+		, "leaf_mass"
+		, "root_mass"
+		, "stem_mass"
+		, "coarse_root_mass"
+		, "total_mass"
+		, "total_rep"
+		// , "seed_pool"
+		// , "germinated"
+		, "fitness"
+		, "total_prod"
+		, "litter_mass"
+		, "mortality"
+		, "mortality_inst"
+		, "leaf_lifespan"
+		, "fineroot_lifespan" 
+	};
+}
+
 void LifeHistoryOptimizer::printHeader(ostream &lfout){
-	lfout << "i" << "\t"
-		<< "ppfd" <<"\t"
-		<< "assim_net" << "\t"
-		<< "assim_gross" << "\t"
-		<< "rl" << "\t"
-		<< "rr" << "\t"
-		<< "rs" << "\t"
-		<< "tl" << "\t"
-		<< "tr" << "\t"
-		<< "dpsi" << "\t"
-		<< "vcmax" << "\t"
-		<< "transpiration" << "\t"
-		<< "height" << "\t"	
-		<< "diameter" << "\t"	
-		<< "crown_area" << "\t"	
-		<< "lai" << "\t"	
-		<< "sapwood_fraction" << "\t"
-		<< "leaf_mass" << "\t"
-		<< "root_mass" << "\t"
-		<< "stem_mass" << "\t"
-		<< "coarse_root_mass" << "\t"
-		<< "total_mass" << "\t"
-		<< "total_rep" << "\t"
-		// << "seed_pool" << "\t"
-		// << "germinated" << "\t"
-		<< "fitness" << "\t"
-		<< "total_prod" << "\t"
-		<< "litter_mass" << "\t"
-		<< "mortality" << "\t"
-		<< "mortality_inst" << "\t"
-		<< "leaf_lifespan" << "\t"
-		<< "fineroot_lifespan" << "\t" 
-		<< "\n";
+	vector<std::string> s = get_header();
+	for (auto& vv : s) lfout << vv << "\t";
+	lfout << '\n';
+}
+
+vector<double> LifeHistoryOptimizer::get_state(double t){
+	return {
+		  t 
+		, C.clim.ppfd
+		, P.assimilator.plant_assim.npp 
+		, P.assimilator.plant_assim.gpp 
+		, P.assimilator.plant_assim.rleaf
+		, P.assimilator.plant_assim.rroot
+		, P.assimilator.plant_assim.rstem
+		, P.assimilator.plant_assim.tleaf
+		, P.assimilator.plant_assim.troot
+		, P.assimilator.plant_assim.dpsi_avg 
+		, P.assimilator.plant_assim.vcmax_avg 
+		, P.assimilator.plant_assim.trans 
+		, P.geometry.height 
+		, P.geometry.diameter 
+		, P.geometry.crown_area 
+		, P.geometry.lai 
+		, P.geometry.sapwood_fraction 
+		, P.geometry.leaf_mass(P.traits) 
+		, P.geometry.root_mass(P.traits) 
+		, P.geometry.stem_mass(P.traits) 
+		, P.geometry.coarse_root_mass(P.traits) 
+		, P.get_biomass()
+		, rep
+	//  , P.state.seed_pool
+	//  , germinated
+		, seeds
+		, prod
+		, litter_pool
+		, P.state.mortality
+		, P.rates.dmort_dt
+		, 1/P.assimilator.kappa_l
+		, 1/P.assimilator.kappa_r
+		};
 }
 
 void LifeHistoryOptimizer::printState(double t, ostream& lfout){
-	lfout << t << "\t"
-			<< C.clim.ppfd << "\t"
-			<< P.assimilator.plant_assim.npp << "\t" 
-			<< P.assimilator.plant_assim.gpp << "\t" 
-			<< P.assimilator.plant_assim.rleaf << "\t"
-			<< P.assimilator.plant_assim.rroot << "\t"
-			<< P.assimilator.plant_assim.rstem << "\t"
-			<< P.assimilator.plant_assim.tleaf << "\t"
-			<< P.assimilator.plant_assim.troot << "\t"
-			<< P.assimilator.plant_assim.dpsi_avg << "\t" 
-			<< P.assimilator.plant_assim.vcmax_avg << "\t" 
-			<< P.assimilator.plant_assim.trans << "\t" 
-			<< P.geometry.height << "\t"	
-			<< P.geometry.diameter << "\t"	
-			<< P.geometry.crown_area << "\t"	
-			<< P.geometry.lai << "\t"	
-			<< P.geometry.sapwood_fraction << "\t"	
-			<< P.geometry.leaf_mass(P.traits) << "\t"	
-			<< P.geometry.root_mass(P.traits) << "\t"	
-			<< P.geometry.stem_mass(P.traits) << "\t"	
-			<< P.geometry.coarse_root_mass(P.traits) << "\t"	
-			<< P.get_biomass() << "\t"
-			<< rep << "\t"
-		//  << P.state.seed_pool << "\t"
-		//  << germinated << "\t"
-			<< seeds << "\t"
-			<< prod << "\t"
-			<< litter_pool << "\t"
-			<< P.state.mortality << "\t"
-			<< P.rates.dmort_dt << "\t"
-			<< 1/P.assimilator.kappa_l << "\t"
-			<< 1/P.assimilator.kappa_r << "\t"
-			"\n";
+	vector<double> v = get_state(t);
+	for (auto& vv : v) lfout << vv << "\t";
+	lfout << '\n';
 }
-
 
 void LifeHistoryOptimizer::set_traits(std::vector<double> tvec){
 	P.set_evolvableTraits(tvec);
@@ -117,8 +162,9 @@ std::vector<double> LifeHistoryOptimizer::get_traits(){
 }
 
 
-void LifeHistoryOptimizer::printPlant(){
+void LifeHistoryOptimizer::printMeta(){
 	P.print();
+	C.print(0);
 }
 
 
@@ -148,7 +194,7 @@ void LifeHistoryOptimizer::grow_for_dt(double t, double dt){
 
 	auto derivs = [this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 		//if (fabs(t - 2050) < 1e-5) 
-		//env.updateClimate(t);
+		C.updateClimate(t);
 		set_state(S.begin());
 		P.calc_demographic_rates(C, t);
 		

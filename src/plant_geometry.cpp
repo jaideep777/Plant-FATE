@@ -9,8 +9,8 @@
 namespace plant{
 
 void PlantGeometry::init(PlantParameters &par, PlantTraits &traits){
-	geom.m = par.m; geom.n = par.n; 
-	geom.a = par.a; geom.c = par.c;
+	geom.m = traits.m; geom.n = traits.n; 
+	geom.a = traits.a; geom.c = traits.c;
 	geom.fg = par.fg;
 
 	geom.pic_4a = M_PI*geom.c/(4*geom.a);
@@ -60,7 +60,7 @@ double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits)
 		return crown_area;
 	}
 }
-	
+
 /// @details This is the area within
 ///          the potential crown that is actually occupied by leaves  
 /// @ingroup ppa_module

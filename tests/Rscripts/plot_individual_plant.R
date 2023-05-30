@@ -1,27 +1,5 @@
----
-title: "TreeLife demo"
-author: "Jaideep Joshi"
-date: "2023-01-21"
-output:
-  pdf_document: default
-  html_document: default
----
+# R script to test:
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
-```
-
-```{r}
-library(PlantFATE)
-library(tidyverse)
-
-print(getwd())
-```
-
-Just some plotting utility:
-
-```{r echo=F}
 plot_plant_trajectory = function(dat){
   dat$leaf_area = dat$crown_area * dat$lai
   dat$heartwood_fraction = 1-dat$sapwood_fraction
@@ -115,113 +93,29 @@ plot_plant_trajectory = function(dat){
                   dat$fineroot_lifespan)),
           x=dat$height, 
           ylab="Leaf/fine root\nlifespan", xlab="Height", type="l", col=c("yellowgreen", "brown4"), lty=1, lwd=1)
-  abline(h=1, col="grey")
 }
 
-```
-## Simulate a plant and plot its growth trajectory
+# plot(y=2+(dat$rl+dat$rr+dat$rs)/dat$tl,x=dat$i)
 
-```{r}
-lho = new(LifeHistoryOptimizer)
-lho$params_file = "tests/params/p.ini"
-lho$set_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv")
-lho$set_co2File("")
-lho$env$clim$co2 = 368.9
-lho$init()
-lho$printMeta()
+# plot(dat$leaf_lifespan~dat$height)
 
-dt = 0.1
-df = read.csv(text="", col.names = lho$get_header())
-for (t in seq(2000,2500,dt)){
-  lho$grow_for_dt(t,0.1)
-  df[nrow(df)+1,] = lho$get_state(t+dt)
-}
+# plot(y=(dat$height[2:2000]-dat$height[1:1999]), x=dat$i[1:1999], ylab="Height growth rate", type="l")
 
-plot_plant_trajectory(df)
-```
+# plot(y=(dat$diameter[2:2000]-dat$diameter[1:1999])/dat$diameter[1:1999], x=dat$i[1:1999], ylab="Diameter RGR", type="l")
 
-## Calculate fitness of specified traits
+# detrend = function(x,y){
+#   mod = lm(y~x)
+#   y-fitted(mod)
+# }
+# plot(detrend(dat$i, dat$assim_gross)~dat$i, type="l")
 
-To calculate the fitness of a tree with given traits, follow these steps:
+# par(mfrow=c(2,1), mar=c(4,4,1,1))
+# plot(scale((dat$assim_net/dat$crown_area))~dat$i, type="l")
+# points(scale(dat$lai)~dat$i, type="l", col="red", lwd=3)
+# 
+# ccf(dat$lai, (dat$assim_net/dat$crown_area), lag.max=100)
+# abline(v=0, col="red")
+# abline(v=5, col="blue")
 
-1. Create an optimizer
-2. set the parameters file
-3. Initialize the optimizer - this will read the params file and initialize everything from it
-4. set traits  - this will overwrite the specified traits and redo any trait-coordination calculations
-5. Calculate fitness
-
-```{r}
-lho = new(LifeHistoryOptimizer)
-lho$params_file = "tests/params/p.ini"
-lho$init()
-lho$printMeta()
-lho$calcFitness()
-```
-
-```{r}
-lho = new(LifeHistoryOptimizer)
-lho$params_file = "tests/params/p.ini"
-lho$init()
-lho$set_traits(c(0.08, 750))
-lho$printMeta()
-lho$calcFitness()
-```
-
-
-## Calculate fitness as a function of LMA
-
-```{r}
-fitness_lma = function(lma){
-  lho = new(LifeHistoryOptimizer)
-  lho$params_file = "tests/params/p.ini"
-  lho$init()
-  lho$set_traits(c(lma, 750))
-  # lho$printPlant()
-  lho$calcFitness()
-}
-
-lma = seq(0.05, 0.3, 0.01)
-dat = lma %>% purrr::map_dbl(fitness_lma)
-
-plot(dat~lma)
-```
-
-## Calculate fitness as a function of wood density
-
-```{r}
-# Ambient Env
-zp_amb = c(19.22669, 15.71661, 3.15710, 0.00000)
-co_amb = c(1.0000000, 0.4712540, 0.2218492, 0.0711068)
-
-
-# eCO2 env
-zp_ele = c(20.695389, 18.106550, 14.087510, 2.206985, 0.000000) 
-co_ele = c(1.000000, 4.712543e-01, 2.220795e-01, 1.032055e-01, 2.763073e-02)
-
-
-fitness_wd = function(wd, zp, co, co2, pfile="tests/params/p_ele_base.ini"){
-  lho = new(LifeHistoryOptimizer)
-  lho$params_file = pfile
-  lho$set_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv")
-  lho$env$clim$co2 = co2
-  lho$env$z_star = zp
-  lho$env$canopy_openness = co
-  lho$init()
-  lho$set_traits(c(0.12, wd))
-  # lho$printPlant()
-  lho$calcFitness()
-}
-
-wd = seq(350, 900, length.out=20)
-
-dat_amb = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=368)
-
-dat_ele_base = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=614)
-
-dat_ele = wd %>% purrr::map_dbl(fitness_wd, zp=zp_ele, co=co_ele, co2=614)
-
-dat_amb_nlimit = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=368, pfile="tests/params/p_ele_hi.ini")
-
-matplot(y=cbind(dat_amb/max(dat_amb), dat_ele_base/max(dat_ele_base), dat_ele/max(dat_ele), dat_amb_nlimit/max(dat_amb_nlimit)), x = wd, type="l", lty=1, col=c("black", "grey", "yellow3", "brown"), ylab="Fitness", xlab="Wood density", cex.lab=1.3, lwd=2)
-
-```
+dat = read.delim("~/codes/Plant-FATE/assim1.txt")
+plot_plant_trajectory(dat)
