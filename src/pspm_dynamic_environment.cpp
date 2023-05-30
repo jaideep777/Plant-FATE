@@ -12,7 +12,7 @@ using namespace std;
 // **********************************************************
 
 
-PSPM_Dynamic_Environment::PSPM_Dynamic_Environment() : LightEnvironment() {
+PSPM_Dynamic_Environment::PSPM_Dynamic_Environment() : env::LightEnvironment() {
 	
 }
 

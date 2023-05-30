@@ -1,11 +1,11 @@
 import cppimport.import_hook
-import simulator
+import plantFATE
 
 # a = simulator.add(10, 20)
-c = simulator.Clim()
+c = plantFATE.Clim()
 print(c)
 # print(a)
-t = simulator.TestEnvironment()
+t = plantFATE.LightEnvironment()
 print(t.use_ppa)
 print(t.n_layers)
 print(t.z_star)
@@ -15,3 +15,10 @@ print(t.canopy_openness)
 t.print()
 
 print(c.co2)
+
+print("TEST the Simulator")
+
+s = plantFATE.Simulator("tests/params/p.ini")
+s.init(1001, 1050)
+s.simulate()
+s.close

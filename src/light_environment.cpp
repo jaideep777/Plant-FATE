@@ -4,7 +4,7 @@
 
 #include "light_environment.h"
 
-// namespace env{
+namespace env{
 
 LightEnvironment::LightEnvironment(){ 
 	n_layers = 0;
@@ -31,6 +31,6 @@ void LightEnvironment::print(){
 }
 
 
-// } // env
+} // env
 
 

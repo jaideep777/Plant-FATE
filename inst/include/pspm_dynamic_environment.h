@@ -8,7 +8,7 @@
 
 /// @ingroup  libpspm_interface
 /// @brief    Environment class for interfacing with the PSPM Solver
-class PSPM_Dynamic_Environment : public LightEnvironment, public env::Climate{
+class PSPM_Dynamic_Environment : public env::LightEnvironment, public env::Climate{
 	public:
 	PSPM_Dynamic_Environment();
 	double projected_crown_area_above_z(double t, double z, Solver *S);

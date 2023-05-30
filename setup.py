@@ -2,7 +2,7 @@
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
 
-name = "plantFATE"
+name = "py-plantFATE"
 __version__ = "0.0.1"
 
 root_dir = '/home/admini/my_work/plantFATE_root/'
@@ -44,7 +44,7 @@ include_dirs = ['./inst/include',
 #   reproducible builds (https://github.com/pybind/python_example/pull/53)
 
 ext_modules = [
-    Pybind11Extension("simulator",
+    Pybind11Extension("plantFATE",
         ["pybinds/simulator.cpp"],
         # Example: passing in the version to the compiled code
         define_macros = [('VERSION_INFO', __version__)],

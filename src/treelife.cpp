@@ -3,7 +3,7 @@ using namespace std;
 
 void ErgodicEnvironment::print(double t){
 	Climate::print(t);
-	LightEnvironment::print();
+	env::LightEnvironment::print();
 }
 
 

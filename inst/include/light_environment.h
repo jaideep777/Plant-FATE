@@ -6,7 +6,7 @@
 #include <environment_base.h>
 #include <solver.h>
 
-// namespace env{
+namespace env{
 
 class LightEnvironment : public EnvironmentBase {
 	public:
@@ -29,7 +29,7 @@ class LightEnvironment : public EnvironmentBase {
 	
 };
 
-// } // env
+} // env
 
 /*#include "../src/light_environment.tpp"*/
 
