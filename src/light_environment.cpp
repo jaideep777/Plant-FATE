@@ -15,6 +15,10 @@ LightEnvironment::LightEnvironment(){
 	canopy_openness.reserve(20);
 }
 
+void LightEnvironment::computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt){
+	std::cout<< "working" << std::endl;
+}
+
 
 void LightEnvironment::print(){
 	std::cout << "PPA:" << "\n";

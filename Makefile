@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # executable name
-TARGET := 1
+TARGET := plantFATE
 
 # files
 SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp))
@@ -18,7 +18,8 @@ ROOT_DIR := ${shell dirname ${shell pwd}}
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
-INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
+INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include  #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
+PTH_PATH := $(shell python3 -m pybind11 --includes)
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
 
 # flags
@@ -55,6 +56,7 @@ CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-parameter
 
 # libs
+AR = ar
 LIBS = 	 -lpspm	# additional libs
 #LIBS = -lcudart 			# cuda libs
 
@@ -62,19 +64,31 @@ LIBS = 	 -lpspm	# additional libs
 OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 
 
+# add_subdirectory(pybinds)
+# pybind11_add_module(simulator simulator_pybind.cpp)
+
+
 all: dir $(TARGET)
+
+python: dir $(TARGET)
+	pip3 install .
 
 dir:
 	mkdir -p lib build tests/build
 
+hi:
+	echo $(PTH_PATH)
+
+
 $(TARGET): $(OBJECTS)
-	g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
+	$(AR) rcs lib/$(TARGET).a $(OBJECTS) $(LIBS) 
+# g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
-	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
+	g++ -c $(CPPFLAGS) $(PTH_PATH) $(INC_PATH) $< -o $@
 
 libclean:
-	rm -f $(TARGET) build/*.o log.txt gmon.out 
+	rm -f $(TARGET) build/*.o lib/*.a log.txt gmon.out 
 	
 re: clean all
 
@@ -89,7 +103,7 @@ TEST_TARGETS = $(patsubst tests/%.cpp, tests/%.test, $(TEST_FILES))
 TEST_RUNS = $(patsubst tests/%.cpp, tests/%.run, $(TEST_FILES))
 ADD_OBJECTS =
 
-check: dir $(OBJECTS) compile_tests clean_log run_tests
+check: dir $(TARGET) compile_tests clean_log run_tests
 
 compile_tests: $(TEST_TARGETS)
 	

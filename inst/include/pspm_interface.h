@@ -2,7 +2,7 @@
 #define PLANT_FATE_PSPM_INTERFACE_H_
 
 #include <solver.h>
-#include "light_environment.h"
+// #include "light_environment.h"
 #include "climate.h"
 #include "plant.h"
 
@@ -63,19 +63,6 @@ class PSPM_Plant : public plant::Plant {
 	void save(std::ostream &fout);
 	void restore(std::istream &fin);
 };
-
-/// @ingroup  libpspm_interface
-/// @brief    Environment class for interfacing with the PSPM Solver
-class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnvironment, public env::Climate{
-	public:
-	double projected_crown_area_above_z(double t, double z, Solver *S);
-	double fapar_layer(double t, int layer, Solver *S);
-	void computeEnv(double t, Solver *S, std::vector<double>::iterator _S, std::vector<double>::iterator _dSdt);
-	void print(double t);
-};
-
-
-
 
 
 #endif

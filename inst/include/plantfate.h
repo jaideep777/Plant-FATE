@@ -10,6 +10,7 @@
 
 #include <solver.h>
 #include "pspm_interface.h"
+#include "pspm_dynamic_environment.h"
 #include "trait_reader.h"
 #include "community_properties.h"
 #include "trait_evolution.h"
