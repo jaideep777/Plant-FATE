@@ -49,3 +49,6 @@ docs
 
 venv/
 env/
+lib/
+
+py_plantFATE.egg-info/
