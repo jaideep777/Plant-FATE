@@ -1,5 +1,5 @@
 import cppimport.import_hook
-import plantFATE
+import plantFATE 
 
 # a = simulator.add(10, 20)
 c = plantFATE.Clim()

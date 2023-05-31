@@ -3,7 +3,8 @@
 TARGET := plantFATE
 
 # files
-SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp))
+SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp $(wildcard src/pybind*.cpp), $(wildcard src/*.cpp))
+PYBINDFILES := $(wildcard src/pybind*.cpp)
 HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 # ------------------------------------------------------------------------------
 
@@ -70,14 +71,18 @@ OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 
 all: dir $(TARGET)
 
-python: dir $(TARGET)
+# $(PYBINDFILES): build/%.o : src/%.cpp
+# 	g++ -c $(CPPFLAGS) $(PTH_PATH) $(INC_PATH) $< -o $@
+
+
+python: dir $(TARGET) # $(PYBINDFILES)
 	pip3 install .
 
 dir:
 	mkdir -p lib build tests/build
 
 hi:
-	echo $(PTH_PATH)
+	echo $(SRCFILES)
 
 
 $(TARGET): $(OBJECTS)
@@ -85,7 +90,7 @@ $(TARGET): $(OBJECTS)
 # g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
-	g++ -c $(CPPFLAGS) $(PTH_PATH) $(INC_PATH) $< -o $@
+	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 libclean:
 	rm -f $(TARGET) build/*.o lib/*.a log.txt gmon.out 
