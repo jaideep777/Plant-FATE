@@ -18,6 +18,7 @@
 #include "trait_evolution.h"
 #include "community_properties.cpp"
 #include "plant_params.h"
+#include "climate_forcing.cpp"
 
 namespace py = pybind11;
 
@@ -51,8 +52,30 @@ PYBIND11_MODULE(plantFATE, m)
 		.def(py::init<>())
 		.def("print", &env::Climate::print)
 		.def_readwrite("clim", &env::Climate::clim);
+
+	py::class_<env::ClimateForcing>(m, "ClimateForcing")
+		.def(py::init<>())
+		.def("init", &env::ClimateForcing::init)
+		.def("set", &env::ClimateForcing::set)
+		.def("update_tc", &env::ClimateForcing::update_tc)
+		.def("update_ppfd_max", &env::ClimateForcing::update_ppfd_max)
+		.def("update_ppfd", &env::ClimateForcing::update_ppfd)
+		.def("update_vpd", &env::ClimateForcing::update_vpd)
+		.def("update_elv", &env::ClimateForcing::update_elv)
+		.def("update_swp", &env::ClimateForcing::update_swp)
+		.def("id", &env::ClimateForcing::id)
+		.def("idx_of", &env::ClimateForcing::idx_of)
+		.def("updateClimate", &env::ClimateForcing::updateClimate)
+		.def("print", &env::ClimateForcing::print)
+		.def_readwrite("clim", &env::ClimateForcing::clim)
+		.def_readwrite("t_now", &env::ClimateForcing::t_now)
+		.def_readwrite("t_met", &env::ClimateForcing::t_met)
+		.def_readwrite("v_met", &env::ClimateForcing::v_met)
+		.def_readwrite("interpolate", &env::ClimateForcing::interpolate)
+		.def_readwrite("update_met", &env::ClimateForcing::update_met)
+		.def_readwrite("update_co2", &env::ClimateForcing::update_co2);
 	
-	py::class_<PSPM_Dynamic_Environment, env::LightEnvironment, env::Climate>(m, "PSPM_Dynamic_Environment")
+	py::class_<PSPM_Dynamic_Environment, env::LightEnvironment, env::ClimateForcing>(m, "PSPM_Dynamic_Environment")
 		.def(py::init<>());
 
 	py::class_<ErgodicEnvironment, env::LightEnvironment, env::Climate>(m, "ErgodicEnvironment")
@@ -76,19 +99,27 @@ PYBIND11_MODULE(plantFATE, m)
 		// .def_readwrite("traits0", &LifeHistoryOptimizer::traits0)
 		// .def_readwrite("par0", &LifeHistoryOptimizer::par0);
 
-	py::class_<Simulator>(m, "Simulator")
+	py::class_<Simulator>(m, "Simulator", py::dynamic_attr())
 		.def(py::init<std::string>())
+		.def(py::init<std::string, std::string>())
 		.def("init", &Simulator::init)
 		.def("simulate", &Simulator::simulate)
+		.def("simulate_to", &Simulator::simulate_to)
+		.def("simulate_step", &Simulator::simulate_step)
 		.def("close", &Simulator::close)
-		// .def("set_metFile", &Simulator::set_metFile)
-		// .def("set_co2File", &Simulator::set_co2File)
-		// .def_readwrite("E", &Simulator::E)
+		.def("set_metFile", &Simulator::set_metFile)
+		.def("set_co2File", &Simulator::set_co2File)
+		.def("update_environment_tc", &Simulator::update_environment_tc)
+		.def("update_environment_ppfd", &Simulator::update_environment_ppfd)
+		.def("update_environment_ppfd_max", &Simulator::update_environment_ppfd_max)
+		.def("update_environment_vpd", &Simulator::update_environment_vpd)
+		.def("update_environment_elv", &Simulator::update_environment_elv)
+		.def("update_environment_swp", &Simulator::update_environment_swp)
+		.def("getStepSize", &Simulator::getStepSize)
+		.def_readwrite("E", &Simulator::E)
         .def_readwrite("paramsFile", &Simulator::paramsFile)
 		.def_readwrite("parent_dir", &Simulator::parent_dir)
 		.def_readwrite("expt_dir", &Simulator::expt_dir)
-		// .def_readwrite("met_file", &Simulator::met_file)
-		// .def_readwrite("co2_file", &Simulator::co2_file)
 		.def_readwrite("save_state", &Simulator::save_state)
 		.def_readwrite("state_outfile", &Simulator::state_outfile)
 		.def_readwrite("config_outfile", &Simulator::config_outfile)
@@ -98,7 +129,10 @@ PYBIND11_MODULE(plantFATE, m)
 		.def_readwrite("evolve_traits", &Simulator::evolve_traits)
 		.def_readwrite("y0", &Simulator::y0)
 		.def_readwrite("yf", &Simulator::yf)
-		.def_readwrite("ye", &Simulator::ye);
+		.def_readwrite("ye", &Simulator::ye)
+		.def_readwrite("props", &Simulator::props)
+		.def_readwrite("cwm", &Simulator::cwm)
+		.def_readwrite("tcurrent", &Simulator::tcurrent);
 		// .def_readwrite("traits0", &Simulator::traits0)
 		// .def_readwrite("par0", &Simulator::par0);
 
@@ -134,7 +168,45 @@ PYBIND11_MODULE(plantFATE, m)
 		// .def_readwrite("cDW0", &plant::PlantParameters::cDW0)
 		// .def_readwrite("eWD", &plant::PlantParameters::eWD);
 
-	
+py::class_<EmergentProps>(m, "EmergentProps")
+		.def(py::init<>())
+		.def_readwrite("gpp", &EmergentProps::gpp)
+		.def_readwrite("npp", &EmergentProps::npp)
+		.def_readwrite("resp_auto", &EmergentProps::resp_auto)
+		.def_readwrite("trans", &EmergentProps::trans)
+		.def_readwrite("gs", &EmergentProps::gs)
+		.def_readwrite("lai", &EmergentProps::lai)
+		.def_readwrite("leaf_mass", &EmergentProps::leaf_mass)
+		.def_readwrite("stem_mass", &EmergentProps::stem_mass)
+		.def_readwrite("croot_mass", &EmergentProps::croot_mass)
+		.def_readwrite("froot_mass", &EmergentProps::froot_mass)
+		.def_readwrite("cc_est", &EmergentProps::cc_est)
+		.def_readwrite("lai_vert", &EmergentProps::lai_vert);
+
+py::class_<SpeciesProps>(m, "SpeciesProps")
+		.def(py::init<>())
+		.def_readwrite("n_ind", &SpeciesProps::n_ind)
+		.def_readwrite("biomass", &SpeciesProps::biomass)
+		.def_readwrite("ba", &SpeciesProps::ba)
+		.def_readwrite("canopy_area", &SpeciesProps::canopy_area)
+		.def_readwrite("height", &SpeciesProps::height)
+		.def_readwrite("lma", &SpeciesProps::lma)
+		.def_readwrite("p50", &SpeciesProps::p50)
+		.def_readwrite("hmat", &SpeciesProps::hmat)
+		.def_readwrite("wd", &SpeciesProps::wd)
+		.def_readwrite("gs", &SpeciesProps::gs)
+		.def_readwrite("vcmax", &SpeciesProps::vcmax)
+		.def_readwrite("n_ind_vec", &SpeciesProps::n_ind_vec)
+		.def_readwrite("biomass_vec", &SpeciesProps::biomass_vec)
+		.def_readwrite("ba_vec", &SpeciesProps::ba_vec)
+		.def_readwrite("canopy_area_vec", &SpeciesProps::canopy_area_vec)
+		.def_readwrite("height_vec", &SpeciesProps::height_vec)
+		.def_readwrite("vcmax_vec", &SpeciesProps::vcmax_vec)
+		.def_readwrite("lma_vec", &SpeciesProps::lma_vec)
+		.def_readwrite("p50_vec", &SpeciesProps::p50_vec)
+		.def_readwrite("hmat_vec", &SpeciesProps::hmat_vec)
+		.def_readwrite("wf_vec", &SpeciesProps::wd_vec);
+
 
 //     py::class_<PSPM_Plant, plant::Plant>(m, "PSPM_Plant")
 //         .def(py::init<>())

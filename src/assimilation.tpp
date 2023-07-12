@@ -90,7 +90,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	// the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
 	double f_light_day = 1.18*env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
 	double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
-	double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
+	double f = f_light_day * f_growth_yr * conversion_factor_seconds;
 
 	plant_assim.gpp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
 	plant_assim.npp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 

@@ -27,6 +27,8 @@ class Simulator{
 	// std::string met_file;
 	// std::string co2_file;
 
+	plant_solv_time_step step_size;
+
 	bool        save_state;
 	std::string state_outfile;
 	std::string config_outfile;
@@ -43,6 +45,7 @@ class Simulator{
 	// Set up simulation start and end points
 	double      y0;
 	double      yf;
+	double		tcurrent;
 	double      ye;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
 	double t_clear = 105000;
@@ -70,6 +73,8 @@ class Simulator{
 
 	public:
 	Simulator(std::string params_file);
+	Simulator(std::string params_file, std::string time_step);
+	Simulator(std::string params_file, plant_solv_time_step timestep);
 	
 	void set_metFile(std::string metfile);
 	void set_co2File(std::string co2file);
@@ -77,8 +82,28 @@ class Simulator{
 	void init(double tstart, double tend);
 
 	void simulate();
+	void simulate_to(double t);
+	void simulate_step();
+
+	void update_environment_tc(double _tc);
+	void update_environment_ppfd_max(double ppfd_max);
+	void update_environment_ppfd(double ppfd);
+	void update_environment_vpd(double _vpd); 
+	void update_environment_elv(double _elv);
+	void update_environment_swp(double _swp); // possibly should make this more general but it's ok for now
+	
 
 	void close();
+
+	std::string getStepSize(){
+		if(step_size == DAILY_STEP){
+			return "daily";
+		}
+		else{
+			return "yearly";
+		}
+	}
+
 
 	private: 
 	double runif(double rmin=0, double rmax=1);
@@ -106,7 +131,6 @@ class Simulator{
 
 	void addSpeciesAndProbes(double t, std::string species_name, double lma, double wood_density, double hmat, double p50_xylem);
 	
-
 
 };
 

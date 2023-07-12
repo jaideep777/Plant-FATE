@@ -10,8 +10,8 @@ void Assimilator::les_update_lifespans(double lai, PlantParameters &par, PlantTr
 	double f = 1;
 	double fac = sqrt(((par.les_k1 * par.les_k2)*(par.les_k1 * par.les_k2) * f * hT * plant_assim.mc_avg) / (2 * par.les_u * par.les_cc));
 	
-	kappa_l = 365 * plant_assim.vcmax25_avg / (traits.lma*1e3 * lai) * fac;
-	kappa_r = 365 * plant_assim.vcmax25_avg / (0.1333*1e3) * fac;
+	kappa_l = conversion_factor_days * plant_assim.vcmax25_avg / (traits.lma*1e3 * lai) * fac;
+	kappa_r = conversion_factor_days * plant_assim.vcmax25_avg / (0.1333*1e3) * fac;
 	//kappa_r = kappa_l * (par.les_cc/lai - 1) / (traits.zeta / traits.lma);
 }
 
@@ -23,6 +23,16 @@ double Assimilator::les_assim_reduction_factor(phydro::PHydroResult& res, PlantP
 	// return 1 - sqrt(par.les_cc / (2 * par.les_u * res.mc * hT * f));
 }
 
+
+void Assimilator::set_daily_timestep(){
+	conversion_factor_seconds = 86400; // from s-1 ---> yr-1 as the default
+	conversion_factor_days = 1; // from d-1 ---> yr-1 as the default
+}
+
+void Assimilator::set_yearly_timestep(){
+	conversion_factor_seconds = 86400 * 365.25; // from s-1 ---> yr-1 as the default
+	conversion_factor_days = 365.25; // from d-1 ---> yr-1 as the default
+}
 
 //// leaf respiration rate - should be calculated AFTER asimialtion (needs updated Phydro outputs)
 double Assimilator::leaf_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){

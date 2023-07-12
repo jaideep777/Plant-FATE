@@ -7,6 +7,7 @@
 #include "utils/rk4.h"
 #include "utils/moving_average.h"
 #include "utils/initializer.h"
+#include "utils/enums.h"
 
 namespace plant{
 
@@ -50,6 +51,7 @@ class Plant{
 	PlantAssimilationResult res;
 
 	public:
+	plant_solv_time_step step_size=plant_solv_time_step::YEARLY_STEP;
 	//std::ofstream fmuh; // Cannot use streams here because we need copy-constructor for Plants, which in turn would need a copy constructor for streams, which is deleted.
 	PlantTraits traits;   ///< Collection of all functional traits
 	PlantParameters par;  ///< Collection of all model parameters that are not traits
@@ -80,6 +82,7 @@ class Plant{
 
 	/// @brief  Set size (diameter and all associated variables) from x
 	void set_size(double x); // FIXME: Is this function really needed?! 
+	void set_timestep(plant_solv_time_step step_size);
 	/// @brief  Get plant biomass 
 	double get_biomass() const; // FIXME: Is this function really needed?! 
 	

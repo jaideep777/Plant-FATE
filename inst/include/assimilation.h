@@ -43,6 +43,9 @@ class Assimilator{
 	double kappa_l;   ///< leaf turnover rate, updated by les functions
 	double kappa_r;   ///< fine root turnover rate, updated by les functions
 
+	double conversion_factor_seconds=86400*365.2524; // from s-1 ---> yr-1 as the default
+	double conversion_factor_days=365.2524; // from d-1 ---> yr-1 as the default
+
 	public:	
 
 	/// @brief  Calculate leaf-level assimilation rate using the Phydro model
@@ -66,6 +69,8 @@ class Assimilator{
 	double les_assim_reduction_factor(phydro::PHydroResult& res, PlantParameters &par);
 	/// @}
 
+	void set_daily_timestep();
+	void set_yearly_timestep();
 
 	/// @brief Calculate leaf and fine-root respiration rates 
 	/// @{
