@@ -52,41 +52,33 @@ Simulator::Simulator(std::string params_file, plant_solv_time_step t_step) : I(p
 	par0.init(I);
 }
 
-void Simulator::update_environment_tc(double _tc){
-	E.update_tc(tcurrent, _tc);
+void Simulator::update_environment(double _tc, double _ppfd_max, double _ppfd, double _vpd, double _co2, double _elv, double _swp){
+	env::Clim newClimObj;
+	newClimObj.tc = _tc;
+	newClimObj.ppfd_max = _ppfd_max;
+	newClimObj.ppfd = _ppfd;
+	newClimObj.vpd = _vpd;
+	newClimObj.co2 = _co2;
+	newClimObj.elv = _elv;
+	newClimObj.swp = _swp;
+
+	update_environment(newClimObj);
 }
 
-void Simulator::update_environment_ppfd_max(double _ppfd_max){
-	E.update_ppfd_max(tcurrent, _ppfd_max);
+void Simulator::update_environment(env::Clim &newClimObj){
+	E.updateClim(newClimObj, tcurrent);
 }
 
-void Simulator::update_environment_ppfd(double _ppfd){
-	E.update_ppfd(tcurrent, _ppfd);
-}
-
-void Simulator::update_environment_vpd(double _vpd){
-	E.update_vpd(tcurrent, _vpd);
-} 
-
-void Simulator::update_environment_elv(double _elv){
-	E.update_elv(tcurrent, _elv);
-}
-
-void Simulator::update_environment_swp(double _swp){
-	E.update_swp(tcurrent, _swp);
-} 
+// void Simulator::set_metFile(std::string metfile){
+// 	E.metFile = metfile;
+// 	E.update_met = (metfile == "")? false : true;
+// }
 
 
-void Simulator::set_metFile(std::string metfile){
-	E.metFile = metfile;
-	E.update_met = (metfile == "")? false : true;
-}
-
-
-void Simulator::set_co2File(std::string co2file){
-	E.co2File = co2file;
-	E.update_co2 = (co2file == "")? false : true;
-}
+// void Simulator::set_co2File(std::string co2file){
+// 	E.co2File = co2file;
+// 	E.update_co2 = (co2file == "")? false : true;
+// }
 
 
 void Simulator::init(double tstart, double tend){
@@ -110,7 +102,7 @@ void Simulator::init(double tstart, double tend){
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
 	// E.co2File = co2_file;
-	E.init();
+	// E.init();
 	E.print(0);
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~

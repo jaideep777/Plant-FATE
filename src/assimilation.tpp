@@ -40,8 +40,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		//std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << /*", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " <<*/ ", ca_layer = " << ca_layer << /*" m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << ", vcmax = " << res.vcmax <<*/ "\n"; 
 		
 		if (by_layer == true){
-			double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
-			auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+			double I_top = env.weightedAveClim.ppfd_max * env.canopy_openness[ilayer]; 
+			auto res = leaf_assimilation_rate(I_top, fapar, env.weightedAveClim, par, traits);
 			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
 			plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
 			plant_assim.trans      += res.e * ca_layer;
@@ -70,8 +70,8 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	}
 
 	if (by_layer == false){
-		double I_top = env.clim.ppfd_max * plant_assim.c_open_avg;
-		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+		double I_top = env.weightedAveClim.ppfd_max * plant_assim.c_open_avg;
+		auto res = leaf_assimilation_rate(I_top, fapar, env.weightedAveClim, par, traits);
 		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * ca_total;
 		plant_assim.rleaf      = (res.vcmax*par.rd) * ca_total;
 		plant_assim.trans      = res.e * ca_total;

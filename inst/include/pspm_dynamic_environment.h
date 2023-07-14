@@ -4,12 +4,12 @@
 #include <solver.h>
 #include "light_environment.h"
 #include "climate.h"
-#include "climate_forcing.h"
+#include "climate_input.h"
 
 
 /// @ingroup  libpspm_interface
 /// @brief    Environment class for interfacing with the PSPM Solver
-class PSPM_Dynamic_Environment : public env::LightEnvironment, public env::ClimateForcing{
+class PSPM_Dynamic_Environment : public env::LightEnvironment, public env::ClimateInput{
 	public:
 	PSPM_Dynamic_Environment();
 	double projected_crown_area_above_z(double t, double z, Solver *S);

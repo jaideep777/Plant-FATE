@@ -15,6 +15,8 @@
 #include "community_properties.h"
 #include "trait_evolution.h"
 #include "state_restore.h"
+#include "climate.h"
+
 
 class Simulator{
 	private:
@@ -85,14 +87,9 @@ class Simulator{
 	void simulate_to(double t);
 	void simulate_step();
 
-	void update_environment_tc(double _tc);
-	void update_environment_ppfd_max(double ppfd_max);
-	void update_environment_ppfd(double ppfd);
-	void update_environment_vpd(double _vpd); 
-	void update_environment_elv(double _elv);
-	void update_environment_swp(double _swp); // possibly should make this more general but it's ok for now
+	void update_environment(double _tc, double _ppfd_max, double _ppfd, double _vpd, double _co2, double _elv, double _swp);
+	void update_environment(env::Clim &newClimObj);
 	
-
 	void close();
 
 	std::string getStepSize(){

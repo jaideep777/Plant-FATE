@@ -97,7 +97,7 @@ double PSPM_Dynamic_Environment::fapar_layer(double t, int layer, Solver *S){
 /// variables if any such have been added as system variables - e.g., species-level seed pools can be implemented 
 /// through this mechanism. 
 void PSPM_Dynamic_Environment::computeEnv(double t, Solver *S, std::vector<double>::iterator _S, std::vector<double>::iterator _dSdt){
-	updateClimate(t);
+	// updateClimate(t);
 
 	//            _xm 
 	// Calculate / w(z,t)u(z,t)dz
@@ -157,6 +157,6 @@ void PSPM_Dynamic_Environment::computeEnv(double t, Solver *S, std::vector<doubl
 
 
 void PSPM_Dynamic_Environment::print(double t){
-	ClimateForcing::print_line(t);
+	ClimateInput::print_line();
 	LightEnvironment::print();
 }
