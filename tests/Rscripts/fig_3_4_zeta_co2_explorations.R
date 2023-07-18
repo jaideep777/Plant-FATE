@@ -536,7 +536,7 @@ matlines(y=t(dat_ecae[id,])/max(dat_ecae[id,]), x=wd, lty=1, type="l", col=scale
 points(x=dat_ecae_opt[id], y=apply(dat_ecae[id,]/max(dat_ecae[id,]), MARGIN=1, FUN = function(x){x[which(x==max(x))]}), col=scales::viridis_pal(begin = 0.3, end = 0.8, alpha=0.5)(3)[2], pch=20)
 add_label(label = "A")
 
-boxplot(dat_ecee_opt, dat_ecae_opt, dat_amb_opt, horizontal=T, ylim=c(350,2500), col=scales::viridis_pal(begin = 0.3, end = 0.8, direction = -1)(3), range=0, xlab="Wood density (kg m-3)", names = c("eC+eE", "eC+aE", "aC+aE"), las=1)
+boxplot(dat_ecee_opt, dat_ecae_opt, dat_amb_opt, horizontal=T, ylim=c(350,2500), col=scales::viridis_pal(begin = 0.3, end = 0.8, direction = -1)(3), range=0, xlab="Wood density (kg m-3)", names = c("eC+eI", "eC+aI", "aC+aI"), las=1)
 add_label(label = "B")
 
 dev.off()
