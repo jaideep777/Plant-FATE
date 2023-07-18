@@ -9,7 +9,7 @@ ErgodicEnvironment::ErgodicEnvironment() : LightEnvironment(){
 }
 
 void ErgodicEnvironment::print(double t){
-	Climate::print_line(t);
+	ClimateInput::print_line();
 	// LightEnvironment::print();
 	cout << "z_star = " << z_star;
 	cout << "canopy_openness = " << canopy_openness;
@@ -22,19 +22,19 @@ LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file) : I(params_f
 	traits0.init(I);
 	par0.init(I);
 
-	C.metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
-	C.co2File = ""; //"tests/data/CO2_AMB_AmzFACE2000_2100.csv";
+	// C.metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
+	// C.co2File = ""; //"tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 
 }
 
 void LifeHistoryOptimizer::set_metFile(std::string metfile){
-	C.metFile = metfile;
-	C.update_met = (metfile == "")? false : true;
+	// C.metFile = metfile;
+	// C.update_met = (metfile == "")? false : true;
 }
 
 void LifeHistoryOptimizer::set_co2File(std::string co2file){
-	C.co2File = co2file;
-	C.update_co2 = (co2file == "")? false : true;
+	// C.co2File = co2file;
+	// C.update_co2 = (co2file == "")? false : true;
 }
 
 
@@ -45,7 +45,7 @@ void LifeHistoryOptimizer::init(){
 	prod = 0;
 
 	C.n_layers = C.z_star.size()-1;
-	C.init();
+	// C.init();
 
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
 	P = plant::Plant();
@@ -112,7 +112,7 @@ void LifeHistoryOptimizer::printHeader(ostream &lfout){
 vector<double> LifeHistoryOptimizer::get_state(double t){
 	return {
 		  t 
-		, C.clim.ppfd
+		, C.weightedAveClim.ppfd
 		, P.assimilator.plant_assim.npp 
 		, P.assimilator.plant_assim.gpp 
 		, P.assimilator.plant_assim.rleaf
@@ -194,7 +194,7 @@ void LifeHistoryOptimizer::grow_for_dt(double t, double dt){
 
 	auto derivs = [this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 		//if (fabs(t - 2050) < 1e-5) 
-		C.updateClimate(t);
+		C.updateEnvironment();
 		set_state(S.begin());
 		P.calc_demographic_rates(C, t);
 		

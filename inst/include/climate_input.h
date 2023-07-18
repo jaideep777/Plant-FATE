@@ -15,10 +15,11 @@ class ClimateInput{
     double tcurrent;
     double ave_window = 14;
 
-    ClimateInput(Clim climObj, double t0, double _ave_window);
+    ClimateInput();
+    ClimateInput(Clim &climObj, double t0, double _ave_window);
 
     void updateEnvironment();
-    void updateClim(Clim newClim, double tnew);
+    void updateClim(Clim &newClim, double tnew);
     void print_line();
 
     private:

@@ -42,10 +42,10 @@ Simulator::Simulator(std::string params_file, plant_solv_time_step t_step) : I(p
 
 	T_return = I.getScalar("T_return");
 
-	E.metFile = I.get<string>("metFile");
-	E.co2File = I.get<string>("co2File");
-	E.update_met = (E.metFile == "null")? false : true;
-	E.update_co2 = (E.co2File == "null")? false : true;
+	// E.metFile = I.get<string>("metFile");
+	// E.co2File = I.get<string>("co2File");
+	// E.update_met = (E.metFile == "null")? false : true;
+	// E.update_co2 = (E.co2File == "null")? false : true;
 	E.use_ppa = true;
 
 	traits0.init(I);
@@ -62,12 +62,12 @@ void Simulator::update_environment(double _tc, double _ppfd_max, double _ppfd, d
 	newClimObj.elv = _elv;
 	newClimObj.swp = _swp;
 
-	update_environment(newClimObj);
-}
-
-void Simulator::update_environment(env::Clim &newClimObj){
 	E.updateClim(newClimObj, tcurrent);
 }
+
+// void Simulator::update_environment(env::Clim &newClimObj){
+// 	E.updateClim(newClimObj, tcurrent);
+// }
 
 // void Simulator::set_metFile(std::string metfile){
 // 	E.metFile = metfile;

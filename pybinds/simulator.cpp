@@ -19,6 +19,7 @@
 #include "community_properties.cpp"
 #include "plant_params.h"
 #include "climate_forcing.cpp"
+#include "climate_input.cpp"
 
 namespace py = pybind11;
 
@@ -75,10 +76,22 @@ PYBIND11_MODULE(plantFATE, m)
 		.def_readwrite("update_met", &env::ClimateForcing::update_met)
 		.def_readwrite("update_co2", &env::ClimateForcing::update_co2);
 	
-	py::class_<PSPM_Dynamic_Environment, env::LightEnvironment, env::ClimateForcing>(m, "PSPM_Dynamic_Environment")
+
+	py::class_<env::ClimateInput>(m, "ClimateInput")
+		.def(py::init<>())
+		.def(py::init<env::Clim&, double, double>())
+		.def("updateEnvironment", &env::ClimateInput::updateEnvironment)
+		.def("updateClim", &env::ClimateInput::updateClim)
+		.def("print_line", &env::ClimateInput::print_line)
+		.def_readwrite("currentClim", &env::ClimateInput::currentClim)
+		.def_readwrite("weightedAveClim", &env::ClimateInput::weightedAveClim)
+		.def_readwrite("tcurrent", &env::ClimateInput::tcurrent)
+		.def_readwrite("ave_window", &env::ClimateInput::ave_window);
+
+	py::class_<PSPM_Dynamic_Environment, env::LightEnvironment, env::ClimateInput>(m, "PSPM_Dynamic_Environment")
 		.def(py::init<>());
 
-	py::class_<ErgodicEnvironment, env::LightEnvironment, env::Climate>(m, "ErgodicEnvironment")
+	py::class_<ErgodicEnvironment, env::LightEnvironment, env::ClimateInput>(m, "ErgodicEnvironment")
 		.def(py::init<>())
 		.def("print", &ErgodicEnvironment::print);
 
@@ -107,14 +120,15 @@ PYBIND11_MODULE(plantFATE, m)
 		.def("simulate_to", &Simulator::simulate_to)
 		.def("simulate_step", &Simulator::simulate_step)
 		.def("close", &Simulator::close)
-		.def("set_metFile", &Simulator::set_metFile)
-		.def("set_co2File", &Simulator::set_co2File)
-		.def("update_environment_tc", &Simulator::update_environment_tc)
-		.def("update_environment_ppfd", &Simulator::update_environment_ppfd)
-		.def("update_environment_ppfd_max", &Simulator::update_environment_ppfd_max)
-		.def("update_environment_vpd", &Simulator::update_environment_vpd)
-		.def("update_environment_elv", &Simulator::update_environment_elv)
-		.def("update_environment_swp", &Simulator::update_environment_swp)
+		// .def("set_metFile", &Simulator::set_metFile)
+		// .def("set_co2File", &Simulator::set_co2File)
+		.def("update_environment", &Simulator::update_environment)
+		// .def("update_environment_tc", &Simulator::update_environment_tc)
+		// .def("update_environment_ppfd", &Simulator::update_environment_ppfd)
+		// .def("update_environment_ppfd_max", &Simulator::update_environment_ppfd_max)
+		// .def("update_environment_vpd", &Simulator::update_environment_vpd)
+		// .def("update_environment_elv", &Simulator::update_environment_elv)
+		// .def("update_environment_swp", &Simulator::update_environment_swp)
 		.def("getStepSize", &Simulator::getStepSize)
 		.def_readwrite("E", &Simulator::E)
         .def_readwrite("paramsFile", &Simulator::paramsFile)

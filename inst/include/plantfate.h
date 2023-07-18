@@ -88,7 +88,7 @@ class Simulator{
 	void simulate_step();
 
 	void update_environment(double _tc, double _ppfd_max, double _ppfd, double _vpd, double _co2, double _elv, double _swp);
-	void update_environment(env::Clim &newClimObj);
+	// void update_environment(env::Clim &newClimObj);
 	
 	void close();
 

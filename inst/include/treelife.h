@@ -6,11 +6,11 @@
 #include "assimilation.h"
 #include "plant.h"
 
-#include "climate.h"
+#include "climate_input.h"
 #include "light_environment.h"
 
 
-class ErgodicEnvironment : public env::Climate, public env::LightEnvironment {
+class ErgodicEnvironment : public env::ClimateInput, public env::LightEnvironment {
 	public:
 	ErgodicEnvironment();
 	void print(double t);
