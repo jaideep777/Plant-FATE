@@ -22,8 +22,10 @@ void ClimateInput::updateEnvironment(){}
 void ClimateInput::updateClim(Clim &newClim, double tnew){
     checkIfNaN(newClim);
 
-    weightedAveClim = computeNewAverage(newClim, tnew);
+    // weightedAveClim = computeNewAverage(newClim, tnew);
+    weightedAveClim = newClim;
     currentClim = newClim;
+    tcurrent = tnew;
 }
 
 Clim ClimateInput::computeNewAverage(Clim &newClim, double tnew){
@@ -47,12 +49,13 @@ double ClimateInput::movingAverageRungeKutta4(double xt1, double xt2, double h, 
 
     double xt15 = (xt1 + xt2)/2; //linear interpolation
 
-    double k1 = 1/ave_window * xt1 + 1/ave_window * yt1;
-    double k2 = 1/ave_window * xt15 + 1/ave_window * (yt1 + h2 * k1);
-    double k3 = 1/ave_window * xt15 + 1/ave_window * (yt1 + h2 * k2);
-    double k4 = 1/ave_window * xt2 + 1/ave_window * (yt1 + h * k3);
+    double k1 = 1/ave_window * xt1 - 1/ave_window * yt1;
+    double k2 = 1/ave_window * xt15 - 1/ave_window * (yt1 + h2 * k1);
+    double k3 = 1/ave_window * xt15 - 1/ave_window * (yt1 + h2 * k2);
+    double k4 = 1/ave_window * xt2 - 1/ave_window * (yt1 + h * k3);
 
     double yt2 = yt1 + h/6 * (k1 + 2 * k2 + 2 * k3 + k4);
+    yt2 = xt2;
 
     return yt2;
 }

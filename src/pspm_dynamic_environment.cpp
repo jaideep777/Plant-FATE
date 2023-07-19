@@ -3,7 +3,7 @@
 #include "pspm_interface.h"
 #include "trait_evolution.h"
 
-using namespace std;
+// using namespace std;
 
 
 

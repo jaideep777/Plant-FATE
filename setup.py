@@ -3,7 +3,7 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import setup
 
 name = "py-plantFATE"
-__version__ = "0.0.1"
+__version__ = "0.1.1"
 
 root_dir = '/home/admini/my_work/plantFATE_root/'
 package_dir = {name: "pybinds"}
