@@ -69,9 +69,6 @@ class Assimilator{
 	double les_assim_reduction_factor(phydro::PHydroResult& res, PlantParameters &par);
 	/// @}
 
-	void set_daily_timestep();
-	void set_yearly_timestep();
-
 	/// @brief Calculate leaf and fine-root respiration rates 
 	/// @{
 	// leaf respiration rate - should be calculated AFTER asimialtion (needs updated Phydro outputs)

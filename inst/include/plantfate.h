@@ -29,8 +29,6 @@ class Simulator{
 	// std::string met_file;
 	// std::string co2_file;
 
-	plant_solv_time_step step_size;
-
 	bool        save_state;
 	std::string state_outfile;
 	std::string config_outfile;
@@ -75,8 +73,6 @@ class Simulator{
 
 	public:
 	Simulator(std::string params_file);
-	Simulator(std::string params_file, std::string time_step);
-	Simulator(std::string params_file, plant_solv_time_step timestep);
 	
 	void set_metFile(std::string metfile);
 	void set_co2File(std::string co2file);
@@ -91,16 +87,6 @@ class Simulator{
 	// void update_environment(env::Clim &newClimObj);
 	
 	void close();
-
-	std::string getStepSize(){
-		if(step_size == DAILY_STEP){
-			return "daily";
-		}
-		else{
-			return "yearly";
-		}
-	}
-
 
 	private: 
 	double runif(double rmin=0, double rmax=1);

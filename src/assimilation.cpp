@@ -23,17 +23,6 @@ double Assimilator::les_assim_reduction_factor(phydro::PHydroResult& res, PlantP
 	// return 1 - sqrt(par.les_cc / (2 * par.les_u * res.mc * hT * f));
 }
 
-
-void Assimilator::set_daily_timestep(){
-	conversion_factor_seconds = 86400; // from s-1 ---> yr-1 as the default
-	conversion_factor_days = 1; // from d-1 ---> yr-1 as the default
-}
-
-void Assimilator::set_yearly_timestep(){
-	conversion_factor_seconds = 86400 * 365.25; // from s-1 ---> yr-1 as the default
-	conversion_factor_days = 365.25; // from d-1 ---> yr-1 as the default
-}
-
 //// leaf respiration rate - should be calculated AFTER asimialtion (needs updated Phydro outputs)
 double Assimilator::leaf_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
 	//double vcmax_kg_yr = photo_leaf.vcmax * par.cbio * G->leaf_area;  // mol-CO2 m-2 year-1 * kg / mol-CO2 * m2

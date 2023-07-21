@@ -3,11 +3,7 @@
 #include "utils/enums.h"
 using namespace std;
 
-Simulator::Simulator(std::string params_file) : Simulator::Simulator(params_file, "yearly"){}
-
-Simulator::Simulator(std::string params_file, std::string timestep) : Simulator::Simulator(params_file, timestep_map(timestep)){}
-
-Simulator::Simulator(std::string params_file, plant_solv_time_step t_step) : I(params_file), S("IEBT", "rk45ck") {
+Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45ck") {
 	paramsFile = params_file; // = "tests/params/p.ini";
 	I.readFile();
 
@@ -30,8 +26,6 @@ Simulator::Simulator(std::string params_file, plant_solv_time_step t_step) : I(p
 
 	timestep = I.getScalar("timestep");  // ODE Solver timestep
  	delta_T = I.getScalar("delta_T");    // Cohort insertion timestep
-
-	step_size = t_step;
 
 	solver_method = I.get<string>("solver");
 	res = I.getScalar("resolution");
@@ -226,7 +220,6 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 
 	PSPM_Plant p1;
 	//p1.initFromFile(paramsFile);
-	p1.set_timestep(this->step_size);
 	p1.par = par0;
 	p1.traits = traits0;
 	p1.traits.species_name = species_name;
@@ -368,6 +361,9 @@ void Simulator::simulate(){
 
 void Simulator::simulate_to(double tend){
 
+	std::cout << "Tcurrent is: " << tcurrent << std::endl;
+	std::cout << "Tend is: " << tcurrent << std::endl;
+
 	auto after_step = [this](double t){
 		calc_seed_output(t, S);
 		calc_r0(t, timestep, S);
@@ -381,7 +377,7 @@ void Simulator::simulate_to(double tend){
 		//           << E.clim.swp << "\n";
 	};
 
-	for (double t=y0; t <= tend; t=t+delta_T) {
+	for (double t=tcurrent; t <= tend; t=t+delta_T) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;

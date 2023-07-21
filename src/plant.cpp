@@ -36,16 +36,6 @@ void Plant::set_size(double x){
 	geometry.set_size(x, traits);
 }
 
-void Plant::set_timestep(plant_solv_time_step _step_size){
-	step_size = _step_size;
-	if(step_size == plant_solv_time_step::DAILY_STEP){
-		assimilator.set_daily_timestep();
-	}
-	else{
-		assimilator.set_yearly_timestep();
-	}
-}
-
 double Plant::get_biomass() const{
 	return geometry.total_mass(traits);
 }
