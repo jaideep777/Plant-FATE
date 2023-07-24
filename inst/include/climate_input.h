@@ -13,7 +13,7 @@ class ClimateInput{
     Clim weightedAveClim;
 
     double tcurrent;
-    double ave_window = 14/365;
+    double ave_window = (14.0/365.0);
 
     ClimateInput();
     ClimateInput(Clim &climObj, double t0, double _ave_window);

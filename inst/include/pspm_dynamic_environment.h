@@ -12,6 +12,7 @@
 class PSPM_Dynamic_Environment : public env::LightEnvironment, public env::ClimateInput{
 	public:
 	PSPM_Dynamic_Environment();
+	PSPM_Dynamic_Environment(env::Clim &newclim, double t0, double _ave_window);
 	double projected_crown_area_above_z(double t, double z, Solver *S);
 	double fapar_layer(double t, int layer, Solver *S);
 	void computeEnv(double t, Solver *S, std::vector<double>::iterator _S, std::vector<double>::iterator _dSdt);

@@ -16,6 +16,10 @@ PSPM_Dynamic_Environment::PSPM_Dynamic_Environment() : env::LightEnvironment() {
 	
 }
 
+PSPM_Dynamic_Environment::PSPM_Dynamic_Environment(env::Clim &newClim, double t0, double _ave_window) : env::ClimateInput(newClim, t0, _ave_window), env::LightEnvironment() {
+
+}
+
 /// @ingroup    ppa_module
 /// @brief      Calculate the total crown area above height z, contributed by all individuals of the resident species.
 /// @param t    Time in current timestep.

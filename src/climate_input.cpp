@@ -30,8 +30,6 @@ void ClimateInput::updateClim(Clim &newClim, double tnew){
 
 Clim ClimateInput::computeNewAverage(Clim &newClim, double tnew){
     double h = tnew - tcurrent;
-    std::cout << "Computing a new average\nh is " << h <<std::endl;
-
     Clim newWeightedAve;
     
     newWeightedAve.tc = movingAverageRungeKutta4(currentClim.tc, newClim.tc, h, weightedAveClim.tc);

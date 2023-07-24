@@ -97,6 +97,8 @@ void Simulator::init(double tstart, double tend){
 	// E.metFile = met_file;
 	// E.co2File = co2_file;
 	// E.init();
+	E.tcurrent = tcurrent;
+	E.ave_window = (14.0/365.0);
 	E.print(0);
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -462,7 +464,7 @@ void Simulator::simulate_to(double tend){
 
 void Simulator::simulate_step(){
 
-	std::cout << "Running Step";
+	// std::cout << "Running Step";
 
 	auto after_step = [this](double t){
 		calc_seed_output(t, S);
@@ -550,16 +552,17 @@ void Simulator::simulate_step(){
 		t_clear = tcurrent + fmin(t_int, 1000);
 	}
 
-		// Save simulation state at specified intervals
-	if (int(tcurrent) % saveStateInterval == 0){
-		saveState(&S, 
-	      out_dir + "/" + std::to_string(tcurrent) + "_" + state_outfile, 
-		  out_dir + "/" + std::to_string(tcurrent) + "_" + config_outfile, 
-		  paramsFile);
-	}
+		// Save simulation state at specified intervals - need to fix this so that it's not at this place
+
+	// if (int(tcurrent) % saveStateInterval == 0){
+	// 	saveState(&S, 
+	//       out_dir + "/" + std::to_string(tcurrent) + "_" + state_outfile, 
+	// 	  out_dir + "/" + std::to_string(tcurrent) + "_" + config_outfile, 
+	// 	  paramsFile);
+	// }
 
 	tcurrent += delta_T;
-	std::cout<< tcurrent;
+	// std::cout<< tcurrent;
 	
 }
 
