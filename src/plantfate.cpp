@@ -74,8 +74,18 @@ void Simulator::update_environment(double _tc, double _ppfd_max, double _ppfd, d
 // 	E.update_co2 = (co2file == "")? false : true;
 // }
 
-
 void Simulator::init(double tstart, double tend){
+	yf = tend;   //I.getScalar("yearf");
+	init(tstart);
+}
+
+void Simulator::init(double tstart, env::Clim &climobj){
+	E.weightedAveClim = climobj;
+	E.currentClim = climobj;
+	init(tstart);
+}
+
+void Simulator::init(double tstart){
 	out_dir  = parent_dir  + "/" + expt_dir;
 
 	// string command = "mkdir -p " + out_dir;
@@ -89,7 +99,6 @@ void Simulator::init(double tstart, double tend){
 	// sysresult = system(command2.c_str());
 
 	y0 = tstart; //I.getScalar("year0");
-	yf = tend;   //I.getScalar("yearf");
 	tcurrent = tstart;
 	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 

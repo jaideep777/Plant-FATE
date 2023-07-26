@@ -43,6 +43,7 @@ include_dirs = ['./inst/include',
 #   Sort input source files if you glob sources to ensure bit-for-bit
 #   reproducible builds (https://github.com/pybind/python_example/pull/53)
 
+
 ext_modules = [
     Pybind11Extension("plantFATE",
         ["pybinds/simulator.cpp"],
@@ -64,8 +65,8 @@ setup(
     # description="A test project using pybind11",
     # long_description="",
     # packages = "plantFATE",
-    # package_dir="pybinds",
     ext_modules=ext_modules,
+    # packages="python_src",
     # Currently, build_ext only provides an optional "highest supported C++
     # level" feature, but in the future it may provide more features.
     cmdclass={"build_ext": build_ext},

@@ -78,6 +78,8 @@ class Simulator{
 	void set_co2File(std::string co2file);
 
 	void init(double tstart, double tend);
+	void init(double tstart);
+	void init(double tstart, env::Clim &initClimObj);
 
 	void simulate();
 	void simulate_to(double t);
