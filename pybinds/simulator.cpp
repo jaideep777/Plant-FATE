@@ -143,7 +143,9 @@ PYBIND11_MODULE(plantFATE, m)
 		.def_readwrite("ye", &Simulator::ye)
 		.def_readwrite("props", &Simulator::props)
 		.def_readwrite("cwm", &Simulator::cwm)
-		.def_readwrite("tcurrent", &Simulator::tcurrent);
+		.def_readwrite("tcurrent", &Simulator::tcurrent)
+		.def_readwrite("delta_T", &Simulator::delta_T)
+		.def_readwrite("T_invasion", &Simulator::T_invasion);
 		// .def_readwrite("traits0", &Simulator::traits0)
 		// .def_readwrite("par0", &Simulator::par0);
 

@@ -27,10 +27,14 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	timestep = I.getScalar("timestep");  // ODE Solver timestep
  	delta_T = I.getScalar("delta_T");    // Cohort insertion timestep
 
+	std::cout << "IN PLANTFATE PRINTING DELTAT " <<  delta_T << std::endl;
+
 	solver_method = I.get<string>("solver");
 	res = I.getScalar("resolution");
 
 	T_invasion = I.getScalar("T_invasion");
+
+	std::cout << "\tT_invasion is initialised as :"<<T_invasion << std::endl;
 
 	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 
@@ -86,6 +90,8 @@ void Simulator::init(double tstart, env::Clim &climobj){
 }
 
 void Simulator::init(double tstart){
+	std::cout << "T_invasion is initialised as :"<<T_invasion << std::endl;
+	std::cout << "\n\n\n\n" <<std::endl;
 	out_dir  = parent_dir  + "/" + expt_dir;
 
 	// string command = "mkdir -p " + out_dir;
@@ -101,6 +107,7 @@ void Simulator::init(double tstart){
 	y0 = tstart; //I.getScalar("year0");
 	tcurrent = tstart;
 	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
+	T_next_invasion = tcurrent + T_invasion;
 
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
@@ -109,6 +116,11 @@ void Simulator::init(double tstart){
 	E.tcurrent = tcurrent;
 	E.ave_window = (14.0/365.0);
 	E.print(0);
+
+
+		std::cout << "after environment bit" << std::endl;
+
+		
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
 	S = Solver(solver_method, "rk45ck");
@@ -124,12 +136,19 @@ void Simulator::init(double tstart){
 	if (continuePrevious){
 		restoreState(&S, continueFrom_stateFile, continueFrom_configFile);
 		y0 = S.current_time; // replace y0
+		tcurrent = tstart;
 	}
 	else {
+	
+		std::cout << "going through each species" << std::endl;
+	
 		// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
 		TraitsReader Tr;
 		Tr.readFromFile(traits_file);
 		Tr.print();
+
+
+	
 
 		// ~~~ Create initial resident species pool from traits file ~~~~
 		//int nspp = I.getScalar("nSpecies");
@@ -229,6 +248,9 @@ void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 
 void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
 
+
+	std::cout << "before adding species to solver" << std::endl;
+
 	PSPM_Plant p1;
 	//p1.initFromFile(paramsFile);
 	p1.par = par0;
@@ -241,26 +263,50 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 	
 	p1.coordinateTraits();
 
+
+	std::cout << "before adding species to solver" << std::endl;
+
 	((plant::Plant*)&p1)->print();
 	
+
+	std::cout << "before adding species to solver" << std::endl;
+
 	//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
 	p1.set_size(0.01);
-	
+
+
+	std::cout << "before adding species to solver" << std::endl;
+
 	MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
 	spp->species_name = species_name;
 	spp->trait_scalars = {0.2, 700};
+
+	std::cout << "created new species" << std::endl;
+
+
 	// spp->fg_dx = 0.01;
 	spp->trait_variance = vector<double>(2, 0.1);
 	spp->r0_hist.set_interval(100);
 	spp->t_introduction = t;
 
+
+
 	spp->seeds_hist.set_interval(T_seed_rain_avg);
 
+	std::cout << "set species seed" << std::endl;
+
 	if (evolve_traits) spp->createVariants(p1);
+
+
+	std::cout << "adding species to solver" << std::endl;
+
 
 	// Add resident species to solver
 	S.addSpecies(res, 0.01, 10, true, spp, 2, 1e-3);
 	//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
+
+
+	std::cout << "species added to solver" << std::endl;
 
 	// Add variants (probes) to solver
 	if (evolve_traits){
@@ -331,7 +377,9 @@ void Simulator::simulate(){
 		// }
 
 		// Invasion by a random new species
-		if (int(t) % int(T_invasion) == 0){
+		// std::cout << "BEFORE INVASION Simulate" << std::endl;
+		// std::cout << "tcurrent:\t" << tcurrent << "\tT_invasion"<<T_invasion << std::endl;
+		if (t >= T_next_invasion){
 			cout << "**** Invasion ****\n";
 			addSpeciesAndProbes(t, 
 			                    "spp_t"+to_string(t), 
@@ -340,6 +388,7 @@ void Simulator::simulate(){
 			                    runif(2, 35),      //Tr.species[i].hmat, 
 			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
 			);
+			T_next_invasion += T_invasion;
 		}
 
 		// clear patch after 50 year	
@@ -432,7 +481,9 @@ void Simulator::simulate_to(double tend){
 		// }
 
 		// Invasion by a random new species
-		if (int(t) % int(T_invasion) == 0){
+		// std::cout << "BEFORE INVASION Simulate To" << std::endl;
+		// std::cout << "tcurrent:\t" << tcurrent << "\tT_invasion"<<T_invasion << std::endl;
+		if (t >= T_next_invasion){
 			cout << "**** Invasion ****\n";
 			addSpeciesAndProbes(t, 
 			                    "spp_t"+to_string(t), 
@@ -441,6 +492,7 @@ void Simulator::simulate_to(double tend){
 			                    runif(2, 35),      //Tr.species[i].hmat, 
 			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
 			);
+			T_next_invasion = T_next_invasion + T_invasion;
 		}
 
 		// clear patch after 50 year	
@@ -534,7 +586,9 @@ void Simulator::simulate_step(){
 		// }
 
 		// Invasion by a random new species
-	if (int(tcurrent) % int(T_invasion) == 0){
+	// std::cout << "BEFORE INVASION Simulate Step" << std::endl;
+	// std::cout << "tcurrent:\t" << tcurrent << "\tT_invasion"<<T_invasion << std::endl;
+	if (t >= T_next_invasion){
 		cout << "**** Invasion ****\n";
 		addSpeciesAndProbes(tcurrent, 
 	                    "spp_t"+to_string(tcurrent), 
@@ -543,6 +597,7 @@ void Simulator::simulate_step(){
 		                    runif(2, 35),      //Tr.species[i].hmat, 
 		                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
 		);
+		T_next_invasion += T_invasion;
 	}
 
 		// clear patch after 50 year	

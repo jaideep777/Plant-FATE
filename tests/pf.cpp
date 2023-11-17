@@ -7,21 +7,46 @@
 #include <algorithm>
 #include <execution>
 
+#include "climate.h"
 #include "plantfate.h"
 
 using namespace std;
 
 int main(int argc, char ** argv){
 
-	string pfile = "tests/params/p_base.ini";
+	string pfile = "tests/params/p_daily.ini";
 	if (argc > 1) pfile = argv[1];
+
+	env::Clim newClimObj;
+	newClimObj.tc = 21.82647;         // temperature, deg C
+	newClimObj.ppfd_max = 1942.100;   // umol/m2/s
+	newClimObj.ppfd = 485.5251;        // umol/m2/s
+	newClimObj.vpd  = 1143.0545;        // Pa
+	newClimObj.co2  = 368.9;      // ppm
+	newClimObj.elv = 0;           // m.a.s.l
+	newClimObj.swp = -0.02125685;       // MPa
+
 
 	for (int i=0; i<1; ++i){
 		Simulator sim(pfile);
 		// sim.expt_dir = sim.expt_dir + "_414ppm";
-		sim.E.clim.co2 = 414;
-		sim.init(-1000, 5000);
-		sim.simulate();
+		// sim.E.clim.co2 = 414;
+		sim.init(1979,newClimObj);
+
+		for(int j = 0; j < 30; j+=1){
+			sim.update_environment(
+            21.82647,
+            1942.100,
+            485.5251,
+            1143.0545,
+            368.9,
+            0,
+            -0.02125685
+        	);
+			sim.simulate_step();
+		}
+
+		// sim.simulate();
 		sim.close();
 	}
 

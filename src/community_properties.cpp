@@ -407,7 +407,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		}
 	}
 
-	foutd << int(t) << "\t"
+	foutd << t << "\t"
 			<< (t-int(t))*365 << "\t"
 			<< props.gpp*0.5/365*1000 << "\t"
 			<< props.npp*0.5/365*1000 << "\t"
@@ -423,7 +423,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 			<< cwm.vcmax << "\t"
 			<< props.cc_est << std::endl;
 	
-	fouty << int(t) << "\t"
+	fouty << t << "\t"
 			<< -9999  << "\t"
 			<< cwm.n_ind << "\t"
 			<< -9999  << "\t"
@@ -440,7 +440,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 	for (int k=0; k<S->species_vec.size(); ++k){
 		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
 		fouty_spp 
-				<< int(t) << "\t"
+				<< t << "\t"
 				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 				<< cwm.n_ind_vec[k] << "\t"
 				<< -9999  << "\t"
