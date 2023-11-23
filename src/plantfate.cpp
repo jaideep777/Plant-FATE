@@ -588,7 +588,7 @@ void Simulator::simulate_step(){
 		// Invasion by a random new species
 	// std::cout << "BEFORE INVASION Simulate Step" << std::endl;
 	// std::cout << "tcurrent:\t" << tcurrent << "\tT_invasion"<<T_invasion << std::endl;
-	if (t >= T_next_invasion){
+	if (tcurrent >= T_next_invasion){
 		cout << "**** Invasion ****\n";
 		addSpeciesAndProbes(tcurrent, 
 	                    "spp_t"+to_string(tcurrent), 
