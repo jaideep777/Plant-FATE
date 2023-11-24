@@ -5,7 +5,7 @@ from setuptools import setup
 name = "py-plantFATE"
 __version__ = "0.1.1"
 
-root_dir = '/home/admini/my_work/plantFATE_root/'
+root_dir = '../'
 package_dir = {name: "pybinds"}
 depends = ["./inst/include/plantfate.h",
            "./inst/include/pspm_interface.h",
