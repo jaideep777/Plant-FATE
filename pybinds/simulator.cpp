@@ -105,8 +105,8 @@ PYBIND11_MODULE(plantFATE, m)
 		.def("get_traits", &LifeHistoryOptimizer::get_traits)
 		.def("init", &LifeHistoryOptimizer::init)
 		// .def("printMeta", &LifeHistoryOptimizer::printMeta)
-		.def("calcFitness", &LifeHistoryOptimizer::calcFitness)
-		.def("grow_for_dt", &LifeHistoryOptimizer::grow_for_dt);
+		.def("calcFitness", &LifeHistoryOptimizer::calcFitness);
+		// .def("grow_for_dt", &LifeHistoryOptimizer::grow_for_dt);
 		// .def_readwrite("params_file", &LifeHistoryOptimizer::params_file);
 		// .def_readwrite("env", &LifeHistoryOptimizer::C);
 		// .def_readwrite("traits0", &LifeHistoryOptimizer::traits0)
@@ -117,6 +117,7 @@ PYBIND11_MODULE(plantFATE, m)
 		.def("init", py::overload_cast<double, double>(&Simulator::init), py::arg("tstart"), py::arg("tend")) 
 		.def("init", py::overload_cast<double>(&Simulator::init), py::arg("tstart")) 
 		.def("init", py::overload_cast<double, env::Clim&>(&Simulator::init), py::arg("tstart"), py::arg("initClimObj")) 
+		.def("init", py::overload_cast<double, double, env::Clim&>(&Simulator::init), py::arg("tstart"), py::arg("tend"), py::arg("initClimObj")) 
 		// .def("init", &Simulator::init, (void(Simulator::*)(double, double))&Simulator::init, py::arg("tstart", "tend"))
 		// .def("init", &Simulator::init, (void(Simulator::*)(double))&Simulator::init, py::arg("tstart"))
 		// .def("init", &Simulator::init, (void(Simulator::*)(double, &env::Climate))&Simulator::init, py::arg("tstart", "climobj"))

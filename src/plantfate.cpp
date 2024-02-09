@@ -13,7 +13,10 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	save_state = (I.get<string>("saveState") == "yes")? true : false;
 
 	state_outfile  = I.get<string>("savedStateFile");
+	std::cout << state_outfile << std::endl;
+	
 	config_outfile = I.get<string>("savedConfigFile");
+	std::cout << config_outfile << std::endl;
 
 	continueFrom_stateFile = I.get<string>("continueFromState");
 	continueFrom_configFile = I.get<string>("continueFromConfig");
@@ -27,14 +30,10 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	timestep = I.getScalar("timestep");  // ODE Solver timestep
  	delta_T = I.getScalar("delta_T");    // Cohort insertion timestep
 
-	std::cout << "IN PLANTFATE PRINTING DELTAT " <<  delta_T << std::endl;
-
 	solver_method = I.get<string>("solver");
 	res = I.getScalar("resolution");
 
 	T_invasion = I.getScalar("T_invasion");
-
-	std::cout << "\tT_invasion is initialised as :"<<T_invasion << std::endl;
 
 	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 
@@ -83,6 +82,13 @@ void Simulator::init(double tstart, double tend){
 	init(tstart);
 }
 
+void Simulator::init(double tstart, double tend, env::Clim &climobj){
+	yf = tend;   //I.getScalar("yearf");
+	E.weightedAveClim = climobj;
+	E.currentClim = climobj;
+	init(tstart);
+}
+
 void Simulator::init(double tstart, env::Clim &climobj){
 	E.weightedAveClim = climobj;
 	E.currentClim = climobj;
@@ -90,8 +96,6 @@ void Simulator::init(double tstart, env::Clim &climobj){
 }
 
 void Simulator::init(double tstart){
-	std::cout << "T_invasion is initialised as :"<<T_invasion << std::endl;
-	std::cout << "\n\n\n\n" <<std::endl;
 	out_dir  = parent_dir  + "/" + expt_dir;
 
 	// string command = "mkdir -p " + out_dir;
@@ -137,10 +141,14 @@ void Simulator::init(double tstart){
 		restoreState(&S, continueFrom_stateFile, continueFrom_configFile);
 		y0 = S.current_time; // replace y0
 		tcurrent = tstart;
+
+		std::cout << "Continue Previous \n" << std::endl;
+		std::cout << "y0: " << y0 << std::endl;
+		std::cout << "tcurrent: " << tcurrent <<std::endl;
+		std::cout << "tstart: " << tstart <<std::endl;
+		S.print();
 	}
 	else {
-	
-		std::cout << "going through each species" << std::endl;
 	
 		// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
 		TraitsReader Tr;
@@ -248,9 +256,6 @@ void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 
 void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
 
-
-	std::cout << "before adding species to solver" << std::endl;
-
 	PSPM_Plant p1;
 	//p1.initFromFile(paramsFile);
 	p1.par = par0;
@@ -263,26 +268,14 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 	
 	p1.coordinateTraits();
 
-
-	std::cout << "before adding species to solver" << std::endl;
-
 	((plant::Plant*)&p1)->print();
-	
-
-	std::cout << "before adding species to solver" << std::endl;
 
 	//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
 	p1.set_size(0.01);
 
-
-	std::cout << "before adding species to solver" << std::endl;
-
 	MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
 	spp->species_name = species_name;
 	spp->trait_scalars = {0.2, 700};
-
-	std::cout << "created new species" << std::endl;
-
 
 	// spp->fg_dx = 0.01;
 	spp->trait_variance = vector<double>(2, 0.1);
@@ -293,20 +286,14 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 
 	spp->seeds_hist.set_interval(T_seed_rain_avg);
 
-	std::cout << "set species seed" << std::endl;
-
 	if (evolve_traits) spp->createVariants(p1);
 
-
-	std::cout << "adding species to solver" << std::endl;
 
 
 	// Add resident species to solver
 	S.addSpecies(res, 0.01, 10, true, spp, 2, 1e-3);
 	//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 
-
-	std::cout << "species added to solver" << std::endl;
 
 	// Add variants (probes) to solver
 	if (evolve_traits){
@@ -420,9 +407,6 @@ void Simulator::simulate(){
 }
 
 void Simulator::simulate_to(double tend){
-
-	std::cout << "Tcurrent is: " << tcurrent << std::endl;
-	std::cout << "Tend is: " << tcurrent << std::endl;
 
 	auto after_step = [this](double t){
 		calc_seed_output(t, S);
@@ -555,8 +539,8 @@ void Simulator::simulate_step(){
 	cwm.update(tcurrent, S);
 	props.update(tcurrent, S);
 
-	cout << "print the environment" << endl;
-	E.print(tcurrent);
+	// cout << "print the environment" << endl;
+	// E.print(tcurrent);
 			
 	sio.writeState(tcurrent, cwm, props);
 	

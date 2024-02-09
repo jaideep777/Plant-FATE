@@ -80,6 +80,7 @@ class Simulator{
 
 	void init(double tstart, double tend);
 	void init(double tstart);
+	void init(double tstart, double tend, env::Clim &initClimObj);
 	void init(double tstart, env::Clim &initClimObj);
 
 	// void save_state();
