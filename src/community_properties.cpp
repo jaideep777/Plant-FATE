@@ -290,6 +290,7 @@ void SolverIO::openStreams(std::string dir, io::Initializer &I){
 		cohort_props_out << "t\tspeciesID\tcohortID\t";
 		for (auto vname : varnames) cohort_props_out << vname << "\t";
 		cohort_props_out << std::endl;
+		cohort_props_out << std::setprecision(12);
 	}
 
 	size_dists_out.open(dir + "/size_distributions.txt");
@@ -394,6 +395,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 					cohort_props_out << t << "\t" 
 									<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
 									<< j << "\t"
+									<< C.geometry.diameter << "\t"
 									<< C.geometry.height << "\t"
 									<< C.geometry.lai << "\t"
 									<< C.rates.dmort_dt << "\t"

@@ -101,7 +101,7 @@ class SolverIO{
 	public:
 	int nspecies;
 	Solver * S;
-	std::vector<std::string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
+	std::vector<std::string> varnames = {"diameter", "height", "lai", "mort", "fec", "rgr", "gpp"};
 
 	bool b_output_cohort_props = false;
 
