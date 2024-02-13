@@ -114,6 +114,7 @@ PYBIND11_MODULE(plantFATE, m)
 
 	py::class_<Simulator>(m, "Simulator", py::dynamic_attr())
 		.def(py::init<std::string>())
+		.def(py::init<std::string, std::string>())
 		.def("init", py::overload_cast<double, double>(&Simulator::init), py::arg("tstart"), py::arg("tend")) 
 		.def("init", py::overload_cast<double>(&Simulator::init), py::arg("tstart")) 
 		.def("init", py::overload_cast<double, env::Clim&>(&Simulator::init), py::arg("tstart"), py::arg("initClimObj")) 

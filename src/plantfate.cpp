@@ -3,12 +3,62 @@
 #include "utils/enums.h"
 using namespace std;
 
+
+
+
+
 Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45ck") {
-	paramsFile = params_file; // = "tests/params/p.ini";
+		paramsFile = params_file; // = "tests/params/p.ini";
 	I.readFile();
 
 	parent_dir = I.get<string>("outDir");
 	expt_dir   = I.get<string>("exptName");
+	
+	save_state = (I.get<string>("saveState") == "yes")? true : false;
+
+	state_outfile  = I.get<string>("savedStateFile");
+	std::cout << state_outfile << std::endl;
+	
+	config_outfile = I.get<string>("savedConfigFile");
+	std::cout << config_outfile << std::endl;
+
+	continueFrom_stateFile = I.get<string>("continueFromState");
+	continueFrom_configFile = I.get<string>("continueFromConfig");
+	continuePrevious = (continueFrom_configFile != "null") && (continueFrom_stateFile != "null");
+	saveStateInterval = I.getScalar("saveStateInterval");
+
+	traits_file = I.get<string>("traitsFile");
+	n_species = I.getScalar("nSpecies");
+	evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
+
+	timestep = I.getScalar("timestep");  // ODE Solver timestep
+ 	delta_T = I.getScalar("delta_T");    // Cohort insertion timestep
+
+	solver_method = I.get<string>("solver");
+	res = I.getScalar("resolution");
+
+	T_invasion = I.getScalar("T_invasion");
+
+	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
+
+	T_return = I.getScalar("T_return");
+
+	// E.metFile = I.get<string>("metFile");
+	// E.co2File = I.get<string>("co2File");
+	// E.update_met = (E.metFile == "null")? false : true;
+	// E.update_co2 = (E.co2File == "null")? false : true;
+	E.use_ppa = true;
+
+	traits0.init(I);
+	par0.init(I);
+}
+
+Simulator::Simulator(std::string params_file, std::string exptName) : I(params_file), S("IEBT", "rk45ck") {
+	paramsFile = params_file; // = "tests/params/p.ini";
+	I.readFile();
+
+	parent_dir = I.get<string>("outDir");
+	expt_dir   = exptName;
 	
 	save_state = (I.get<string>("saveState") == "yes")? true : false;
 
