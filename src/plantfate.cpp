@@ -85,10 +85,10 @@ void Simulator::init(double tstart, double tend){
 	S = Solver(solver_method, "rk45ck");
 	S.control.abm_n0 = 20;
 	S.control.ode_ifmu_stepsize = timestep; //0.02; //0.0833333;
+	S.control.sync_cohort_insertion = true;
 	S.control.ifmu_centered_grids = false; //true;
-	S.control.ifmu_order = 1;
 	S.control.ebt_ucut = 1e-7;
-	S.use_log_densities = true;
+	S.control.cm_use_log_densities = true;
 	S.setEnvironment(&E);
 
 	// Add species
@@ -114,8 +114,8 @@ void Simulator::init(double tstart, double tend){
 								Tr.species[i].p50_xylem);
 		}
 
-		S.resetState(y0);
-		S.initialize();
+		// S.resetState(y0);
+		S.initialize(y0);
 	} 
 
 //	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
@@ -215,7 +215,7 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 	((plant::Plant*)&p1)->print();
 	
 	//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
-	p1.set_size(0.01);
+	p1.set_size({0.01});
 	
 	MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
 	spp->species_name = species_name;
@@ -230,13 +230,13 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 	if (evolve_traits) spp->createVariants(p1);
 
 	// Add resident species to solver
-	S.addSpecies(res, 0.01, 10, true, spp, 2, 1e-3);
+	S.addSpecies({res}, {0.01}, {10}, {true}, spp, 2, 1e-3);
 	//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 
 	// Add variants (probes) to solver
 	if (evolve_traits){
 		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-			S.addSpecies(res, 0.01, 10, true, m, 2, 1e-3);
+			S.addSpecies({res}, {0.01}, {10}, {true}, m, 2, 1e-3);
 	}
 
 	S.copyCohortsToState();
@@ -322,7 +322,7 @@ void Simulator::simulate(){
 					double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
 					spp->setU(i, u_new);
 				}
-				spp->setX(spp->xsize()-1, 0);
+				spp->setX(spp->xsize()-1, spp->xb);
 			}
 			S.copyCohortsToState();
 			double t_int = -log(double(rand())/RAND_MAX) * T_return;

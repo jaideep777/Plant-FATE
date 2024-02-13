@@ -44,7 +44,7 @@ double PSPM_Dynamic_Environment::projected_crown_area_above_z(double t, double z
 		};
 //			ca_above_z += S->integrate_wudx_above(ca_above, t, z, k);
 //			std::cout << "\n";
-		ca_above_z += S->integrate_x(ca_above, t, k);
+		ca_above_z += S->state_integral(ca_above, t, k);
 	}
 	return ca_above_z;	
 }
@@ -71,7 +71,7 @@ double PSPM_Dynamic_Environment::fapar_layer(double t, int layer, Solver *S){
 			return Iabs_plant_layer;
 		};
 //			std::cout << "\n";
-		photons_abs += S->integrate_x(photons_absorbed_plant_layer, t, k);
+		photons_abs += S->state_integral(photons_absorbed_plant_layer, t, k);
 	}		
 	return photons_abs;
 }

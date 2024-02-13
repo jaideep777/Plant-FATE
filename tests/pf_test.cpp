@@ -38,7 +38,8 @@ int main(int argc, char ** argv){
 		for (auto& b : ba) b*=1e4;
 		cout << setprecision(10) << "Basal areas [m2/Ha]: " << ba << '\n';
 
-		err = is_equal(ba, {1.568911254, 7.061621143, 27.19173438});
+		// err = is_equal(ba, {1.568911254, 7.061621143, 27.19173438});  // this was the output when using 1d libpspm
+		err = is_equal(ba, {1.574142805, 7.063798904, 27.14722606});  // this is the output with nd libpspm
 
 		sim.close();
 	}
