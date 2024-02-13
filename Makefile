@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # executable name
-TARGET := plantFATE
+TARGET := libpfate
 
 # files
 SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp $(wildcard src/pybind*.cpp), $(wildcard src/*.cpp))
@@ -21,7 +21,7 @@ INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
 INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include  #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
 PTH_PATH := $(shell python3 -m pybind11 --includes)
-LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
+LIB_PATH := -L$(ROOT_DIR)/libpspm/lib -L./lib
 
 # flags
 PROFILING_FLAGS = -g -pg
@@ -102,7 +102,7 @@ clean: libclean testclean
 
 ## TESTING SUITE ##
 
-TEST_FILES = tests/save_test.cpp #$(wildcard tests/*.cpp)
+TEST_FILES = tests/pf_test.cpp #$(wildcard tests/*.cpp)
 TEST_OBJECTS = $(patsubst tests/%.cpp, tests/%.o, $(TEST_FILES))
 TEST_TARGETS = $(patsubst tests/%.cpp, tests/%.test, $(TEST_FILES))
 TEST_RUNS = $(patsubst tests/%.cpp, tests/%.run, $(TEST_FILES))
@@ -127,7 +127,7 @@ $(TEST_OBJECTS): tests/%.o : tests/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 $(TEST_TARGETS): tests/%.test : tests/%.o $(HEADERS)
-	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS)
+	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS) -lpfate
 
 testclean:
 	rm -f tests/*.o tests/*.test
