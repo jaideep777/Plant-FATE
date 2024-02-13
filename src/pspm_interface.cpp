@@ -14,12 +14,12 @@ PSPM_Plant::PSPM_Plant() : plant::Plant() {
 	
 }
 
-void PSPM_Plant::set_size(double _x){
-	Plant::set_size(_x); // since Plant already has a set_size()! Keeping this overridden function for completeness. 
+void PSPM_Plant::set_size(const std::array<double, STATE_DIM>& _x){
+	Plant::set_size(_x[0]); // since Plant already has a set_size()! Keeping this overridden function for completeness. 
 }
 
 // This gives initial density of stages of the tree (established seedlings and thereafter)
-double PSPM_Plant::init_density(double x, void * _env, double input_seed_rain){
+double PSPM_Plant::init_density(void * _env, double input_seed_rain){
 //	EnvUsed * env = (EnvUsed*)_env;
 //	compute_vars_phys(*env);
 //	double u0;
@@ -35,11 +35,11 @@ double PSPM_Plant::init_density(double x, void * _env, double input_seed_rain){
 //	return u0;
 //	if (geometry.diameter < 0.02) return 1;
 //	else return 0; // dummy initial density of 1, for now. This shouldn't matter because there is spinup.
-	return 1e-2*exp(-x/0.1);
+	return 1e-2*exp(-x[0]/0.1);
 }
 
 
-void PSPM_Plant::preCompute(double x, double t, void * _env){
+void PSPM_Plant::preCompute(double t, void * _env){
 	EnvUsed * env = (EnvUsed*)_env;
 	calc_demographic_rates(*env, t);
 //	double p_plant_survival = exp(-vars.mortality);
@@ -47,7 +47,7 @@ void PSPM_Plant::preCompute(double x, double t, void * _env){
 //	viable_seeds_dt = vars.fecundity_dt * p_plant_survival * env->patch_survival(t) / env->patch_survival(t_birth);
 }
 
-void PSPM_Plant::afterStep(double x, double t, void * _env){
+void PSPM_Plant::afterStep(double t, void * _env){
 //	EnvUsed * env = (EnvUsed*)_env;
 //	
 //	seeds_hist.push(t, rates.dseeds_dt_germ);
@@ -61,17 +61,17 @@ double PSPM_Plant::establishmentProbability(double t, void * _env){
 }
 
 
-double PSPM_Plant::growthRate(double x, double t, void * _env){
-	return rates.dsize_dt;
+std::array<double,STATE_DIM> PSPM_Plant::growthRate(double t, void * _env){
+	return {rates.dsize_dt};
 }
 
-double PSPM_Plant::mortalityRate(double x, double t, void * _env){
+double PSPM_Plant::mortalityRate(double t, void * _env){
 	double mort = rates.dmort_dt;
 //	double mort_cndd = 
 	return mort;
 }
 
-double PSPM_Plant::birthRate(double x, double t, void * _env){
+double PSPM_Plant::birthRate(double t, void * _env){
 //	if (par.T_seed_rain_avg > 0){ 
 //		return seeds_hist.get(); // birth rate is moving average of rate of germinating seeds over successional cycles
 //	}          
@@ -84,7 +84,7 @@ double PSPM_Plant::birthRate(double x, double t, void * _env){
 // FIXME: This is used for initialization of every new cohort, not just the initial ones!
 // So this must be consistent with init_density()
 // Therefore needs size as input
-void PSPM_Plant::init_state(double t, void * _env){
+void PSPM_Plant::init_accumulators(double t, void * _env){
 	//set_size(x);	
 	EnvUsed * env = (EnvUsed*)_env;
 	geometry.lai = par.lai0;
@@ -94,7 +94,7 @@ void PSPM_Plant::init_state(double t, void * _env){
 	//vars.mortality = 0; // only for single plant testrun
 }
 
-vector<double>::iterator PSPM_Plant::set_state(vector<double>::iterator &it){
+vector<double>::iterator PSPM_Plant::set_accumulators(vector<double>::iterator &it){
 	geometry.lai       = *it++;
 	state.mortality    = *it++;
 //	state.seed_pool    = *it++;
@@ -102,14 +102,14 @@ vector<double>::iterator PSPM_Plant::set_state(vector<double>::iterator &it){
 	return it;
 }
 
-vector<double>::iterator PSPM_Plant::get_state(vector<double>::iterator &it){
+vector<double>::iterator PSPM_Plant::get_accumulators(vector<double>::iterator &it){
 	*it++ = geometry.lai;
 	*it++ = state.mortality;
 //	*it++ = state.seed_pool;
 	return it;
 }
 
-vector<double>::iterator PSPM_Plant::get_rates(vector<double>::iterator &it){
+vector<double>::iterator PSPM_Plant::get_accumulatorRates(vector<double>::iterator &it){
 
 	*it++ = rates.dlai_dt;	// lai
 	*it++ = rates.dmort_dt; // mortality
@@ -122,9 +122,9 @@ vector<double>::iterator PSPM_Plant::get_rates(vector<double>::iterator &it){
 /// @param out  stream to print to. 
 /// @ingroup    trait_evolution 
 /// @details    This function is called by the solver when printing a species. 
-void PSPM_Plant::print(std::ostream &out){
+void PSPM_Plant::print(std::ostream &out) const {
 	out << std::setw(10) << setprecision(3) << traits.species_name;
-	vector<double> traits_vec = get_evolvableTraits();
+	vector<double> traits_vec = (const_cast<PSPM_Plant*>(this))->get_evolvableTraits();
 	for (auto e : traits_vec){
 		out << std::setw(10) << setprecision(5) << "|" << e << "| ";
 	}
