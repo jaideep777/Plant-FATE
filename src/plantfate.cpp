@@ -302,7 +302,7 @@ void Simulator::simulate(){
 		// }
 
 		// Invasion by a random new species
-		if (int(t) % int(T_invasion) == 0){
+		if (int(t) % int(T_invasion) == 0 && t > y0){
 			cout << "**** Invasion ****\n";
 			addSpeciesAndProbes(t, 
 			                    "spp_t"+to_string(t), 
