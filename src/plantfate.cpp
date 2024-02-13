@@ -3,10 +3,6 @@
 #include "utils/enums.h"
 using namespace std;
 
-
-
-
-
 Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45ck") {
 		paramsFile = params_file; // = "tests/params/p.ini";
 	I.readFile();
@@ -357,102 +353,7 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 
 void Simulator::simulate(){
 
-	auto after_step = [this](double t){
-		calc_seed_output(t, S);
-		calc_r0(t, timestep, S);
-		// sio.fclim << t << "\t" 
-		//           << E.clim.tc << "\t"
-		//           << E.clim.ppfd_max << "\t"
-		//           << E.clim.ppfd << "\t"
-		//           << E.clim.vpd << "\t"
-		//           << E.clim.co2 << "\t"
-		//           << E.clim.elv << "\t"
-		//           << E.clim.swp << "\n";
-	};
-
-	for (double t=y0; t <= yf; t=t+delta_T) {
-		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
-		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
-		cout << ")" << endl;
-
-		S.step_to(t, after_step);
-
-		// debug: r0 calc can be done here, it should give approx identical result compared to when r0_calc is dont in preCompute
-		// S.step_to(t); //, after_step);
-		// if (t > y0) after_step(t);
-		// if (t > y0) calc_r0(t, delta_T, S);
-		// //S.print(); cout.flush();
-
-		cwm.update(t, S);
-		props.update(t, S);
-			
-		sio.writeState(t, cwm, props);
-	
-		// evolve traits
-		if (evolve_traits){
-			if (t > ye){
-				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
-				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
-			}
-		}
-
-		// Remove dead species
-		vector<MySpecies<PSPM_Plant>*> toRemove;
-		for (int k=0; k<S.species_vec.size(); ++k){
-			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-			if (spp->isResident){
-				if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
-			}
-		}
-		for (auto spp : toRemove) removeSpeciesAndProbes(spp);
-
-		// // Shuffle species in the species vector -- just for debugging
-		// if (int(t) % 10 == 0){
-		// 	cout << "shuffling...\n";
-		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-		// 	S.copyCohortsToState();
-		// }
-
-		// Invasion by a random new species
-		// std::cout << "BEFORE INVASION Simulate" << std::endl;
-		// std::cout << "tcurrent:\t" << tcurrent << "\tT_invasion"<<T_invasion << std::endl;
-		if (t >= T_next_invasion){
-			cout << "**** Invasion ****\n";
-			addSpeciesAndProbes(t, 
-			                    "spp_t"+to_string(t), 
-			                    runif(0.05, 0.25),    //Tr.species[i].lma, 
-			                    runif(300, 900),   //Tr.species[i].wood_density, 
-			                    runif(2, 35),      //Tr.species[i].hmat, 
-			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
-			);
-			T_next_invasion += T_invasion;
-		}
-
-		// clear patch after 50 year	
-		if (t >= t_clear){
-			for (auto spp : S.species_vec){
-				for (int i=0; i<spp->xsize(); ++i){
-					auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
-					p.geometry.lai = p.par.lai0;
-					double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
-					spp->setU(i, u_new);
-				}
-				spp->setX(spp->xsize()-1, 0);
-			}
-			S.copyCohortsToState();
-			double t_int = -log(double(rand())/RAND_MAX) * T_return;
-			t_clear = t + fmin(t_int, 1000);
-		}
-
-		// Save simulation state at specified intervals
-		if (int(t) % saveStateInterval == 0){
-			saveState(&S, 
-	          out_dir + "/" + std::to_string(t) + "_" + state_outfile, 
-			  out_dir + "/" + std::to_string(t) + "_" + config_outfile, 
-			  paramsFile);
-		}
-
-	}
+	simulate_to(yf);
 	
 }
 
@@ -554,114 +455,12 @@ void Simulator::simulate_to(double tend){
 		}
 
 	}
+	tcurrent = tend;
 	
 }
 
 void Simulator::simulate_step(){
-
-	// std::cout << "Running Step";
-
-	auto after_step = [this](double t){
-		calc_seed_output(t, S);
-		calc_r0(t, timestep, S);
-		// sio.fclim << t << "\t" 
-		//           << E.clim.tc << "\t"
-		//           << E.clim.ppfd_max << "\t"
-		//           << E.clim.ppfd << "\t"
-		//           << E.clim.vpd << "\t"
-		//           << E.clim.co2 << "\t"
-		//           << E.clim.elv << "\t"
-		//           << E.clim.swp << "\n";
-	};
-
-	cout << "stepping = " << setprecision(6) << S.current_time << " --> " << tcurrent << "\t(";
-	for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
-	cout << ")" << endl;
-
-	S.step_to(tcurrent, after_step);
-
-		// debug: r0 calc can be done here, it should give approx identical result compared to when r0_calc is dont in preCompute
-		// S.step_to(t); //, after_step);
-		// if (t > y0) after_step(t);
-		// if (t > y0) calc_r0(t, delta_T, S);
-		// //S.print(); cout.flush();
-
-	cwm.update(tcurrent, S);
-	props.update(tcurrent, S);
-
-	// cout << "print the environment" << endl;
-	// E.print(tcurrent);
-			
-	sio.writeState(tcurrent, cwm, props);
-	
-		// evolve traits
-	if (evolve_traits){
-		if (tcurrent > ye){
-			for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
-			for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
-		}
-	}
-
-		// Remove dead species
-	vector<MySpecies<PSPM_Plant>*> toRemove;
-	for (int k=0; k<S.species_vec.size(); ++k){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-		if (spp->isResident){
-			if (cwm.n_ind_vec[k] < 1e-6 && (tcurrent-spp->t_introduction) > 50) toRemove.push_back(spp);
-		}
-	}
-	for (auto spp : toRemove) removeSpeciesAndProbes(spp);
-
-		// // Shuffle species in the species vector -- just for debugging
-		// if (int(t) % 10 == 0){
-		// 	cout << "shuffling...\n";
-		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-		// 	S.copyCohortsToState();
-		// }
-
-		// Invasion by a random new species
-	// std::cout << "BEFORE INVASION Simulate Step" << std::endl;
-	// std::cout << "tcurrent:\t" << tcurrent << "\tT_invasion"<<T_invasion << std::endl;
-	if (tcurrent >= T_next_invasion){
-		cout << "**** Invasion ****\n";
-		addSpeciesAndProbes(tcurrent, 
-	                    "spp_t"+to_string(tcurrent), 
-		                    runif(0.05, 0.25),    //Tr.species[i].lma, 
-		                    runif(300, 900),   //Tr.species[i].wood_density, 
-		                    runif(2, 35),      //Tr.species[i].hmat, 
-		                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
-		);
-		T_next_invasion += T_invasion;
-	}
-
-		// clear patch after 50 year	
-	if (tcurrent >= t_clear){
-		for (auto spp : S.species_vec){
-			for (int i=0; i<spp->xsize(); ++i){
-				auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
-				p.geometry.lai = p.par.lai0;
-				double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
-				spp->setU(i, u_new);
-			}
-			spp->setX(spp->xsize()-1, 0);
-		}
-		S.copyCohortsToState();
-		double t_int = -log(double(rand())/RAND_MAX) * T_return;
-		t_clear = tcurrent + fmin(t_int, 1000);
-	}
-
-		// Save simulation state at specified intervals - need to fix this so that it's not at this place
-
-	// if (int(tcurrent) % saveStateInterval == 0){
-	// 	saveState(&S, 
-	//       out_dir + "/" + std::to_string(tcurrent) + "_" + state_outfile, 
-	// 	  out_dir + "/" + std::to_string(tcurrent) + "_" + config_outfile, 
-	// 	  paramsFile);
-	// }
-
-	tcurrent += delta_T;
-	// std::cout<< tcurrent;
-	
+	simulate_to(tcurrent + delta_T);
 }
 
 
