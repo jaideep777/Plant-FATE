@@ -46,11 +46,11 @@ class Simulator{
 	double      ye;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
 	// t is years since 2000-01-01
-	double delta_T;  // TODO: Rename to T_cohort_insertion
-	double timestep;
-	double T_seed_rain_avg;
-	double T_return; // return interval of disturbance
-	double T_invasion; 	// interval between successive species invasions
+	double timestep;            ///< Solver internal timestep
+	double T_cohort_insertion;  ///< Interval after which cohorts should be inserted, if using IEBT solver
+	double T_seed_rain_avg;     ///< Interval over which seed rains should be averaged (multi-patch dynamics)
+	double T_return;            ///< Return interval of disturbance (patch clearance)
+	double T_invasion; 	        ///< Interval between successive species invasions
 
 	double t_next_disturbance;
 	double t_next_invasion;

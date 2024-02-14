@@ -92,7 +92,7 @@ int main(int argc, char ** argv){
 // # **
 // resolution     5
 // timestep       0.1
-// delta_T        1
+// T_cohort_insertion    1
 
 // # **
 // # ** Simulation parameters
