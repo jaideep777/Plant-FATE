@@ -54,6 +54,7 @@ class Simulator{
 
 	double t_next_disturbance;
 	double t_next_invasion;
+	double t_last_evolution;
 
 	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 
@@ -105,11 +106,13 @@ class Simulator{
 	void calc_r0(double t, double dt, Solver &S);
 
 	void removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp);
-
 	void addSpeciesAndProbes(double t, std::string species_name, double lma, double wood_density, double hmat, double p50_xylem);
-	
+	void shuffleSpecies();
 
-
+	void removeDeadSpecies(double t);
+	void addRandomSpecies(double t);
+	void evolveTraits(double t, double dt_evolution);
+	void disturbPatch(double t);
 };
 
 #endif

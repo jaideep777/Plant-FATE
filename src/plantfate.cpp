@@ -75,6 +75,7 @@ void Simulator::init(double tstart, double tend){
 
 	t_next_disturbance = T_return;
 	t_next_invasion = T_invasion;
+	t_last_evolution = 1e20;
 
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
@@ -245,6 +246,56 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 }
 
 
+void Simulator::shuffleSpecies(){
+	// Shuffle species in the species vector -- just for debugging
+	cout << "shuffling...\n";
+	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+	S.copyCohortsToState();
+}
+
+
+void Simulator::removeDeadSpecies(double t){
+	// Remove dead species
+	vector<MySpecies<PSPM_Plant>*> toRemove;
+	for (int k=0; k<S.species_vec.size(); ++k){
+		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+		if (spp->isResident){
+			if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+		}
+	}
+	for (auto spp : toRemove) removeSpeciesAndProbes(spp);
+}
+
+void Simulator::addRandomSpecies(double t){
+	cout << "**** Invasion ****\n";
+	addSpeciesAndProbes(t, 
+						"spp_t"+to_string(t), 
+						runif(0.05, 0.25),    //Tr.species[i].lma, 
+						runif(300, 900),   //Tr.species[i].wood_density, 
+						runif(2, 35),      //Tr.species[i].hmat, 
+						runif(-6, -0.5)   //Tr.species[i].p50_xylem);
+	);
+}
+
+void Simulator::evolveTraits(double t, double dt_evolution){
+	for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
+	for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(dt_evolution);
+}
+
+void Simulator::disturbPatch(double t){
+	for (auto spp : S.species_vec){
+		for (int i=0; i<spp->xsize(); ++i){
+			auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
+			p.geometry.lai = p.par.lai0;
+			double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
+			spp->setU(i, u_new);
+		}
+		spp->setX(spp->xsize()-1, spp->xb);
+	}
+	S.copyCohortsToState();
+}
+
+
 void Simulator::simulate(){
 
 	auto after_step = [this](double t){
@@ -267,67 +318,29 @@ void Simulator::simulate(){
 
 		S.step_to(t, after_step);
 
-		// debug: r0 calc can be done here, it should give approx identical result compared to when r0_calc is dont in preCompute
-		// S.step_to(t); //, after_step);
-		// if (t > y0) after_step(t);
-		// if (t > y0) calc_r0(t, T_cohort_insertion, S);
-		// //S.print(); cout.flush();
-
 		cwm.update(t, S);
 		props.update(t, S);
 			
 		sio.writeState(t, cwm, props);
 	
 		// evolve traits
-		if (evolve_traits){
-			if (t > ye){
-				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
-				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(T_cohort_insertion);
-			}
+		if (evolve_traits && t > ye){
+			evolveTraits(t, T_cohort_insertion);
 		}
 
-		// Remove dead species
-		vector<MySpecies<PSPM_Plant>*> toRemove;
-		for (int k=0; k<S.species_vec.size(); ++k){
-			auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-			if (spp->isResident){
-				if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
-			}
-		}
-		for (auto spp : toRemove) removeSpeciesAndProbes(spp);
+		removeDeadSpecies(t);
 
-		// // Shuffle species in the species vector -- just for debugging
-		// if (int(t) % 10 == 0){
-		// 	cout << "shuffling...\n";
-		// 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-		// 	S.copyCohortsToState();
-		// }
+		// if (int(t) % 10 == 0) shuffleSpecies(); // Shuffle species - just for debugging. result shouldnt change
 
 		// Invasion by a random new species
 		if (t >= t_next_invasion){
-			cout << "**** Invasion ****\n";
-			addSpeciesAndProbes(t, 
-			                    "spp_t"+to_string(t), 
-			                    runif(0.05, 0.25),    //Tr.species[i].lma, 
-			                    runif(300, 900),   //Tr.species[i].wood_density, 
-			                    runif(2, 35),      //Tr.species[i].hmat, 
-			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
-			);
+			addRandomSpecies(t);
 			t_next_invasion = t + T_invasion;
 		}
 
-		// clear patch after 50 year	
+		// clear patch by disturbance	
 		if (t >= t_next_disturbance){
-			for (auto spp : S.species_vec){
-				for (int i=0; i<spp->xsize(); ++i){
-					auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
-					p.geometry.lai = p.par.lai0;
-					double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
-					spp->setU(i, u_new);
-				}
-				spp->setX(spp->xsize()-1, spp->xb);
-			}
-			S.copyCohortsToState();
+			disturbPatch(t);
 			double dt_next = -log(double(rand())/RAND_MAX) * T_return;
 			dt_next = std::clamp(dt_next, 0.0, 10*T_return);
 			t_next_disturbance = t + dt_next;
