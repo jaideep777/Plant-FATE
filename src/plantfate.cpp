@@ -24,7 +24,7 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
 
 	timestep = I.getScalar("timestep");  // ODE Solver timestep
- 	delta_T = I.getScalar("delta_T");    // Cohort insertion timestep
+ 	T_cohort_insertion = I.getScalar("T_cohort_insertion");    // Cohort insertion timestep
 
 	solver_method = I.get<string>("solver");
 	res = I.getScalar("resolution");
@@ -86,7 +86,8 @@ void Simulator::init(double tstart, double tend){
 	S = Solver(solver_method, "rk45ck");
 	S.control.abm_n0 = 20;
 	S.control.ode_ifmu_stepsize = timestep; //0.02; //0.0833333;
-	S.control.sync_cohort_insertion = true;
+	S.control.cohort_insertion_dt = T_cohort_insertion;
+	S.control.sync_cohort_insertion = false;
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ebt_ucut = 1e-7;
 	S.control.cm_use_log_densities = true;
@@ -259,7 +260,7 @@ void Simulator::simulate(){
 		//           << E.clim.swp << "\n";
 	};
 
-	for (double t=y0; t <= yf; t=t+delta_T) {
+	for (double t=y0; t <= yf; t=t+T_cohort_insertion) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
@@ -269,7 +270,7 @@ void Simulator::simulate(){
 		// debug: r0 calc can be done here, it should give approx identical result compared to when r0_calc is dont in preCompute
 		// S.step_to(t); //, after_step);
 		// if (t > y0) after_step(t);
-		// if (t > y0) calc_r0(t, delta_T, S);
+		// if (t > y0) calc_r0(t, T_cohort_insertion, S);
 		// //S.print(); cout.flush();
 
 		cwm.update(t, S);
@@ -281,7 +282,7 @@ void Simulator::simulate(){
 		if (evolve_traits){
 			if (t > ye){
 				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
-				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(delta_T);
+				for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(T_cohort_insertion);
 			}
 		}
 
