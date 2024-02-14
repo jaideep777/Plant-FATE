@@ -86,8 +86,8 @@ void Simulator::init(double tstart, double tend){
 	S = Solver(solver_method, "rk45ck");
 	S.control.abm_n0 = 20;
 	S.control.ode_ifmu_stepsize = timestep; //0.02; //0.0833333;
-	// S.control.cohort_insertion_dt = T_cohort_insertion;
-	S.control.sync_cohort_insertion = true;
+	S.control.cohort_insertion_dt = T_cohort_insertion;
+	S.control.sync_cohort_insertion = false;
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ebt_ucut = 1e-7;
 	S.control.cm_use_log_densities = true;
