@@ -30,9 +30,7 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	res = I.getScalar("resolution");
 
 	T_invasion = I.getScalar("T_invasion");
-
 	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
-
 	T_return = I.getScalar("T_return");
 
 	E.metFile = I.get<string>("metFile");
@@ -74,6 +72,9 @@ void Simulator::init(double tstart, double tend){
 	y0 = tstart; //I.getScalar("year0");
 	yf = tend;   //I.getScalar("yearf");
 	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
+
+	t_next_disturbance = T_return;
+	t_next_invasion = T_invasion;
 
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
@@ -302,7 +303,7 @@ void Simulator::simulate(){
 		// }
 
 		// Invasion by a random new species
-		if (int(t) % int(T_invasion) == 0 && t > y0){
+		if (t >= t_next_invasion){
 			cout << "**** Invasion ****\n";
 			addSpeciesAndProbes(t, 
 			                    "spp_t"+to_string(t), 
@@ -311,10 +312,11 @@ void Simulator::simulate(){
 			                    runif(2, 35),      //Tr.species[i].hmat, 
 			                    runif(-6, -0.5)   //Tr.species[i].p50_xylem);
 			);
+			t_next_invasion = t + T_invasion;
 		}
 
 		// clear patch after 50 year	
-		if (t >= t_clear){
+		if (t >= t_next_disturbance){
 			for (auto spp : S.species_vec){
 				for (int i=0; i<spp->xsize(); ++i){
 					auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
@@ -325,8 +327,9 @@ void Simulator::simulate(){
 				spp->setX(spp->xsize()-1, spp->xb);
 			}
 			S.copyCohortsToState();
-			double t_int = -log(double(rand())/RAND_MAX) * T_return;
-			t_clear = t + fmin(t_int, 1000);
+			double dt_next = -log(double(rand())/RAND_MAX) * T_return;
+			dt_next = std::clamp(dt_next, 0.0, 10*T_return);
+			t_next_disturbance = t + dt_next;
 		}
 
 		// Save simulation state at specified intervals

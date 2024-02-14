@@ -45,13 +45,15 @@ class Simulator{
 	double      yf;
 	double      ye;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
-	double t_clear = 105000;
 	// t is years since 2000-01-01
-	double delta_T;
+	double delta_T;  // TODO: Rename to T_cohort_insertion
 	double timestep;
 	double T_seed_rain_avg;
 	double T_return; // return interval of disturbance
 	double T_invasion; 	// interval between successive species invasions
+
+	double t_next_disturbance;
+	double t_next_invasion;
 
 	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 
