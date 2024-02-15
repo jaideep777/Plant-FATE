@@ -76,6 +76,7 @@ void Simulator::init(double tstart, double tend){
 	t_next_disturbance = T_return;
 	t_next_invasion = T_invasion;
 	t_last_evolution = 1e20;
+	t_next_savestate = y0; // this will write state once at the beginning too, which is probably unnecessary
 
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
@@ -271,6 +272,7 @@ void Simulator::removeDeadSpecies(double t){
 	for (auto spp : toRemove) removeSpeciesAndProbes(spp);
 }
 
+
 void Simulator::addRandomSpecies(double t){
 	cout << "**** Invasion ****\n";
 	addSpeciesAndProbes(t, 
@@ -301,13 +303,19 @@ void Simulator::disturbPatch(double t){
 }
 
 
+
+/// @brief This function simulates patch to time t
+/// @param t Final time up to which patch should be simulated
 void Simulator::simulate_to(double t){
 	cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 	for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 	cout << ")" << endl;
 
-	double dt_evol = t - S.current_time; // Step size used for evolutionary dynamics, since trait evolution is done after completing step_to call
+	// Step size to be used for evolutionary dynamics, 
+	// since trait evolution is done after completing step_to call
+	double dt_evol = t - S.current_time; 
 
+	// perform step
 	auto after_step = [this](double _t){
 		// Calc r0, update seed rain
 		calc_seedrain_r0(_t);
@@ -315,9 +323,9 @@ void Simulator::simulate_to(double t){
 
 	S.step_to(t, after_step);
 
+	// update output metrics and write them to output stream
 	cwm.update(t, S);
 	props.update(t, S);
-	
 	sio.writeState(t, cwm, props);
 
 	// evolve traits
@@ -325,9 +333,8 @@ void Simulator::simulate_to(double t){
 		evolveTraits(t, dt_evol);
 	}
 
-	removeDeadSpecies(t);
-
-	// if (int(t) % 10 == 0) shuffleSpecies(); // Shuffle species - just for debugging. result shouldnt change
+	// remove species whose total abundance has fallen below threshold (its probes are also removed)
+	removeDeadSpecies(t); // needs updated cwm
 
 	// Invasion by a random new species
 	if (t >= t_next_invasion){
@@ -344,16 +351,42 @@ void Simulator::simulate_to(double t){
 	}
 
 	// Save simulation state at specified intervals
-	if (int(t) % saveStateInterval == 0){
+	if (t > t_next_savestate){
 		saveState(&S, 
 			out_dir + "/" + std::to_string(t) + "_" + state_outfile, 
 			out_dir + "/" + std::to_string(t) + "_" + config_outfile, 
 			paramsFile);
+		
+		t_next_savestate += saveStateInterval;
 	}
 
+	// Shuffle species - just for debugging. result shouldnt change
+	// if (int(t) % 10 == 0) shuffleSpecies(); 
 }
 
 
+/// @brief Simulate patch dynamics
+/// To simulate step-by-step, 
+///   1) set the following solver properties:
+///	     --> S.control.ode_ifmu_stepsize = 1e20; // this will ensure that simulate_to() takes only 1 internal step
+///	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
+///	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
+///   2) simulate in a loop with increments of `timestep`, e.g.,
+///      for (double t=y0; t <= yf+1e-6; t=t+timestep) {
+///      	simulate_to(t);
+///      }
+///
+/// To simulate a long interval, 
+///   1) set the following solver properties:
+///	     --> S.control.ode_ifmu_stepsize = timstep; // this will ensure that simulate_to() internally steps by one `timestep` at a time
+///	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
+///	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
+///   2) Simulate in one go: simulate_to(T_final) OR 
+///      break up the simulation into any desired number of intervals, where interval is at least several times the solver internal `timestep` 
+///      (this is ideal for accuracy and efficiency, but not strictly necessary). E.g.,
+///      for (double t=y0; t <= yf+1e-6; t=t+T_long) {
+///      	simulate_to(t);
+///      }
 void Simulator::simulate(){
 
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {

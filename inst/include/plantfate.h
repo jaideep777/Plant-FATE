@@ -55,6 +55,7 @@ class Simulator{
 	double t_next_disturbance;
 	double t_next_invasion;
 	double t_last_evolution;
+	double t_next_savestate;
 
 	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 
