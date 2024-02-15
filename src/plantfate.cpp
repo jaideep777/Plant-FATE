@@ -170,7 +170,7 @@ void Simulator::calc_seed_output(double t, Solver& S){
 // FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
 /// @brief     Calculate growth rates of all species and update seed input
 /// @param t   Current time 
-/// @param dt  timestep over which growth rate is to be calculated
+/// @param dt  timestep over which species growth rate is to be calculated
 /// @param S   Solver
 /// @ingroup   trait_evolution
 /// @details   Species growth rate is defined from the seed perspective, i.e., 
@@ -355,6 +355,6 @@ void Simulator::simulate(){
 		}
 
 	}
-	
+
 }
 
