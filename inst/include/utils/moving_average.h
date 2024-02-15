@@ -77,6 +77,11 @@ class MovingAverager{
 		else return f_hist.back();
 	}
 
+	inline double get_last_t(){
+		if (t_hist.size() == 0) return 0;
+		else return t_hist.back();
+	}
+
 	inline double get_interval(){
 		if (t_hist.size() == 0) return 0;
 		else return (t_hist.back()-t_hist.front());

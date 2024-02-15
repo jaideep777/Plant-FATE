@@ -159,26 +159,37 @@ double Simulator::runif(double rmin, double rmax){
 /// @ingroup   trait_evolution
 /// @details   Species growth rate is defined from the seed perspective, i.e., 
 ///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
-void Simulator::calc_seedrain_r0(double t, double dt){
+void Simulator::calc_seedrain_r0(double t){
+	
+	// calculate output seed rain at time t, S(t)
 	vector<double> seeds = S.newborns_out(t);
-
-	for (int k=0; k<S.species_vec.size(); ++k){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-
-		spp->seeds_hist.push(t, seeds[k]);
+	for (int k=0; k<seeds.size(); ++k){
 		if (seeds[k] < 0){
 			cout << "seeds[" << k << "] = " << seeds[k] << endl;
 			S.print();
-			spp->seeds_hist.print_summary(); cout.flush();
+			static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k])->seeds_hist.print_summary(); 
+			cout.flush();
 		}
+	}
 
-		double r0 = log(spp->seeds_hist.get()/spp->birth_flux_in)/dt;
+	// calculate r0 and update input seed rain
+	for (int k=0; k<S.species_vec.size(); ++k){
+		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+
+		double dt = t - spp->seeds_hist.get_last_t(); // Note: Due to this line, first value of r0 will be garbage, unless initialized!
+
+		spp->seeds_hist.push(t, seeds[k]);        // Push S(t) into averager so that S_avg(t) can be computed
+
+		double seeds_in = spp->birth_flux_in;     // This was S_avg(t-dt)
+		double seeds_out = spp->seeds_hist.get(); // This is  S_avg(t),    i.e. average over seed-rain-avg interval, either a year or successional time window 
+		double r0 = log(seeds_out/seeds_in)/dt;   // t0 = (log(S_avg(t)/S_avg(t-dt))/dt
 		
-		spp->set_inputBirthFlux(spp->seeds_hist.get());
-		spp->r0_hist.push(t, r0);
+		spp->set_inputBirthFlux(seeds_out);       // S_avg(t) will be input for next step
+		spp->r0_hist.push(t, r0);                 // r0 is averaged again for better evolutoinary convergence 
 		// spp->r0_hist.print_summary();
 	}
 }
+
 
 void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 	// delete species probes and remove their pointers from solver
@@ -291,23 +302,16 @@ void Simulator::disturbPatch(double t){
 
 
 void Simulator::simulate_to(double t){
-
-	auto after_step = [this](double _t){
-		// calc_seed_output(_t, S);
-		calc_seedrain_r0(_t, timestep);
-		// sio.fclim << t << "\t" 
-		//           << E.clim.tc << "\t"
-		//           << E.clim.ppfd_max << "\t"
-		//           << E.clim.ppfd << "\t"
-		//           << E.clim.vpd << "\t"
-		//           << E.clim.co2 << "\t"
-		//           << E.clim.elv << "\t"
-		//           << E.clim.swp << "\n";
-	};
-
 	cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 	for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 	cout << ")" << endl;
+
+	double dt_evol = t - S.current_time; // Step size used for evolutionary dynamics, since trait evolution is done after completing step_to call
+
+	auto after_step = [this](double _t){
+		// Calc r0, update seed rain
+		calc_seedrain_r0(_t);
+	};
 
 	S.step_to(t, after_step);
 
@@ -318,7 +322,7 @@ void Simulator::simulate_to(double t){
 
 	// evolve traits
 	if (evolve_traits && t > ye){
-		evolveTraits(t, timestep);
+		evolveTraits(t, dt_evol);
 	}
 
 	removeDeadSpecies(t);
