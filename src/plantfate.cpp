@@ -296,11 +296,11 @@ void Simulator::disturbPatch(double t){
 }
 
 
-void Simulator::simulate(){
+void Simulator::simulate_to(double t){
 
-	auto after_step = [this](double t){
-		calc_seed_output(t, S);
-		calc_r0(t, timestep, S);
+	auto after_step = [this](double _t){
+		calc_seed_output(_t, S);
+		calc_r0(_t, timestep, S);
 		// sio.fclim << t << "\t" 
 		//           << E.clim.tc << "\t"
 		//           << E.clim.ppfd_max << "\t"
@@ -311,50 +311,55 @@ void Simulator::simulate(){
 		//           << E.clim.swp << "\n";
 	};
 
-	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
-		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
-		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
-		cout << ")" << endl;
+	cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
+	for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
+	cout << ")" << endl;
 
-		S.step_to(t, after_step);
+	S.step_to(t, after_step);
 
-		cwm.update(t, S);
-		props.update(t, S);
-			
-		sio.writeState(t, cwm, props);
+	cwm.update(t, S);
+	props.update(t, S);
 	
-		// evolve traits
-		if (evolve_traits && t > ye){
-			evolveTraits(t, timestep);
-		}
+	sio.writeState(t, cwm, props);
 
-		removeDeadSpecies(t);
+	// evolve traits
+	if (evolve_traits && t > ye){
+		evolveTraits(t, timestep);
+	}
 
-		// if (int(t) % 10 == 0) shuffleSpecies(); // Shuffle species - just for debugging. result shouldnt change
+	removeDeadSpecies(t);
 
-		// Invasion by a random new species
-		if (t >= t_next_invasion){
-			addRandomSpecies(t);
-			t_next_invasion = t + T_invasion;
-		}
+	// if (int(t) % 10 == 0) shuffleSpecies(); // Shuffle species - just for debugging. result shouldnt change
 
-		// clear patch by disturbance	
-		if (t >= t_next_disturbance){
-			disturbPatch(t);
-			double dt_next = -log(double(rand())/RAND_MAX) * T_return;
-			dt_next = std::clamp(dt_next, 0.0, 10*T_return);
-			t_next_disturbance = t + dt_next;
-		}
+	// Invasion by a random new species
+	if (t >= t_next_invasion){
+		addRandomSpecies(t);
+		t_next_invasion = t + T_invasion;
+	}
 
-		// Save simulation state at specified intervals
-		if (int(t) % saveStateInterval == 0){
-			saveState(&S, 
-	          out_dir + "/" + std::to_string(t) + "_" + state_outfile, 
-			  out_dir + "/" + std::to_string(t) + "_" + config_outfile, 
-			  paramsFile);
-		}
+	// clear patch by disturbance	
+	if (t >= t_next_disturbance){
+		disturbPatch(t);
+		double dt_next = -log(double(rand())/RAND_MAX) * T_return;
+		dt_next = std::clamp(dt_next, 0.0, 10*T_return);
+		t_next_disturbance = t + dt_next;
+	}
 
+	// Save simulation state at specified intervals
+	if (int(t) % saveStateInterval == 0){
+		saveState(&S, 
+			out_dir + "/" + std::to_string(t) + "_" + state_outfile, 
+			out_dir + "/" + std::to_string(t) + "_" + config_outfile, 
+			paramsFile);
 	}
 
 }
 
+
+void Simulator::simulate(){
+
+	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
+		simulate_to(t);
+	}
+
+}

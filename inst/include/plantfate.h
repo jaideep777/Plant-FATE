@@ -79,6 +79,7 @@ class Simulator{
 
 	void init(double tstart, double tend);
 
+	void simulate_to(double t);
 	void simulate();
 
 	void close();
@@ -116,3 +117,4 @@ class Simulator{
 };
 
 #endif
+
