@@ -104,6 +104,7 @@ void Climate::updateClimate(double t){
 			while(tadj < t_met[0])   tadj += delta;
 			int idx_now = id(tadj);
 			int idx_next = (idx_now+1) % t_met.size();
+			// std::cout << "  t = " << t << ", idx = " << idx_now << ", tc = " << v_met[idx_now].tc << '\n';
 			clim = interp(v_met[idx_now], v_met[idx_next]);
 		}
 	}

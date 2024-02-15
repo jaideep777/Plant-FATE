@@ -366,30 +366,53 @@ void Simulator::simulate_to(double t){
 
 
 /// @brief Simulate patch dynamics
-/// To simulate step-by-step, 
-///   1) set the following solver properties:
-///	     --> S.control.ode_ifmu_stepsize = 1e20; // this will ensure that simulate_to() takes only 1 internal step
-///	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
-///	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
-///   2) simulate in a loop with increments of `timestep`, e.g.,
-///      for (double t=y0; t <= yf+1e-6; t=t+timestep) {
-///      	simulate_to(t);
-///      }
-///
-/// To simulate a long interval, 
-///   1) set the following solver properties:
-///	     --> S.control.ode_ifmu_stepsize = timstep; // this will ensure that simulate_to() internally steps by one `timestep` at a time
-///	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
-///	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
-///   2) Simulate in one go: simulate_to(T_final) OR 
-///      break up the simulation into any desired number of intervals, where interval is at least several times the solver internal `timestep` 
-///      (this is ideal for accuracy and efficiency, but not strictly necessary). E.g.,
-///      for (double t=y0; t <= yf+1e-6; t=t+T_long) {
-///      	simulate_to(t);
-///      }
+/// In Plant-FATE, we should always simulate step-by-step because we are explicitly managing seed rain feedback
+// To simulate step-by-step 
+// --------------------------
+//   1) set the following solver properties:
+//	     --> S.control.ode_ifmu_stepsize = 1e20; // this will ensure that simulate_to() takes only 1 internal step
+//	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
+//	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
+//   2) simulate in a loop with increments of `timestep`, e.g.,
+//      for (double t=y0; t <= yf+1e-6; t=t+timestep) {
+//      	updateClimate(S.current_time);
+//          simulate_to(t);
+//      }
+//   3) Climate should be updated once at the beginning of the step, and not in computeEnv(). Consider the following sequence of events
+//      Ideally, seed input S1 = seed production in interval t0-t1 ==> depends on avg {u,E,C} over t0-t1. Now since dt is small (~day), 
+//      u,E dont change as much, but C can change substantially from t0 to t1. Hence, B(u0,E0,C)~B(u1,E1,C) so it can be evaluated at end of step in AfterStep(). 
+//      however, since C changes abruptly at the end of the timestep, we should use C from the step beginnning, which is what plants see throughout 
+//      the step. If C-update is put in computeEnv, newborns_out() will update C and we will get B(u1,E1,C1) instead of B(u1,E1,C0). Hence, 
+//      better to manage C ourselves and update it once at the beginning of the timestep.
+//
+//         S0              S1              S2          ( v = seed rain from current vegetation that turns into seedlings)
+//                                        ||                                                     ( |        )
+//          -----.-------> || -----.----> |||||        ( . = seed ) --->  ( | = seedling ) --->  ( | = tree )
+//        -v----/------------v----/-----------v---       
+//        {..}_/           {...}_/          {......}   
+//         t0              t1              t2
+//        
+//         climate:          C1           
+//         C0               ---------------- C2
+//         _________________                --------
+//
+// To simulate a long interval (we shouldnt use this in Plant-FATE), 
+// ----------------------------
+//   1) set the following solver properties:
+//	     --> S.control.ode_ifmu_stepsize = timstep; // this will ensure that simulate_to() internally steps by one `timestep` at a time
+//	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
+//	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
+//   2) Simulate in one go: simulate_to(T_final) OR 
+//      break up the simulation into any desired number of intervals, where interval is at least several times the solver internal `timestep` 
+//      (this is ideal for accuracy and efficiency, but not strictly necessary). E.g.,
+//      for (double t=y0; t <= yf+1e-6; t=t+T_long) {
+//      	simulate_to(t);
+//      }
 void Simulator::simulate(){
 
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
+		E.updateClimate(S.current_time);
+		std::cout << "update Env (explicit)... t = " << S.current_time << ": tc = " << E.clim.tc << '\n';
 		simulate_to(t);
 	}
 

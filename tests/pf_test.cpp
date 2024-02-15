@@ -41,7 +41,8 @@ int main(int argc, char ** argv){
 		// err = is_equal(ba, {1.568911254, 7.061621143, 27.19173438});  // this was the output at yearly step_to when using 1d libpspm, reproduced in 2d
 		// err = is_equal(ba, {1.569239985, 7.069009343, 27.21039394});  // this is the output  at yearly step_to after ODE bugfix in libpspm @8d0eb68
 		// err = is_equal(ba, {1.569239985, 7.069009343, 27.21039394});  // this is the output  at yearly step_to after ODE bugfix in libpspm @118d623
-		err = is_equal(ba, {1.569460052, 7.060768412, 27.17424297});     // this is the output  at BIWEEKLY step_to. This difference is due to insertion of an extra point in R0 moving averager at integer t in yearly stepping - this doesnt happen at biweekly stepping, which seems more correct. This is the best level of investigattion I can do for now, so I'm going to take this as the expected test result and proceed with other stuff.
+		// err = is_equal(ba, {1.569460052, 7.060768412, 27.17424297});     // this is the output  at BIWEEKLY step_to. This difference is due to insertion of an extra point in R0 moving averager at integer t in yearly stepping - this doesnt happen at biweekly stepping, which seems more correct. This is the best level of investigattion I can do for now, so I'm going to take this as the expected test result and proceed with other stuff.
+		err = is_equal(ba, {1.569063555, 7.059273716, 27.16867421});     // this is the output  at BIWEEKLY step_to after moving climate update to before step. Difference is because not climate is not updated in after_step() before computation of seed rain
 
 		sim.close();
 	}
