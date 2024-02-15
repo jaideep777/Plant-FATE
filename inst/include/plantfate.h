@@ -93,7 +93,7 @@ class Simulator{
 	/// @ingroup   trait_evolution
 	/// @details   Species seed output rate is defined as,  
 	///            \f[S = \int_{x_b}^{x_m}{f(s)u(s)ds}\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
-	void calc_seed_output(double t, Solver& S);
+	// void calc_seed_output(double t, Solver& S);
 
 
 	// FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
@@ -104,7 +104,7 @@ class Simulator{
 	/// @ingroup   trait_evolution
 	/// @details   Species growth rate is defined from the seed perspective, i.e.,
 	///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species)
-	void calc_r0(double t, double dt, Solver &S);
+	void calc_seedrain_r0(double t, double dt);
 
 	void removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp);
 	void addSpeciesAndProbes(double t, std::string species_name, double lma, double wood_density, double hmat, double p50_xylem);

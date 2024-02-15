@@ -151,22 +151,6 @@ double Simulator::runif(double rmin, double rmax){
 }
 
 
-void Simulator::calc_seed_output(double t, Solver& S){
-	vector<double> seeds = S.newborns_out(t);
-	// cout << "t = " << fixed << setprecision(10) << t << ", Species r0s:\n";
-	for (int k=0; k<S.species_vec.size(); ++k){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-		spp->seeds_hist.push(t, seeds[k]);
-		if (seeds[k] < 0){
-			cout << "seeds[" << k << "] = " << seeds[k] << endl;
-			S.print();
-			spp->seeds_hist.print_summary(); cout.flush();
-		}
-		// cout << "   " << k << ": " <<  S.species_vec[k]->birth_flux_in << " --> " << seeds[k] << "/" << seeds_hist[k].get() << ", r0 = " << setprecision(8) << r0 << "\n";
-	}
-}
-
-
 // FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
 /// @brief     Calculate growth rates of all species and update seed input
 /// @param t   Current time 
@@ -175,9 +159,19 @@ void Simulator::calc_seed_output(double t, Solver& S){
 /// @ingroup   trait_evolution
 /// @details   Species growth rate is defined from the seed perspective, i.e., 
 ///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
-void Simulator::calc_r0(double t, double dt, Solver& S){
+void Simulator::calc_seedrain_r0(double t, double dt){
+	vector<double> seeds = S.newborns_out(t);
+
 	for (int k=0; k<S.species_vec.size(); ++k){
 		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+
+		spp->seeds_hist.push(t, seeds[k]);
+		if (seeds[k] < 0){
+			cout << "seeds[" << k << "] = " << seeds[k] << endl;
+			S.print();
+			spp->seeds_hist.print_summary(); cout.flush();
+		}
+
 		double r0 = log(spp->seeds_hist.get()/spp->birth_flux_in)/dt;
 		
 		spp->set_inputBirthFlux(spp->seeds_hist.get());
@@ -299,8 +293,8 @@ void Simulator::disturbPatch(double t){
 void Simulator::simulate_to(double t){
 
 	auto after_step = [this](double _t){
-		calc_seed_output(_t, S);
-		calc_r0(_t, timestep, S);
+		// calc_seed_output(_t, S);
+		calc_seedrain_r0(_t, timestep);
 		// sio.fclim << t << "\t" 
 		//           << E.clim.tc << "\t"
 		//           << E.clim.ppfd_max << "\t"
