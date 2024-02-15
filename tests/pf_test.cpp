@@ -38,10 +38,10 @@ int main(int argc, char ** argv){
 		for (auto& b : ba) b*=1e4;
 		cout << setprecision(10) << "Basal areas [m2/Ha]: " << ba << '\n';
 
-		// err = is_equal(ba, {1.568911254, 7.061621143, 27.19173438});  // this was the output when using 1d libpspm, reproduced in 2d
-		// err = is_equal(ba, {1.569239985, 7.069009343, 27.21039394});  // this is the output after ODE bugfix in libpspm @8d0eb68
-		err = is_equal(ba, {1.569239985, 7.069009343, 27.21039394});  // this is the output after ODE bugfix in libpspm @118d623
-		// err = is_equal(ba, {1.569532128, 7.062767395, 27.18470125});     // this is the output after timestep-by-timestep sim
+		// err = is_equal(ba, {1.568911254, 7.061621143, 27.19173438});  // this was the output at yearly step_to when using 1d libpspm, reproduced in 2d
+		// err = is_equal(ba, {1.569239985, 7.069009343, 27.21039394});  // this is the output  at yearly step_to after ODE bugfix in libpspm @8d0eb68
+		// err = is_equal(ba, {1.569239985, 7.069009343, 27.21039394});  // this is the output  at yearly step_to after ODE bugfix in libpspm @118d623
+		err = is_equal(ba, {1.569460052, 7.060768412, 27.17424297});     // this is the output  at BIWEEKLY step_to. This difference is due to insertion of an extra point in R0 moving averager at integer t in yearly stepping - this doesnt happen at biweekly stepping, which seems more correct. This is the best level of investigattion I can do for now, so I'm going to take this as the expected test result and proceed with other stuff.
 
 		sim.close();
 	}

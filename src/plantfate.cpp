@@ -86,7 +86,7 @@ void Simulator::init(double tstart, double tend){
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
 	S = Solver(solver_method, "rk45ck");
 	S.control.abm_n0 = 20;
-	S.control.ode_ifmu_stepsize = timestep; //0.02; //0.0833333;
+	S.control.ode_ifmu_stepsize = 1e20; //timestep; //0.02; //0.0833333;
 	S.control.cohort_insertion_dt = T_cohort_insertion;
 	S.control.sync_cohort_insertion = false;
 	S.control.ifmu_centered_grids = false; //true;
@@ -311,7 +311,7 @@ void Simulator::simulate(){
 		//           << E.clim.swp << "\n";
 	};
 
-	for (double t=y0; t <= yf; t=t+T_cohort_insertion) {
+	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
@@ -325,7 +325,7 @@ void Simulator::simulate(){
 	
 		// evolve traits
 		if (evolve_traits && t > ye){
-			evolveTraits(t, T_cohort_insertion);
+			evolveTraits(t, timestep);
 		}
 
 		removeDeadSpecies(t);
