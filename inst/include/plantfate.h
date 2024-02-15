@@ -10,7 +10,7 @@
 
 #include <solver.h>
 #include "pspm_interface.h"
-#include "pspm_dynamic_environment.h"
+#include "light_environment.h"
 #include "trait_reader.h"
 #include "community_properties.h"
 #include "trait_evolution.h"
@@ -66,7 +66,9 @@ class Simulator{
 
 	io::Initializer          I;
 	Solver                   S;
-	PSPM_Dynamic_Environment E;
+	env::LightEnvironment    E;
+	env::Clim                forcing_inst;
+	env::Clim                forcing_acclim;
 
 	SolverIO      sio;
 	SpeciesProps  cwm;

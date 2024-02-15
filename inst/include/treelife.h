@@ -10,7 +10,7 @@
 #include "light_environment.h"
 
 
-class ErgodicEnvironment : public env::Climate, public env::LightEnvironment {
+class ErgodicEnvironment : public env::LightEnvironment {
 	public:
 	ErgodicEnvironment();
 	void print(double t);

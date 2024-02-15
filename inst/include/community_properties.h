@@ -2,7 +2,6 @@
 #define PLANT_FATE_COMMUNITY_PROPERTIES_H_
 
 #include "pspm_interface.h"
-#include "pspm_dynamic_environment.h"
 #include "trait_evolution.h"
 #include "utils/sequence.h"
 

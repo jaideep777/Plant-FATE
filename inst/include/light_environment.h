@@ -5,10 +5,12 @@
 #include <vector>
 #include <environment_base.h>
 #include <solver.h>
+#include <trait_evolution.h>
+#include <pspm_interface.h>
 
 namespace env{
 
-class LightEnvironment : public EnvironmentBase {
+class LightEnvironment : public EnvironmentBase, public env::Climate {
 	public:
 	bool use_ppa = true;
 
@@ -21,11 +23,15 @@ class LightEnvironment : public EnvironmentBase {
 	std::vector<double> fapar_tot;
 	std::vector<double> canopy_openness;
 	
-	
 	public:
 	LightEnvironment();
-	void computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt);
-	void print();
+
+	double projected_crown_area_above_z(double t, double z, Solver *S);
+	double fapar_layer(double t, int layer, Solver *S);
+
+	void computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt) override;
+
+	void print(double t);
 	
 };
 

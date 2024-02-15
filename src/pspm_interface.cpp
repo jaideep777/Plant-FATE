@@ -1,10 +1,10 @@
 #include "pspm_interface.h"
 #include "trait_evolution.h"
+#include "light_environment.h"
 #include <iomanip>
-#include "pspm_dynamic_environment.h"
 using namespace std;
 
-typedef PSPM_Dynamic_Environment EnvUsed;
+using EnvUsed = env::LightEnvironment;
 
 // **********************************************************
 // ********** PSPM_Plant ************************************
