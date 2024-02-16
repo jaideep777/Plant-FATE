@@ -255,7 +255,7 @@ void EmergentProps::update(double t, Solver &S){
 	stem_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.stem_mass(p->traits);});
 	croot_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.coarse_root_mass(p->traits);});
 	froot_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.root_mass(p->traits);});
-	gs = (trans*55.55/365/86400)/1.6/(static_cast<env::LightEnvironment*>(S.env)->clim.vpd/1.0325e5);
+	gs = (trans*55.55/365/86400)/1.6/(static_cast<PSPM_Environment*>(S.env)->clim.vpd/1.0325e5);
 	//     ^ convert kg/m2/yr --> mol/m2/s
 
 	double tleaf_comm = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.tleaf;});
@@ -493,11 +493,11 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 	
 
 	fzst << t << "\t";
-	for (auto z : static_cast<env::LightEnvironment*>(S->env)->z_star) fzst << z << "\t";
+	for (auto z : static_cast<PSPM_Environment*>(S->env)->z_star) fzst << z << "\t";
 	fzst << std::endl;
 	
 	fco << t << "\t";
-	for (auto z : static_cast<env::LightEnvironment*>(S->env)->canopy_openness) fco << z << "\t";
+	for (auto z : static_cast<PSPM_Environment*>(S->env)->canopy_openness) fco << z << "\t";
 	fco << std::endl;
 
 }

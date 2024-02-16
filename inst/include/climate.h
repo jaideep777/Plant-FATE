@@ -76,7 +76,7 @@ class Climate{
 	template<class T> 
 	T as(std::string s);
 
-	void print();
+	virtual void print(double t);
 	void print_line(double t);
 	void print_all();
 

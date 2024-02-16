@@ -10,7 +10,6 @@
 
 #include <solver.h>
 #include "pspm_interface.h"
-#include "light_environment.h"
 #include "trait_reader.h"
 #include "community_properties.h"
 #include "trait_evolution.h"
@@ -56,6 +55,7 @@ class Simulator{
 	double t_next_invasion;
 	double t_last_evolution;
 	double t_next_savestate;
+	double t_next_writestate;
 
 	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 
@@ -66,7 +66,7 @@ class Simulator{
 
 	io::Initializer          I;
 	Solver                   S;
-	env::LightEnvironment    E;
+	PSPM_Environment         E;
 	env::Clim                forcing_inst;
 	env::Clim                forcing_acclim;
 

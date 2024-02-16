@@ -5,12 +5,10 @@
 #include <vector>
 #include <environment_base.h>
 #include <solver.h>
-#include <trait_evolution.h>
-#include <pspm_interface.h>
 
 namespace env{
 
-class LightEnvironment : public EnvironmentBase, public env::Climate {
+class LightEnvironment : public EnvironmentBase {
 	public:
 	bool use_ppa = true;
 
@@ -31,7 +29,7 @@ class LightEnvironment : public EnvironmentBase, public env::Climate {
 
 	void computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt) override;
 
-	void print(double t);
+	virtual void print(double t);
 	
 };
 

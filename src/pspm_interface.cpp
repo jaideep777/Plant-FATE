@@ -1,10 +1,9 @@
 #include "pspm_interface.h"
 #include "trait_evolution.h"
-#include "light_environment.h"
 #include <iomanip>
 using namespace std;
 
-using EnvUsed = env::LightEnvironment;
+using EnvUsed = PSPM_Environment;
 
 // **********************************************************
 // ********** PSPM_Plant ************************************
@@ -20,7 +19,7 @@ void PSPM_Plant::set_size(const std::array<double, STATE_DIM>& _x){
 
 // This gives initial density of stages of the tree (established seedlings and thereafter)
 double PSPM_Plant::init_density(void * _env, double input_seed_rain){
-//	EnvUsed * env = (EnvUsed*)_env;
+//	EnvUsed * env = static_cast<EnvUsed*>(_env);
 //	compute_vars_phys(*env);
 //	double u0;
 //	if (x == vars.height){
@@ -40,7 +39,7 @@ double PSPM_Plant::init_density(void * _env, double input_seed_rain){
 
 
 void PSPM_Plant::preCompute(double t, void * _env){
-	EnvUsed * env = (EnvUsed*)_env;
+	EnvUsed * env = static_cast<EnvUsed*>(_env);
 	calc_demographic_rates(*env, t);
 //	double p_plant_survival = exp(-vars.mortality);
 //	//viable_seeds_dt = vars.fecundity_dt; // only for single-plant testrun
@@ -48,7 +47,7 @@ void PSPM_Plant::preCompute(double t, void * _env){
 }
 
 void PSPM_Plant::afterStep(double t, void * _env){
-//	EnvUsed * env = (EnvUsed*)_env;
+//	EnvUsed * env = static_cast<EnvUsed*>(_env);
 //	
 //	seeds_hist.push(t, rates.dseeds_dt_germ);
 	//seeds_hist.print_summary();
@@ -56,7 +55,7 @@ void PSPM_Plant::afterStep(double t, void * _env){
 
 // Probability that a fresh seed survives to become a seedling
 double PSPM_Plant::establishmentProbability(double t, void * _env){
-	EnvUsed * env = (EnvUsed*)_env;
+	EnvUsed * env = static_cast<EnvUsed*>(_env);
 	return p_survival_dispersal(env) * p_survival_germination(*env);
 }
 
@@ -86,7 +85,7 @@ double PSPM_Plant::birthRate(double t, void * _env){
 // Therefore needs size as input
 void PSPM_Plant::init_accumulators(double t, void * _env){
 	//set_size(x);	
-	EnvUsed * env = (EnvUsed*)_env;
+	EnvUsed * env = static_cast<EnvUsed*>(_env);
 	geometry.lai = par.lai0;
 	state.mortality = -log(establishmentProbability(t, env)); ///env->patch_survival(t));    // mortality // TODO: Verify! This is supposed to be cumulative mortality starting from the fresh seed stage until seedling stage
 //	state.seed_pool = 0; // viable seeds
@@ -145,3 +144,7 @@ void PSPM_Plant::save(std::ostream &fout){
 void PSPM_Plant::restore(std::istream &fin){
 }
 
+void PSPM_Environment::print(double t){
+	Climate::print(t);
+	env::LightEnvironment::print(t);
+}

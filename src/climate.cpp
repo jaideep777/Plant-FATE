@@ -161,13 +161,13 @@ int Climate::readNextLine_met(Clim &clim, double &t, std::ifstream& fin_met){
 }
 
 
-void Climate::print(){
+void Climate::print(double t){
 	cout << "Climate meta:\n";
 	cout << "  met_file = " << metFile << '\n';
 	cout << "  co2_file = " << co2File << '\n';
 	cout << "  met data will be updated from file: " << ((update_met)? "yes" : "no") << '\n';
 	cout << "  CO2 will be updated from file: " << ((update_co2)? "yes" : "no") << '\n';
-	cout << "  Current climate:\n";
+	cout << "  Current climate: (t = " << t << ")\n";
 	cout << "     tc      = " << clim.tc  << '\n';
 	cout << "     ppfdmax = " << clim.ppfd_max << '\n';
 	cout << "     ppfd    = " << clim.ppfd << '\n';

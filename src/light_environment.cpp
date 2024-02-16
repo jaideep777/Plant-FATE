@@ -3,6 +3,8 @@
 #include <vector>
 
 #include "light_environment.h"
+#include "trait_evolution.h"
+#include "pspm_interface.h"
 
 namespace env{
 
@@ -157,7 +159,6 @@ void LightEnvironment::computeEnv(double t, Solver *sol, std::vector<double>::it
 
 
 void LightEnvironment::print(double t){
-	Climate::print_line(t);
 
 	std::cout << "PPA:" << "\n";
 	std::cout << "z* (" << n_layers << ") = "; for (auto z:z_star) std::cout << z << " "; 

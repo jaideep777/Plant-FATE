@@ -423,7 +423,10 @@ void Simulator::simulate(){
 		simulate_to(t);
 
 		// write outputs
-		sio.writeState(t, cwm, props);
+		if (t > t_next_writestate){
+			sio.writeState(t, cwm, props);
+			t_next_writestate += 1;
+		}
 
 	}
 }
