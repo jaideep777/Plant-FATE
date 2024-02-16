@@ -3,7 +3,7 @@
 
 #include <individual_base.h>
 #include <solver.h>
-// #include "light_environment.h"
+#include "light_environment.h"
 #include "climate.h"
 #include "plant.h"
 
@@ -65,6 +65,16 @@ class PSPM_Plant : public plant::Plant, public IndividualBase<STATE_DIM> {
 
 	void save(std::ostream &fout) override;
 	void restore(std::istream &fin) override;
+};
+
+
+/// @ingroup  libpspm_interface
+/// @brief    This class provides a common interface to different components of the environment
+class PSPM_Environment : 
+	public env::LightEnvironment, public env::Climate
+{
+	public:
+	void print(double t) override;
 };
 
 

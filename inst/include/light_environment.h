@@ -21,11 +21,15 @@ class LightEnvironment : public EnvironmentBase {
 	std::vector<double> fapar_tot;
 	std::vector<double> canopy_openness;
 	
-	
 	public:
 	LightEnvironment();
-	void computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt);
-	void print();
+
+	double projected_crown_area_above_z(double t, double z, Solver *S);
+	double fapar_layer(double t, int layer, Solver *S);
+
+	void computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt) override;
+
+	virtual void print(double t);
 	
 };
 

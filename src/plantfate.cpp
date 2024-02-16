@@ -33,10 +33,11 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 	T_return = I.getScalar("T_return");
 
-	E.metFile = I.get<string>("metFile");
-	E.co2File = I.get<string>("co2File");
-	E.update_met = (E.metFile == "null")? false : true;
-	E.update_co2 = (E.co2File == "null")? false : true;
+	climate_stream.metFile = I.get<string>("metFile");
+	climate_stream.co2File = I.get<string>("co2File");
+	climate_stream.update_met = (climate_stream.metFile == "null")? false : true;
+	climate_stream.update_co2 = (climate_stream.co2File == "null")? false : true;
+
 	E.use_ppa = true;
 
 	traits0.init(I);
@@ -45,14 +46,14 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 
 
 void Simulator::set_metFile(std::string metfile){
-	E.metFile = metfile;
-	E.update_met = (metfile == "")? false : true;
+	climate_stream.metFile = metfile;
+	climate_stream.update_met = (metfile == "")? false : true;
 }
 
 
 void Simulator::set_co2File(std::string co2file){
-	E.co2File = co2file;
-	E.update_co2 = (co2file == "")? false : true;
+	climate_stream.co2File = co2file;
+	climate_stream.update_co2 = (co2file == "")? false : true;
 }
 
 
@@ -81,8 +82,7 @@ void Simulator::init(double tstart, double tend){
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
 	// E.co2File = co2_file;
-	E.init();
-	E.print(0);
+	climate_stream.init();
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
 	S = Solver(solver_method, "rk45ck");
@@ -323,10 +323,9 @@ void Simulator::simulate_to(double t){
 
 	S.step_to(t, after_step);
 
-	// update output metrics and write them to output stream
+	// update output metrics 
 	cwm.update(t, S);
 	props.update(t, S);
-	sio.writeState(t, cwm, props);
 
 	// evolve traits
 	if (evolve_traits && t > ye){
@@ -334,7 +333,7 @@ void Simulator::simulate_to(double t){
 	}
 
 	// remove species whose total abundance has fallen below threshold (its probes are also removed)
-	removeDeadSpecies(t); // needs updated cwm
+	removeDeadSpecies(t); // needs updated cwm for species abundances
 
 	// Invasion by a random new species
 	if (t >= t_next_invasion){
@@ -366,31 +365,68 @@ void Simulator::simulate_to(double t){
 
 
 /// @brief Simulate patch dynamics
-/// To simulate step-by-step, 
-///   1) set the following solver properties:
-///	     --> S.control.ode_ifmu_stepsize = 1e20; // this will ensure that simulate_to() takes only 1 internal step
-///	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
-///	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
-///   2) simulate in a loop with increments of `timestep`, e.g.,
-///      for (double t=y0; t <= yf+1e-6; t=t+timestep) {
-///      	simulate_to(t);
-///      }
-///
-/// To simulate a long interval, 
-///   1) set the following solver properties:
-///	     --> S.control.ode_ifmu_stepsize = timstep; // this will ensure that simulate_to() internally steps by one `timestep` at a time
-///	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
-///	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
-///   2) Simulate in one go: simulate_to(T_final) OR 
-///      break up the simulation into any desired number of intervals, where interval is at least several times the solver internal `timestep` 
-///      (this is ideal for accuracy and efficiency, but not strictly necessary). E.g.,
-///      for (double t=y0; t <= yf+1e-6; t=t+T_long) {
-///      	simulate_to(t);
-///      }
+/// TODO: Evntually, this function should be moved to a higher controller, which can simulate multiple patches and manage data IO
+/// In Plant-FATE, we should always simulate step-by-step because we are explicitly managing seed rain feedback
+// To simulate step-by-step 
+// --------------------------
+//   1) set the following solver properties:
+//	     --> S.control.ode_ifmu_stepsize = 1e20; // this will ensure that simulate_to() takes only 1 internal step
+//	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
+//	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
+//   2) simulate in a loop with increments of `timestep`, e.g.,
+//      for (double t=y0; t <= yf+1e-6; t=t+timestep) {
+//      	updateClimate(S.current_time);
+//          simulate_to(t);
+//      }
+//   3) Climate should be updated once at the beginning of the step, and not in computeEnv(). Consider the following sequence of events
+//      Ideally, seed input S1 = seed production in interval t0-t1 ==> depends on avg {u,E,C} over t0-t1. Now since dt is small (~day), 
+//      u,E dont change as much, but C can change substantially from t0 to t1. Hence, B(u0,E0,C)~B(u1,E1,C) so it can be evaluated at end of step in AfterStep(). 
+//      however, since C changes abruptly at the end of the timestep, we should use C from the step beginnning, which is what plants see throughout 
+//      the step. If C-update is put in computeEnv, newborns_out() will update C and we will get B(u1,E1,C1) instead of B(u1,E1,C0). Hence, 
+//      better to manage C ourselves and update it once at the beginning of the timestep.
+//
+//         S0              S1              S2          ( v = seed rain from current vegetation that turns into seedlings)
+//                                        ||                                                     ( |        )
+//          -----.-------> || -----.----> |||||        ( . = seed ) --->  ( | = seedling ) --->  ( | = tree )
+//        -v----/------------v----/-----------v---       
+//        {..}_/           {...}_/          {......}   
+//         t0              t1              t2
+//        
+//         climate:          C1           
+//         C0               ---------------- C2
+//         _________________                --------
+//   4) This step-by-step approach is also better suited to spatial simulations, where the entire grid of 
+//      climate input is read once before the beginning of the step. Otherwise, if each patch tried to read 
+//      its own input, this will try to update entire grid whenever any patch wants to upfate (inefficient) 
+//      or worse, create problems when patches are parallelized
+//
+// To simulate a long interval (we shouldnt use this in Plant-FATE), 
+// ----------------------------
+//   1) set the following solver properties:
+//	     --> S.control.ode_ifmu_stepsize = timstep; // this will ensure that simulate_to() internally steps by one `timestep` at a time
+//	     --> S.control.cohort_insertion_dt = T_cohort_insertion; // this will insert cohorts automatically at the specified interval
+//	     --> S.control.sync_cohort_insertion = false;  // this will prevent cohort insertion at the end of simulate_to()
+//   2) Simulate in one go: simulate_to(T_final) OR 
+//      break up the simulation into any desired number of intervals, where interval is at least several times the solver internal `timestep` 
+//      (this is ideal for accuracy and efficiency, but not strictly necessary). E.g.,
+//      for (double t=y0; t <= yf+1e-6; t=t+T_long) {
+//      	simulate_to(t);
+//      }
 void Simulator::simulate(){
 
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
-		simulate_to(t);
-	}
+		// read forcing inputs
+		climate_stream.updateClimate(flare::yearsCE_to_julian(S.current_time), E.clim);
+		std::cout << "update Env (explicit)... t = " << S.current_time << ": tc = " << E.clim.tc << '\n';
 
+		// simulate patch
+		simulate_to(t);
+
+		// write outputs
+		if (t > t_next_writestate){
+			sio.writeState(t, cwm, props);
+			t_next_writestate += 1;
+		}
+
+	}
 }

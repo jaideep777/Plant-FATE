@@ -3,7 +3,7 @@
 using namespace std;
 
 
-ErgodicEnvironment::ErgodicEnvironment() : LightEnvironment(){
+ErgodicEnvironment::ErgodicEnvironment() : LightEnvironment(), Climate() {
 	z_star = {15, 10, 5, 0};
 	canopy_openness = {1, exp(-0.5*1.8), exp(-0.5*3.5), exp(-0.5*5.5)};
 }
@@ -15,6 +15,11 @@ void ErgodicEnvironment::print(double t){
 	cout << "canopy_openness = " << canopy_openness;
 }
 
+void ErgodicEnvironment::computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt){
+	// do nothing
+}
+
+
 LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file) : I(params_file){
 	//paramsFile = params_file; // = "tests/params/p.ini";
 	I.readFile();
@@ -22,19 +27,19 @@ LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file) : I(params_f
 	traits0.init(I);
 	par0.init(I);
 
-	C.metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
-	C.co2File = ""; //"tests/data/CO2_AMB_AmzFACE2000_2100.csv";
+	c_stream.metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
+	c_stream.co2File = ""; //"tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 
 }
 
 void LifeHistoryOptimizer::set_metFile(std::string metfile){
-	C.metFile = metfile;
-	C.update_met = (metfile == "")? false : true;
+	c_stream.metFile = metfile;
+	c_stream.update_met = (metfile == "")? false : true;
 }
 
 void LifeHistoryOptimizer::set_co2File(std::string co2file){
-	C.co2File = co2file;
-	C.update_co2 = (co2file == "")? false : true;
+	c_stream.co2File = co2file;
+	c_stream.update_co2 = (co2file == "")? false : true;
 }
 
 
@@ -45,7 +50,8 @@ void LifeHistoryOptimizer::init(){
 	prod = 0;
 
 	C.n_layers = C.z_star.size()-1;
-	C.init();
+	
+	c_stream.init();
 
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
 	P = plant::Plant();
@@ -194,7 +200,7 @@ void LifeHistoryOptimizer::grow_for_dt(double t, double dt){
 
 	auto derivs = [this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 		//if (fabs(t - 2050) < 1e-5) 
-		C.updateClimate(t);
+		c_stream.updateClimate(flare::yearsCE_to_julian(t), C.clim);
 		set_state(S.begin());
 		P.calc_demographic_rates(C, t);
 		

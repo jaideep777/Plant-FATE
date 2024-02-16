@@ -10,11 +10,11 @@
 
 #include <solver.h>
 #include "pspm_interface.h"
-#include "pspm_dynamic_environment.h"
 #include "trait_reader.h"
 #include "community_properties.h"
 #include "trait_evolution.h"
 #include "state_restore.h"
+#include "climate_stream.h"
 
 class Simulator{
 	private:
@@ -56,6 +56,7 @@ class Simulator{
 	double t_next_invasion;
 	double t_last_evolution;
 	double t_next_savestate;
+	double t_next_writestate;
 
 	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 
@@ -64,9 +65,10 @@ class Simulator{
 	plant::PlantParameters par0;
 	plant::PlantTraits traits0;
 
-	io::Initializer          I;
-	Solver                   S;
-	PSPM_Dynamic_Environment E;
+	io::Initializer     I;
+	Solver              S;
+	PSPM_Environment    E;
+	env::ClimateStream  climate_stream;  // should be moved out of patch
 
 	SolverIO      sio;
 	SpeciesProps  cwm;
