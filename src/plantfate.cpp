@@ -323,10 +323,9 @@ void Simulator::simulate_to(double t){
 
 	S.step_to(t, after_step);
 
-	// update output metrics and write them to output stream
+	// update output metrics 
 	cwm.update(t, S);
 	props.update(t, S);
-	sio.writeState(t, cwm, props);
 
 	// evolve traits
 	if (evolve_traits && t > ye){
@@ -334,7 +333,7 @@ void Simulator::simulate_to(double t){
 	}
 
 	// remove species whose total abundance has fallen below threshold (its probes are also removed)
-	removeDeadSpecies(t); // needs updated cwm
+	removeDeadSpecies(t); // needs updated cwm for species abundances
 
 	// Invasion by a random new species
 	if (t >= t_next_invasion){
@@ -366,6 +365,7 @@ void Simulator::simulate_to(double t){
 
 
 /// @brief Simulate patch dynamics
+/// TODO: Evntually, this function should be moved to a higher controller, which can simulate multiple patches and manage data IO
 /// In Plant-FATE, we should always simulate step-by-step because we are explicitly managing seed rain feedback
 // To simulate step-by-step 
 // --------------------------
@@ -395,6 +395,10 @@ void Simulator::simulate_to(double t){
 //         climate:          C1           
 //         C0               ---------------- C2
 //         _________________                --------
+//   4) This step-by-step approach is also better suited to spatial simulations, where the entire grid of 
+//      climate input is read once before the beginning of the step. Otherwise, if each patch tried to read 
+//      its own input, this will try to update entire grid whenever any patch wants to upfate (inefficient) 
+//      or worse, create problems when patches are parallelized
 //
 // To simulate a long interval (we shouldnt use this in Plant-FATE), 
 // ----------------------------
@@ -411,9 +415,15 @@ void Simulator::simulate_to(double t){
 void Simulator::simulate(){
 
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
+		// read forcing inputs
 		E.updateClimate(S.current_time);
 		std::cout << "update Env (explicit)... t = " << S.current_time << ": tc = " << E.clim.tc << '\n';
-		simulate_to(t);
-	}
 
+		// simulate patch
+		simulate_to(t);
+
+		// write outputs
+		sio.writeState(t, cwm, props);
+
+	}
 }
