@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "climate.h"
-#include "csvstream.h" // from Flare
+#include <csvstream.h> // from Flare
 
 namespace env{
 
@@ -20,7 +20,6 @@ class ClimateStream{
 
 	std::string metFile = "";
 	std::string co2File = "";
-	bool interpolate = false;
 	
 	bool update_met = false;
 	bool update_co2 = false;

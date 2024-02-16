@@ -33,10 +33,11 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
 	T_return = I.getScalar("T_return");
 
-	E.metFile = I.get<string>("metFile");
-	E.co2File = I.get<string>("co2File");
-	E.update_met = (E.metFile == "null")? false : true;
-	E.update_co2 = (E.co2File == "null")? false : true;
+	climate_stream.metFile = I.get<string>("metFile");
+	climate_stream.co2File = I.get<string>("co2File");
+	climate_stream.update_met = (climate_stream.metFile == "null")? false : true;
+	climate_stream.update_co2 = (climate_stream.co2File == "null")? false : true;
+
 	E.use_ppa = true;
 
 	traits0.init(I);
@@ -45,14 +46,14 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 
 
 void Simulator::set_metFile(std::string metfile){
-	E.metFile = metfile;
-	E.update_met = (metfile == "")? false : true;
+	climate_stream.metFile = metfile;
+	climate_stream.update_met = (metfile == "")? false : true;
 }
 
 
 void Simulator::set_co2File(std::string co2file){
-	E.co2File = co2file;
-	E.update_co2 = (co2file == "")? false : true;
+	climate_stream.co2File = co2file;
+	climate_stream.update_co2 = (co2file == "")? false : true;
 }
 
 
@@ -81,8 +82,7 @@ void Simulator::init(double tstart, double tend){
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
 	// E.co2File = co2_file;
-	E.init();
-	E.print(0);
+	climate_stream.init();
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
 	S = Solver(solver_method, "rk45ck");
@@ -416,7 +416,7 @@ void Simulator::simulate(){
 
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
 		// read forcing inputs
-		E.updateClimate(S.current_time);
+		climate_stream.updateClimate(flare::yearsCE_to_julian(S.current_time), E.clim);
 		std::cout << "update Env (explicit)... t = " << S.current_time << ": tc = " << E.clim.tc << '\n';
 
 		// simulate patch

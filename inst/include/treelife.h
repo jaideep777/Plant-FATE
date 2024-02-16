@@ -7,6 +7,7 @@
 #include "plant.h"
 
 #include "climate.h"
+#include "climate_stream.h"
 #include "light_environment.h"
 
 
@@ -24,6 +25,7 @@ class LifeHistoryOptimizer{
 	public:
 	plant::Plant P;
 	ErgodicEnvironment C;
+	env::ClimateStream c_stream;
 
 	// std::string paramsFile;
 	// std::string met_file = "";
