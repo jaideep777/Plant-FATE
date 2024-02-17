@@ -16,13 +16,12 @@ void Plant::init(const PlantParameters &_par, const PlantTraits &_traits){
 void Plant::init(io::Initializer &I){
 	par.init(I);
 	traits.init(I);
-	coordinateTraits();
+	init(par, traits);
 }
 
 void Plant::initFromFile(std::string file){
 	io::Initializer I;
 	I.parse(file);
-
 	init(I);
 }
 
