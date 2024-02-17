@@ -25,7 +25,7 @@ int main(){
 	
 	cout << setprecision(12);
 	
-	LifeHistoryOptimizer lho("tests/params/p.ini");
+	LifeHistoryOptimizer lho("tests/params/p_test_v2.ini");
 	lho.init();
 	double total_prod = lho.P.get_biomass();
 	cout << "Starting biomass = " << total_prod << "\n";
@@ -69,6 +69,7 @@ int main(){
 		 << "  Total production = " << lho.prod << "\n";
 	cout << "Fitness = " << fitness << endl;
 
+	if (fabs(fitness - 0.414567339728) > 1e-6) return 1;
 
 	return 0;
 }

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <string>
 
-#include <utils/initializer.h>
+#include <utils/initializer_v2.h>
 #include "trait_evolution.h"
 #include "pspm_interface.h"
 

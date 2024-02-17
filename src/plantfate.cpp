@@ -2,9 +2,9 @@
 #include <filesystem>
 using namespace std;
 
-Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45ck") {
+Simulator::Simulator(std::string params_file) : S("IEBT", "rk45ck") {
 	paramsFile = params_file; // = "tests/params/p.ini";
-	I.readFile();
+	I.parse(params_file);
 
 	parent_dir = I.get<string>("outDir");
 	expt_dir   = I.get<string>("exptName");
@@ -17,21 +17,21 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	continueFrom_stateFile = I.get<string>("continueFromState");
 	continueFrom_configFile = I.get<string>("continueFromConfig");
 	continuePrevious = (continueFrom_configFile != "null") && (continueFrom_stateFile != "null");
-	saveStateInterval = I.getScalar("saveStateInterval");
+	saveStateInterval = I.get<double>("saveStateInterval");
 
 	traits_file = I.get<string>("traitsFile");
-	n_species = I.getScalar("nSpecies");
+	n_species = I.get<double>("nSpecies");
 	evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
 
-	timestep = I.getScalar("timestep");  // ODE Solver timestep
- 	T_cohort_insertion = I.getScalar("T_cohort_insertion");    // Cohort insertion timestep
+	timestep = I.get<double>("timestep");  // ODE Solver timestep
+ 	T_cohort_insertion = I.get<double>("T_cohort_insertion");    // Cohort insertion timestep
 
 	solver_method = I.get<string>("solver");
-	res = I.getScalar("resolution");
+	res = I.get<double>("resolution");
 
-	T_invasion = I.getScalar("T_invasion");
-	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
-	T_return = I.getScalar("T_return");
+	T_invasion = I.get<double>("T_invasion");
+	T_seed_rain_avg = I.get<double>("T_seed_rain_avg");
+	T_return = I.get<double>("T_return");
 
 	climate_stream.metFile = I.get<string>("metFile");
 	climate_stream.co2File = I.get<string>("co2File");
@@ -70,8 +70,8 @@ void Simulator::init(double tstart, double tend){
 	// sysresult = system(command.c_str());
 	// sysresult = system(command2.c_str());
 
-	y0 = tstart; //I.getScalar("year0");
-	yf = tend;   //I.getScalar("yearf");
+	y0 = tstart; //I.get<double>("year0");
+	yf = tend;   //I.get<double>("yearf");
 	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
 	t_next_disturbance = T_return;
@@ -107,15 +107,17 @@ void Simulator::init(double tstart, double tend){
 		Tr.print();
 
 		// ~~~ Create initial resident species pool from traits file ~~~~
-		//int nspp = I.getScalar("nSpecies");
-		// int res = I.getScalar("resolution");
+		//int nspp = I.get<double>("nSpecies");
+		// int res = I.get<double>("resolution");
 		for (int i=0; i<n_species; ++i){
-			addSpeciesAndProbes(y0, 
-								Tr.species[i].species_name, 
-								Tr.species[i].lma, 
-								Tr.species[i].wood_density, 
-								Tr.species[i].hmat, 
-								Tr.species[i].p50_xylem);
+			plant::PlantTraits traits = traits0; 
+			traits.species_name = Tr.species[i].species_name;
+			traits.lma          = Tr.species[i].lma;
+			traits.wood_density = Tr.species[i].wood_density;
+			traits.hmat         = Tr.species[i].hmat;
+			traits.p50_xylem    = Tr.species[i].p50_xylem; // runif(-3.5,-0.5);
+
+			addSpeciesAndProbes(y0, traits);
 		}
 
 		// S.resetState(y0);
@@ -207,19 +209,13 @@ void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 	S.copyCohortsToState();
 }
 
-void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, double wood_density, double hmat, double p50_xylem){
+
+void Simulator::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 
 	PSPM_Plant p1;
 	//p1.initFromFile(paramsFile);
-	p1.par = par0;
-	p1.traits = traits0;
-	p1.traits.species_name = species_name;
-	p1.traits.lma = lma;
-	p1.traits.wood_density = wood_density;
-	p1.traits.hmat = hmat;
-	p1.traits.p50_xylem = p50_xylem; // runif(-3.5,-0.5);
-	
-	p1.coordinateTraits();
+
+	p1.init(par0, traits);
 
 	((plant::Plant*)&p1)->print();
 	
@@ -227,7 +223,7 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 	p1.set_size({0.01});
 	
 	MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
-	spp->species_name = species_name;
+	spp->species_name = traits.species_name;
 	spp->trait_scalars = {0.2, 700};
 	// spp->fg_dx = 0.01;
 	spp->trait_variance = vector<double>(2, 0.1);
@@ -239,13 +235,13 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 	if (evolve_traits) spp->createVariants(p1);
 
 	// Add resident species to solver
-	S.addSpecies({res}, {0.01}, {10}, {true}, spp, 2, 1e-3);
+	S.addSpecies({static_cast<int>(res)}, {0.01}, {10}, {true}, spp, 2, 1e-3);
 	//S.addSpecies({0.01, 0.0100001}, spp, 3, 1e-3);
 
 	// Add variants (probes) to solver
 	if (evolve_traits){
 		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
-			S.addSpecies({res}, {0.01}, {10}, {true}, m, 2, 1e-3);
+			S.addSpecies({static_cast<int>(res)}, {0.01}, {10}, {true}, m, 2, 1e-3);
 	}
 
 	S.copyCohortsToState();
@@ -275,13 +271,15 @@ void Simulator::removeDeadSpecies(double t){
 
 void Simulator::addRandomSpecies(double t){
 	cout << "**** Invasion ****\n";
-	addSpeciesAndProbes(t, 
-						"spp_t"+to_string(t), 
-						runif(0.05, 0.25),    //Tr.species[i].lma, 
-						runif(300, 900),   //Tr.species[i].wood_density, 
-						runif(2, 35),      //Tr.species[i].hmat, 
-						runif(-6, -0.5)   //Tr.species[i].p50_xylem);
-	);
+
+	plant::PlantTraits traits = traits0;
+	traits.species_name = "spp_t"+to_string(t);
+	traits.lma          = runif(0.05, 0.25);    //Tr.species[i].lma, 
+	traits.wood_density = runif(300, 900);   //Tr.species[i].wood_density, 
+	traits.hmat         = runif(2, 35);      //Tr.species[i].hmat, 
+	traits.p50_xylem    = runif(-6, -0.5);   //Tr.species[i].p50_xylem);
+
+	addSpeciesAndProbes(t, traits);
 }
 
 void Simulator::evolveTraits(double t, double dt_evolution){

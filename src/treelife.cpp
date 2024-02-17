@@ -20,9 +20,9 @@ void ErgodicEnvironment::computeEnv(double t, Solver * sol, std::vector<double>:
 }
 
 
-LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file) : I(params_file){
+LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file){
 	//paramsFile = params_file; // = "tests/params/p.ini";
-	I.readFile();
+	I.parse(params_file);
 
 	traits0.init(I);
 	par0.init(I);
@@ -56,10 +56,7 @@ void LifeHistoryOptimizer::init(){
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
 	P = plant::Plant();
 	// P.initFromFile(params_file);
-	P.par = par0;
-	P.traits = traits0;
-
-	P.coordinateTraits();
+	P.init(par0, traits0);
 
 	P.geometry.set_lai(P.par.lai0);
 	P.set_size(0.01);

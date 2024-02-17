@@ -110,7 +110,7 @@ class Simulator{
 	void calc_seedrain_r0(double t);
 
 	void removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp);
-	void addSpeciesAndProbes(double t, std::string species_name, double lma, double wood_density, double hmat, double p50_xylem);
+	void addSpeciesAndProbes(double t, const plant::PlantTraits& traits);
 	void shuffleSpecies();
 
 	void removeDeadSpecies(double t);
