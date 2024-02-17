@@ -71,7 +71,8 @@ int main(){
 
 	// if (fabs(fitness - 0.414567339728) > 1e-6) return 1;
 	// if (fabs(fitness - 0.427527753304) > 1e-6) return 1; // expected value after upgrade to latest version of phydro @6fc30d6
-	if (fabs(fitness - 0.406735962511) > 1e-6) return 1;    // expected value updated after finding minor bug in gpp calc... when applying midday --> day mean conversion, it was directly applied to gpp, whereas it should only be applied to a, since vcmax is not scaled 
+	// if (fabs(fitness - 0.406735962511) > 1e-6) return 1; // expected value updated after finding minor bug in gpp calc... when applying midday --> day mean conversion, it was directly applied to gpp, whereas it should only be applied to a, since vcmax is not scaled 
+	if (fabs(fitness - 0.253198528939) > 1e-6) return 1;    // expected value updated after implementing inst phydro and setting kphio to 0.045
 
 
 	return 0;
