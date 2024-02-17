@@ -47,7 +47,8 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	// print_phydro(out_phydro_acclim, "acclim");
 
 	// ~~~~~
-	// Note: this was being done before the instantaneous model was ready. This was completely wrong!
+	// Note: Inst calcs were being done in a hacky way before the instantaneous model was ready, as follows. 
+	// This was completely wrong!
 	// auto photo_leaf1 = out_phydro_acclim;
 	// // the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
 	// double f = 1.18*clim.ppfd/clim.ppfd_max;
@@ -79,7 +80,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 
 	// print_phydro(photo_leaf, "inst real");
 
-	return photo_leaf;	// umol m-2 s-1 
+	return photo_leaf;	
 }
 
 
