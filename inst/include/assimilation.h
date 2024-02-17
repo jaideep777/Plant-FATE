@@ -45,9 +45,15 @@ class Assimilator{
 
 	public:	
 
-	/// @brief  Calculate leaf-level assimilation rate using the Phydro model
+	/// @brief  Calculate leaf-level assimilation rate using the Phydro model	/// @tparam _Climate 
+	/// @param fipar   fraction of top-canopy PAR incident on the crown of this plant
+	/// @param fapar   fraction of incident PAR absorbed by the crown
+	/// @param clim    forcing variables
+	/// @param par     plant params
+	/// @param traits  plant traits
+	/// @return        leaf assimilatio rate and a bunch of other leaf-level things
 	template<class _Climate>
-	phydro::PHydroResult leaf_assimilation_rate(double I0, double fapar, _Climate &clim, PlantParameters &par, PlantTraits &traits);
+	phydro::PHydroResult leaf_assimilation_rate(double fipar, double fapar, _Climate &clim, PlantParameters &par, PlantTraits &traits);
 	
 
 	/// @brief  Calculate whole-plant gross assimilation, transpiration, gs, etc. 

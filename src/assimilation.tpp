@@ -4,7 +4,7 @@ namespace plant{
 // ** Gross and Net Assimilation 
 // **
 template<class _Climate>
-phydro::PHydroResult Assimilator::leaf_assimilation_rate(double I0, double fapar, _Climate &clim, PlantParameters &par, PlantTraits &traits){
+phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fapar, _Climate &clim, PlantParameters &par, PlantTraits &traits){
 	phydro::ParCost par_cost(par.alpha, par.gamma);
 	phydro::ParPlant par_plant(traits.K_leaf, traits.p50_leaf, traits.b_leaf);
 	phydro::ParControl par_control;
@@ -12,11 +12,13 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double I0, double fapar
 	par_control.gs_method = phydro::GS_APX;
 	par_control.et_method = phydro::ET_DIFFUSION;
 
+	double Iabs_max = fipar*clim.ppfd_max;
+
 	auto out_phydro_acclim = phydro::phydro_analytical(
 		clim.tc,     // current temperature
 		clim.tc,     // growth temperature
-		I0,          // incident PAR [umol m-2 s-1]
-		I0/2,        // Net radiation [W m-2] (only used for LE calculations which we dont use, so setting equivalent to PAR for now)
+		Iabs_max,    // midday incident PAR [umol m-2 s-1]
+		Iabs_max/2,  // Net radiation [W m-2] (only used for LE calculations which we dont use, so setting equivalent to PAR for now)
 		clim.vpd,    // vpd [kPa]
 		clim.co2,	 // co2 [ppm]
 		clim.elv,    // elevation [masl]
@@ -77,8 +79,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		//std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << /*", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " <<*/ ", ca_layer = " << ca_layer << /*" m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << ", vcmax = " << res.vcmax <<*/ "\n"; 
 		
 		if (by_layer == true){
-			double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
-			auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+			auto res = leaf_assimilation_rate(env.canopy_openness[ilayer], fapar, env.clim, par, traits);
 			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
 			plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
 			plant_assim.trans      += res.e * ca_layer;
@@ -107,8 +108,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	}
 
 	if (by_layer == false){
-		double I_top = env.clim.ppfd_max * plant_assim.c_open_avg;
-		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+		auto res = leaf_assimilation_rate(plant_assim.c_open_avg, fapar, env.clim, par, traits);
 		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * ca_total;
 		plant_assim.rleaf      = (res.vcmax*par.rd) * ca_total;
 		plant_assim.trans      = res.e * ca_total;

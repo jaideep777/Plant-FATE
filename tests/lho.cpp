@@ -69,7 +69,8 @@ int main(){
 		 << "  Total production = " << lho.prod << "\n";
 	cout << "Fitness = " << fitness << endl;
 
-	if (fabs(fitness - 0.414567339728) > 1e-6) return 1;
+	// if (fabs(fitness - 0.414567339728) > 1e-6) return 1;
+	if (fabs(fitness - 0.427527753304) > 1e-6) return 1; // expected value after upgrade to latest version of phydro @6fc30d6
 
 	return 0;
 }
