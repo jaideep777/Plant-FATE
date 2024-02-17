@@ -32,7 +32,14 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		par_control  // configuration params for phydro
 	);
 
-	return out_phydro_acclim;
+	// return out_phydro_acclim;
+
+	auto photo_leaf = out_phydro_acclim;
+
+	// the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
+	double f = 1.18*clim.ppfd/clim.ppfd_max;
+	photo_leaf.a *= f;
+	photo_leaf.e *= f;
 
 	// auto photo_leaf = phydro::phydro_instantaneous_analytical(
 	// 	out_phydro_acclim.
@@ -51,7 +58,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	// 	par_control
 	// );
 
-	// return photo_leaf;	// umol m-2 s-1 
+	return photo_leaf;	// umol m-2 s-1 
 }
 
 
@@ -124,16 +131,11 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	//std::cout << "---\nCA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 	// calculate yearly averages in mol/yr	
-	// the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
-	double f_light_day = 1.18*env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
-	double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
-	double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
+	double sec_per_yr = 86400*365.2524; // s-1 ---> yr-1
 
-	plant_assim.gpp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
-	plant_assim.npp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
-	plant_assim.rleaf *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
-	plant_assim.trans *= (f * 18e-3);                  // mol h2o/s  ----> mol h2o/yr  --> kg h2o /yr
-	// FIXME: Shouldn't gs also be scaled? Fine for now because it's not used (gs for plots is from emergent props, where it is calc from transpiration). 
+	plant_assim.gpp   *= (sec_per_yr * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
+	plant_assim.rleaf *= (sec_per_yr * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
+	plant_assim.trans *= (sec_per_yr * 18e-3);                  // mol h2o/s  ----> mol h2o/yr  --> kg h2o /yr
 }
 
 
