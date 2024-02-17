@@ -1,5 +1,16 @@
 namespace plant{
 
+inline void print_phydro(const phydro::PHydroResult& res, std::string s){
+	std::cout << "phydro: " << s << '\n';
+	std::cout << "   a = " << res.a << '\n' 
+	          << "   e = " << res.e << '\n' 
+			  << "   vcmax = " << res.vcmax << '\n' 
+			  << "   vcmax25 = " << res.vcmax25 << '\n'
+			  << "   rd = " << res.rd << '\n'
+			  << "   gs = " << res.gs << '\n'
+			  << "   dpsi = " << res.dpsi << '\n';
+}
+
 // **
 // ** Gross and Net Assimilation 
 // **
@@ -12,7 +23,8 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	par_control.gs_method = phydro::GS_APX;
 	par_control.et_method = phydro::ET_DIFFUSION;
 
-	double Iabs_max = fipar*clim.ppfd_max;
+	double Iabs_max  = fipar*clim.ppfd_max;
+	double Iabs_mean = fipar*clim.ppfd;
 
 	auto out_phydro_acclim = phydro::phydro_analytical(
 		clim.tc,     // current temperature
@@ -32,31 +44,40 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		par_control  // configuration params for phydro
 	);
 
-	// return out_phydro_acclim;
+	// print_phydro(out_phydro_acclim, "acclim");
 
-	auto photo_leaf = out_phydro_acclim;
+	// ~~~~~
+	// Note: this was being done before the instantaneous model was ready. This was completely wrong!
+	// auto photo_leaf1 = out_phydro_acclim;
+	// // the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
+	// double f = 1.18*clim.ppfd/clim.ppfd_max;
+	// photo_leaf1.a *= f;
+	// photo_leaf1.e *= f;
+	// ~~~~~
 
-	// the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
-	double f = 1.18*clim.ppfd/clim.ppfd_max;
-	photo_leaf.a *= f;
-	photo_leaf.e *= f;
+	// print_phydro(photo_leaf1, "inst shortcut");
 
-	// auto photo_leaf = phydro::phydro_instantaneous_analytical(
-	// 	out_phydro_acclim.
-	// 	clim.tc, 
-	// 	clim.tc,      
-	// 	I0,   
-	// 	clim.vpd,  
-	// 	clim.co2,	
-	// 	clim.elv,   
-	// 	fapar,  
-	// 	par.kphio,  
-	// 	clim.swp,
-	// 	par.rd, 
-	// 	par_plant,   
-	// 	par_cost,
-	// 	par_control
-	// );
+	auto photo_leaf = phydro::phydro_instantaneous_analytical(
+		out_phydro_acclim.vcmax25, // acclimated vcmax25
+		out_phydro_acclim.jmax25,  // acclimated jmax25
+		clim.tc,     // current temperature
+		clim.tc,     // growth temperature
+		Iabs_mean,   // daily mean incident PAR [umol m-2 s-1]
+		Iabs_mean/2, // daily mean net radiation [W m-2] (only used for LE calculations which we dont use, so setting equivalent to PAR for now)
+		clim.vpd,    // vpd [kPa]
+		clim.co2,	 // co2 [ppm]
+		clim.elv,    // elevation [masl]
+		fapar,       // fraction of absorbed PAR
+		par.kphio,   // phi0 - quantim yield
+		clim.swp,    // soil water potential [MPa]
+		par.rd,      // ratio or dark respiration to vcmax
+		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
+		par_plant,   // plant hydraulic traits
+		par_cost,    // cost params
+		par_control  // configuration params for phydro
+	);
+
+	// print_phydro(photo_leaf, "inst real");
 
 	return photo_leaf;	// umol m-2 s-1 
 }
