@@ -11,8 +11,8 @@ void Plant::init(io::Initializer &I){
 }
 
 void Plant::initFromFile(std::string file){
-	io::Initializer I(file);
-	I.readFile();
+	io::Initializer I;
+	I.parse(file);
 
 	init(I);
 }

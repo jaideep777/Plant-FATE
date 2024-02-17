@@ -1,7 +1,7 @@
 #ifndef PLANT_FATE_PLANT_PARAMS_H_
 #define PLANT_FATE_PLANT_PARAMS_H_
 
-#include "utils/initializer.h"
+#include "utils/initializer_v2.h"
 #include <io_utils.h>
 #include <cmath>
 #include <string>
@@ -44,27 +44,27 @@ class PlantTraits{
 
 	public:
 	inline void init(io::Initializer &I){
-		lma = I.getScalar("lma");
-		zeta = I.getScalar("zeta");
-		fcr = I.getScalar("fcr");
-		hmat = I.getScalar("hmat");
-		fhmat = I.getScalar("fhmat");
-		seed_mass = I.getScalar("seed_mass");
-		wood_density = I.getScalar("wood_density");
-		p50_xylem = I.getScalar("p50_xylem");
-		K_leaf = I.getScalar("K_leaf");
-		K_xylem = I.getScalar("K_xylem");
-		b_leaf = I.getScalar("b_leaf");	
-		b_xylem = I.getScalar("b_xylem");	
-		m = I.getScalar("m");
-		n = I.getScalar("n");
-		a = I.getScalar("a");	
-		c = I.getScalar("c");	
+		lma = I.get<double>("lma");
+		zeta = I.get<double>("zeta");
+		fcr = I.get<double>("fcr");
+		hmat = I.get<double>("hmat");
+		fhmat = I.get<double>("fhmat");
+		seed_mass = I.get<double>("seed_mass");
+		wood_density = I.get<double>("wood_density");
+		p50_xylem = I.get<double>("p50_xylem");
+		K_leaf = I.get<double>("K_leaf");
+		K_xylem = I.get<double>("K_xylem");
+		b_leaf = I.get<double>("b_leaf");	
+		b_xylem = I.get<double>("b_xylem");	
+		m = I.get<double>("m");
+		n = I.get<double>("n");
+		a = I.get<double>("a");	
+		c = I.get<double>("c");	
 	}
 
 	inline void initFromFile(std::string fname){
-		io::Initializer I(fname);
-		I.readFile();
+		io::Initializer I;
+		I.parse(fname);
 		init(I);
 	}
 
@@ -251,57 +251,57 @@ class PlantParameters{
 	
 	public:
 	inline void init(io::Initializer &I){
-//		#define GET(x) x = I.getScalar(#_x);
-		kphio              = I.getScalar("kphio");
-		alpha              = I.getScalar("alpha");
-		gamma              = I.getScalar("gamma");
-		fg                 = I.getScalar("fg");
+//		#define GET(x) x = I.get<double>(#_x);
+		kphio              = I.get<double>("kphio");
+		alpha              = I.get<double>("alpha");
+		gamma              = I.get<double>("gamma");
+		fg                 = I.get<double>("fg");
 
-		Cc                 = I.getScalar("Cc");
-		Chyd               = I.getScalar("Chyd");
-		response_intensity = I.getScalar("response_intensity");
-		max_alloc_lai      = I.getScalar("max_alloc_lai");
-		dl                 = I.getScalar("lai_deriv_step");
-		lai0               = I.getScalar("lai0");
-		optimize_lai       = (I.getScalar("optimize_lai") == 1) ? true:false;
+		Cc                 = I.get<double>("Cc");
+		Chyd               = I.get<double>("Chyd");
+		response_intensity = I.get<double>("response_intensity");
+		max_alloc_lai      = I.get<double>("max_alloc_lai");
+		dl                 = I.get<double>("lai_deriv_step");
+		lai0               = I.get<double>("lai0");
+		optimize_lai       = (I.get<double>("optimize_lai") == 1) ? true:false;
 
-		les_u              = I.getScalar("les_u");
-		les_cc             = I.getScalar("les_cc");
-		les_k1             = I.getScalar("les_k1");
-		les_k2             = I.getScalar("les_k2"); 
-		les_hT_dH          = I.getScalar("les_hT_dH");
-		les_molar_R        = I.getScalar("les_molar_R");
-		les_hT_c           = I.getScalar("les_hT_c");
+		les_u              = I.get<double>("les_u");
+		les_cc             = I.get<double>("les_cc");
+		les_k1             = I.get<double>("les_k1");
+		les_k2             = I.get<double>("les_k2"); 
+		les_hT_dH          = I.get<double>("les_hT_dH");
+		les_molar_R        = I.get<double>("les_molar_R");
+		les_hT_c           = I.get<double>("les_hT_c");
 
-		rd                 = I.getScalar("rd");
-		rr                 = I.getScalar("rr");
-		rs                 = I.getScalar("rs");
+		rd                 = I.get<double>("rd");
+		rr                 = I.get<double>("rr");
+		rs                 = I.get<double>("rs");
 
-		cbio               = I.getScalar("cbio");
-		y                  = I.getScalar("y");
-		k_light            = I.getScalar("k_light");
-		a_f1               = I.getScalar("a_f1");
-		a_f2               = I.getScalar("a_f2");
+		cbio               = I.get<double>("cbio");
+		y                  = I.get<double>("y");
+		k_light            = I.get<double>("k_light");
+		a_f1               = I.get<double>("a_f1");
+		a_f2               = I.get<double>("a_f2");
 
-		Sd                 = I.getScalar("Sd");
-		npp_Sghalf         = I.getScalar("npp_Sghalf");
+		Sd                 = I.get<double>("Sd");
+		npp_Sghalf         = I.get<double>("npp_Sghalf");
 
-		cD0                = I.getScalar("cD0");
-		eD0                = I.getScalar("eD0");
-		cD1                = I.getScalar("cD1");
-		m_alpha            = I.getScalar("m_alpha");
-		m_beta             = I.getScalar("m_beta");
-		m_gamma            = I.getScalar("m_gamma");
-		eWD_alpha          = I.getScalar("eWD_alpha");
-		eWD_gamma          = I.getScalar("eWD_gamma");
-		cWD0               = I.getScalar("cWD0");
-		eWD                = I.getScalar("eWD");
+		cD0                = I.get<double>("cD0");
+		eD0                = I.get<double>("eD0");
+		cD1                = I.get<double>("cD1");
+		m_alpha            = I.get<double>("m_alpha");
+		m_beta             = I.get<double>("m_beta");
+		m_gamma            = I.get<double>("m_gamma");
+		eWD_alpha          = I.get<double>("eWD_alpha");
+		eWD_gamma          = I.get<double>("eWD_gamma");
+		cWD0               = I.get<double>("cWD0");
+		eWD                = I.get<double>("eWD");
 	}
 	
 	
 	inline void initFromFile(std::string fname){
-		io::Initializer I(fname);
-		I.readFile();
+		io::Initializer I;
+		I.parse(fname);
 		init(I);
 	}
 

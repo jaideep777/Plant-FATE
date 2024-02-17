@@ -6,7 +6,7 @@
 #include "assimilation.h"
 #include "utils/rk4.h"
 #include "utils/moving_average.h"
-#include "utils/initializer.h"
+#include "utils/initializer_v2.h"
 
 namespace plant{
 

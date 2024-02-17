@@ -22,7 +22,7 @@ int is_equal(const vector<double>& v1, const vector<double>& v2, double tol=1e-6
 
 int main(int argc, char ** argv){
 
-	string pfile = "tests/params/p_test.ini";
+	string pfile = "tests/params/p_test_v2.ini";
 	if (argc > 1) pfile = argv[1];
 
 	int err = 0;

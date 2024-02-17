@@ -20,9 +20,9 @@ void ErgodicEnvironment::computeEnv(double t, Solver * sol, std::vector<double>:
 }
 
 
-LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file) : I(params_file){
+LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file){
 	//paramsFile = params_file; // = "tests/params/p.ini";
-	I.readFile();
+	I.parse(params_file);
 
 	traits0.init(I);
 	par0.init(I);

@@ -1,7 +1,7 @@
 #include "utils/rk4.h"
 #include "utils/incbeta.h"
 #include "plant_geometry.h"
-#include "utils/initializer.h"
+#include "utils/initializer_v2.h"
 #include "utils/lambertw.h"
 //#include "assimilation.h"
 //
@@ -13,13 +13,13 @@ int main(){
 	
 	plant::PlantParameters par;
 
-	par.initFromFile("tests/params/p.ini");
+	par.initFromFile("tests/params/p_test_v2.ini");
 	par.print();
 
 	cout << "***************************************\n";
 
-	io::Initializer I("tests/params/p.ini");
-	I.readFile();
+	io::Initializer I;
+	I.parse("tests/params/p_test_v2.ini");
 	I.print();
 	double a = I.get<double>("outDir"); 
 	cout << "number in string outDir = " << a << "\n";
@@ -34,7 +34,7 @@ int main(){
 
 	// traits file test
 	TraitsReader Tr;
-	Tr.readFromFile("tests/data/trait1.csv");
+	Tr.readFromFile("tests/data/traits_example_canopy_understorey.csv");
 	Tr.print();
 
 	return 0;

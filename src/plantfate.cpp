@@ -2,9 +2,9 @@
 #include <filesystem>
 using namespace std;
 
-Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45ck") {
+Simulator::Simulator(std::string params_file) : S("IEBT", "rk45ck") {
 	paramsFile = params_file; // = "tests/params/p.ini";
-	I.readFile();
+	I.parse(params_file);
 
 	parent_dir = I.get<string>("outDir");
 	expt_dir   = I.get<string>("exptName");
@@ -17,21 +17,21 @@ Simulator::Simulator(std::string params_file) : I(params_file), S("IEBT", "rk45c
 	continueFrom_stateFile = I.get<string>("continueFromState");
 	continueFrom_configFile = I.get<string>("continueFromConfig");
 	continuePrevious = (continueFrom_configFile != "null") && (continueFrom_stateFile != "null");
-	saveStateInterval = I.getScalar("saveStateInterval");
+	saveStateInterval = I.get<double>("saveStateInterval");
 
 	traits_file = I.get<string>("traitsFile");
-	n_species = I.getScalar("nSpecies");
+	n_species = I.get<double>("nSpecies");
 	evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
 
-	timestep = I.getScalar("timestep");  // ODE Solver timestep
- 	T_cohort_insertion = I.getScalar("T_cohort_insertion");    // Cohort insertion timestep
+	timestep = I.get<double>("timestep");  // ODE Solver timestep
+ 	T_cohort_insertion = I.get<double>("T_cohort_insertion");    // Cohort insertion timestep
 
 	solver_method = I.get<string>("solver");
-	res = I.getScalar("resolution");
+	res = I.get<double>("resolution");
 
-	T_invasion = I.getScalar("T_invasion");
-	T_seed_rain_avg = I.getScalar("T_seed_rain_avg");
-	T_return = I.getScalar("T_return");
+	T_invasion = I.get<double>("T_invasion");
+	T_seed_rain_avg = I.get<double>("T_seed_rain_avg");
+	T_return = I.get<double>("T_return");
 
 	climate_stream.metFile = I.get<string>("metFile");
 	climate_stream.co2File = I.get<string>("co2File");
@@ -70,8 +70,8 @@ void Simulator::init(double tstart, double tend){
 	// sysresult = system(command.c_str());
 	// sysresult = system(command2.c_str());
 
-	y0 = tstart; //I.getScalar("year0");
-	yf = tend;   //I.getScalar("yearf");
+	y0 = tstart; //I.get<double>("year0");
+	yf = tend;   //I.get<double>("yearf");
 	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
 	t_next_disturbance = T_return;
@@ -107,8 +107,8 @@ void Simulator::init(double tstart, double tend){
 		Tr.print();
 
 		// ~~~ Create initial resident species pool from traits file ~~~~
-		//int nspp = I.getScalar("nSpecies");
-		// int res = I.getScalar("resolution");
+		//int nspp = I.get<double>("nSpecies");
+		// int res = I.get<double>("resolution");
 		for (int i=0; i<n_species; ++i){
 			addSpeciesAndProbes(y0, 
 								Tr.species[i].species_name, 
