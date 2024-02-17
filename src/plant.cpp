@@ -3,7 +3,7 @@ using namespace std;
 
 namespace plant{
 
-/// TODO: Should init() functions be made constructors, to prevent risk of creating a plant without coordinateTraits
+/// TODO: Should init() functions be made constructors, to prevent risk of creating a plant without
 /// @brief  This function initializes the plant (traits, par, and geometry) from an Initialzer object
 void Plant::init(const PlantParameters &_par, const PlantTraits &_traits){
 	par = _par;
@@ -12,19 +12,19 @@ void Plant::init(const PlantParameters &_par, const PlantTraits &_traits){
 }
 
 
-// /// @brief  This function initializes the plant (traits, par, and geometry) from an Initialzer object
-// void Plant::init(io::Initializer &I){
-// 	par.init(I);
-// 	traits.init(I);
-// 	coordinateTraits();
-// }
+/// @brief  This function initializes the plant (traits, par, and geometry) from an Initialzer object
+void Plant::init(io::Initializer &I){
+	par.init(I);
+	traits.init(I);
+	coordinateTraits();
+}
 
-// void Plant::initFromFile(std::string file){
-// 	io::Initializer I;
-// 	I.parse(file);
+void Plant::initFromFile(std::string file){
+	io::Initializer I;
+	I.parse(file);
 
-// 	init(I);
-// }
+	init(I);
+}
 
 
 void Plant::coordinateTraits(){

@@ -61,11 +61,11 @@ class Plant{
 		/// @brief  This function initializes the plant (traits, par, and geometry) from params and traits objects
 		void init(const PlantParameters &_par, const PlantTraits &_traits);
 
-		// /// @brief  This function initializes the plant (traits, par, and geometry) from an Initialzer object
-		// void init(io::Initializer &I);
+		/// @brief  This function initializes the plant (traits, par, and geometry) from an Initialzer object
+		void init(io::Initializer &I);
 
-		// /// @brief  This function initializes the plant (traits, par, and geometry) from an ini file
-		// void initFromFile(std::string file);
+		/// @brief  This function initializes the plant (traits, par, and geometry) from an ini file
+		void initFromFile(std::string file);
 
 		/// @brief Set traits that are calculated from other traits (e.g., leaf_p50, a, c)
 		void coordinateTraits();
