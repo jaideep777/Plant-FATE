@@ -78,6 +78,7 @@ void Simulator::init(double tstart, double tend){
 	t_next_invasion = T_invasion;
 	t_last_evolution = 1e20;
 	t_next_savestate = y0; // this will write state once at the beginning too, which is probably unnecessary
+	t_next_writestate = y0; // this will write state once at the beginning too, which is probably unnecessary
 
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
@@ -348,7 +349,7 @@ void Simulator::simulate_to(double t){
 	}
 
 	// Save simulation state at specified intervals
-	if (t > t_next_savestate){
+	if (t >= t_next_savestate){
 		saveState(&S, 
 			out_dir + "/" + std::to_string(t) + "_" + state_outfile, 
 			out_dir + "/" + std::to_string(t) + "_" + config_outfile, 
@@ -421,7 +422,7 @@ void Simulator::simulate(){
 		simulate_to(t);
 
 		// write outputs
-		if (t > t_next_writestate){
+		if (t >= t_next_writestate){
 			sio.writeState(t, cwm, props);
 			t_next_writestate += 1;
 		}

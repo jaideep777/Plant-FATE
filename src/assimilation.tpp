@@ -7,12 +7,49 @@ template<class _Climate>
 phydro::PHydroResult Assimilator::leaf_assimilation_rate(double I0, double fapar, _Climate &clim, PlantParameters &par, PlantTraits &traits){
 	phydro::ParCost par_cost(par.alpha, par.gamma);
 	phydro::ParPlant par_plant(traits.K_leaf, traits.p50_leaf, traits.b_leaf);
-	par_plant.gs_method = phydro::GS_APX;
-	auto photo_leaf = phydro::phydro_analytical(clim.tc,       I0,   clim.vpd,  clim.co2,	
-												clim.elv,   fapar,  par.kphio,  clim.swp, 
-												par.rd, par_plant,   par_cost);
-	
-	return photo_leaf;	// umol m-2 s-1 
+	phydro::ParControl par_control;
+
+	par_control.gs_method = phydro::GS_APX;
+	par_control.et_method = phydro::ET_DIFFUSION;
+
+	auto out_phydro_acclim = phydro::phydro_analytical(
+		clim.tc,     // current temperature
+		clim.tc,     // growth temperature
+		I0,          // incident PAR [umol m-2 s-1]
+		I0/2,        // Net radiation [W m-2] (only used for LE calculations which we dont use, so setting equivalent to PAR for now)
+		clim.vpd,    // vpd [kPa]
+		clim.co2,	 // co2 [ppm]
+		clim.elv,    // elevation [masl]
+		fapar,       // fraction of absorbed PAR
+		par.kphio,   // phi0 - quantim yield
+		clim.swp,    // soil water potential [MPa]
+		par.rd,      // ratio or dark respiration to vcmax
+		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
+		par_plant,   // plant hydraulic traits
+		par_cost,    // cost params
+		par_control  // configuration params for phydro
+	);
+
+	return out_phydro_acclim;
+
+	// auto photo_leaf = phydro::phydro_instantaneous_analytical(
+	// 	out_phydro_acclim.
+	// 	clim.tc, 
+	// 	clim.tc,      
+	// 	I0,   
+	// 	clim.vpd,  
+	// 	clim.co2,	
+	// 	clim.elv,   
+	// 	fapar,  
+	// 	par.kphio,  
+	// 	clim.swp,
+	// 	par.rd, 
+	// 	par_plant,   
+	// 	par_cost,
+	// 	par_control
+	// );
+
+	// return photo_leaf;	// umol m-2 s-1 
 }
 
 
