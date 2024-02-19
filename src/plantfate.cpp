@@ -363,6 +363,22 @@ void Simulator::simulate_to(double t){
 }
 
 
+void Simulator::update_climate(double t, ClimateStream& c_stream){
+	c_stream.updateClimate(flare::yearsCE_to_julian(t), E.clim);
+}
+
+
+void Simulator::update_climate(double t, double _co2, double _tc, double _vpd, double _ppfd, double _ppfd_max, double _swp){
+	E.clim.tc = _tc;
+	E.clim.ppfd_max = _ppfd_max;
+	E.clim.ppfd = _ppfd;
+	E.clim.vpd = _vpd;
+	E.clim.co2 = _co2;
+	E.clim.elv = _elv;
+	E.clim.swp = _swp;
+}
+
+
 /// @brief Simulate patch dynamics
 /// TODO: Evntually, this function should be moved to a higher controller, which can simulate multiple patches and manage data IO
 /// In Plant-FATE, we should always simulate step-by-step because we are explicitly managing seed rain feedback
