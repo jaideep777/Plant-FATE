@@ -364,8 +364,9 @@ void Simulator::simulate_to(double t){
 }
 
 
-void Simulator::update_climate(double t, env::ClimateStream& c_stream){
-	c_stream.updateClimate(flare::yearsCE_to_julian(t), E.clim);
+void Simulator::update_climate(double julian_time, env::ClimateStream& c_stream){
+	c_stream.updateClimate(julian_time, E.clim);
+	E.clim_acclim = E.clim;
 }
 
 
@@ -432,7 +433,7 @@ void Simulator::simulate(){
 
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
 		// read forcing inputs
-		climate_stream.updateClimate(flare::yearsCE_to_julian(S.current_time), E.clim);
+		update_climate(flare::yearsCE_to_julian(S.current_time), climate_stream);
 		std::cout << "update Env (explicit)... t = " << S.current_time << ": tc = " << E.clim.tc << '\n';
 
 		// simulate patch

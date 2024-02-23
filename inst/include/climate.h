@@ -40,6 +40,7 @@ class Clim{
 class Climate{
 	public:
 	Clim clim;
+	Clim clim_acclim;
 
 	void set_elevation(double _elv);
 	virtual void print(double t);
