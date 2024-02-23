@@ -20,6 +20,7 @@ class Clim{
 	double co2  = 368.9;      // Atmospheric CO2 [ppm]
 	double elv = 0;           // Site elevation [m.a.s.l]
 	double swp = -0.04;       // Soil water potential [MPa]
+	double vwind = 3;         // Wind speed [m s-1]
 	double pa;                // Surface pressure [Pa]
 
 	Clim(){
@@ -36,6 +37,7 @@ class Clim{
 // TODO: for now, this only has one clim object, but this class 
 // should store instantaneous and acclimation forcing, perform
 // running averages, etc.
+// ClimateStream can probably be merged with this
 class Climate{
 	public:
 	Clim clim_inst;

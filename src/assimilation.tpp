@@ -29,19 +29,19 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	auto out_phydro_acclim = phydro::phydro_analytical(
 		C.clim_acclim.tc,     // current temperature
 		C.clim_acclim.tc,     // growth temperature
-		Iabs_acclim,    // midday incident PAR [umol m-2 s-1]
+		Iabs_acclim,          // midday incident PAR [umol m-2 s-1]
 		C.clim_acclim.rn,     // Net radiation [W m-2] (only used for LE calculations which we dont use) // FIXME. Should this be Rnl? See message to Beni
 		C.clim_acclim.vpd,    // vpd [kPa]
-		C.clim_acclim.co2,	 // co2 [ppm]
+		C.clim_acclim.co2,	  // co2 [ppm]
 		C.clim_acclim.pa,     // surface pressure [Pa]
-		fapar,       // fraction of absorbed PAR
-		par.kphio,   // phi0 - quantum yield
+		fapar,                // fraction of absorbed PAR
+		par.kphio,            // phi0 - quantum yield
 		C.clim_acclim.swp,    // soil water potential [MPa]
-		par.rd,      // ratio or dark respiration to vcmax
-		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
-		par_plant,   // plant hydraulic traits
-		par_cost,    // cost params
-		par_control  // configuration params for phydro
+		par.rd,               // ratio or dark respiration to vcmax
+		C.clim_acclim.vwind,  // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
+		par_plant,            // plant hydraulic traits
+		par_cost,             // cost params
+		par_control           // configuration params for phydro
 	);
 
 	// print_phydro(out_phydro_acclim, "acclim");
@@ -61,21 +61,21 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	auto photo_leaf = phydro::phydro_instantaneous_analytical(
 		out_phydro_acclim.vcmax25, // acclimated vcmax25
 		out_phydro_acclim.jmax25,  // acclimated jmax25
-		C.clim_inst.tc,     // current temperature
-		C.clim_inst.tc,     // growth temperature
-		Iabs_inst,   // daily mean incident PAR [umol m-2 s-1]
-		C.clim_inst.rn,     // Daily mean net radiation [W m-2] (only used for LE calculations which we dont use)
-		C.clim_inst.vpd,    // vpd [kPa]
-		C.clim_inst.co2,	 // co2 [ppm]
-		C.clim_inst.pa,     // surface pressure [Pa]
-		fapar,       // fraction of absorbed PAR
-		par.kphio,   // phi0 - quantum yield
-		C.clim_inst.swp,    // soil water potential [MPa]
-		par.rd,      // ratio or dark respiration to vcmax
-		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
-		par_plant,   // plant hydraulic traits
-		par_cost,    // cost params
-		par_control  // configuration params for phydro
+		C.clim_inst.tc,            // current temperature
+		C.clim_inst.tc,            // growth temperature
+		Iabs_inst,                 // mean incident PAR [umol m-2 s-1]
+		C.clim_inst.rn,            // mean net radiation [W m-2] (only used for LE calculations which we dont use)
+		C.clim_inst.vpd,           // vpd [kPa]
+		C.clim_inst.co2,	       // co2 [ppm]
+		C.clim_inst.pa,            // surface pressure [Pa]
+		fapar,                     // fraction of absorbed PAR
+		par.kphio,                 // phi0 - quantum yield
+		C.clim_inst.swp,           // soil water potential [MPa]
+		par.rd,                    // ratio or dark respiration to vcmax
+		C.clim_inst.vwind,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
+		par_plant,                 // plant hydraulic traits
+		par_cost,                  // cost params
+		par_control                // configuration params for phydro
 	);
 
 	// print_phydro(photo_leaf, "inst real");
