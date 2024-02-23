@@ -39,10 +39,12 @@ class Clim{
 // running averages, etc.
 class Climate{
 	public:
-	Clim clim;
+	Clim clim_inst;
 	Clim clim_acclim;
 
 	void set_elevation(double _elv);
+	void set_co2(double _co2);
+
 	virtual void print(double t);
 	void print_line(double t);
 };

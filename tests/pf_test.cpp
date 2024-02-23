@@ -30,7 +30,7 @@ int main(int argc, char ** argv){
 	for (int i=0; i<1; ++i){
 		Simulator sim(pfile);
 		// sim.expt_dir = sim.expt_dir + "_414ppm";
-		sim.E.clim.co2 = 414;
+		sim.E.set_co2(414);
 		sim.init(2000, 2100);
 		sim.simulate();
 
@@ -55,7 +55,7 @@ int main(int argc, char ** argv){
 	// for (int i=0; i<1; ++i){
 	// 	Simulator sim(pfile);
 	// 	sim.expt_dir = sim.expt_dir + "_614ppm";
-	// 	sim.E.clim.co2 = 614;
+	// 	sim.E.clim_inst.co2 = 614;
 	// 	sim.init(1000, 5000);
 	// 	sim.simulate();
 	// 	sim.close();
@@ -99,7 +99,7 @@ int main(int argc, char ** argv){
 	// for (auto cc : co2_vec){
 	// 	Simulator sim("tests/params/p.ini");
 	// 	sim.expt_dir = "scan_co2_" + to_string(cc);
-	// 	sim.E.clim.co2 = cc;
+	// 	sim.E.clim_inst.co2 = cc;
 	// 	sim.init(1000, 1500);
 	// 	sim.simulate();
 	// 	sim.close();

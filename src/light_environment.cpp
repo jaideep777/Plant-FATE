@@ -100,7 +100,7 @@ double LightEnvironment::fapar_layer(double t, int layer, Solver *S){
 /// through this mechanism. 
 void LightEnvironment::computeEnv(double t, Solver *sol, std::vector<double>::iterator _S, std::vector<double>::iterator _dSdt){
 	// updateClimate(t); // not done here. See comment in plantfate.cpp
-	// std::cout << "update Env ... t = " << t << ": tc = " << clim.tc << '\n';
+	// std::cout << "update Env ... t = " << t << ": tc = " << clim_inst.tc << '\n';
 
 	//            _xm 
 	// Calculate / w(z,t)u(z,t)dz

@@ -32,8 +32,8 @@ int main(){
 		cout << setprecision(12) << "t = " << t << " id = " << C.met_stream.julian_to_indices(flare::yearsCE_to_julian(t)).idx << " (" << year << "/" << month << ")\n";
 		C.updateClimate(flare::yearsCE_to_julian(t), clim);
 		// C.print_line(t);
-		fout << t << "\t" << clim.tc << "\t" << clim.vpd << "\t" << clim.ppfd << "\t" << clim.swp << "\t" << clim.co2 << "\n";
-		cout << t << "\t" << clim.tc << "\t" << clim.vpd << "\t" << clim.ppfd << "\t" << clim.swp << "\t" << clim.co2 << "\n";
+		fout << t << "\t" << clim_inst.tc << "\t" << clim_inst.vpd << "\t" << clim_inst.ppfd << "\t" << clim_inst.swp << "\t" << clim_inst.co2 << "\n";
+		cout << t << "\t" << clim_inst.tc << "\t" << clim_inst.vpd << "\t" << clim_inst.ppfd << "\t" << clim_inst.swp << "\t" << clim_inst.co2 << "\n";
 	}
 	fout.close();
 

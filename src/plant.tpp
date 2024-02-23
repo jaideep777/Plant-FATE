@@ -14,7 +14,7 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 	double dnpp_dL = (res_plus.npp - res.npp)/geometry.crown_area/par.dl;
 	double dgpp_dL = (res_plus.gpp - res.gpp)/geometry.crown_area/par.dl;
 	double dE_dL = (res_plus.trans - res.trans)/geometry.crown_area/par.dl;
-//	double ddpsi_dL = dE_dL * viscosity / (traits.K_xylem * phydro::P(env.clim.swp, traits.p50_xylem, traits.b_xylem)); // FIXME: Need proper unit conversion
+//	double ddpsi_dL = dE_dL * viscosity / (traits.K_xylem * phydro::P(env.clim_inst.swp, traits.p50_xylem, traits.b_xylem)); // FIXME: Need proper unit conversion
 
 	double dL_dt = 0;
 	if (par.optimize_lai) dL_dt = par.response_intensity*(dnpp_dL - par.Chyd*dE_dL - par.Cc*traits.lma); // FIXME: This condition can be applied to the whole block

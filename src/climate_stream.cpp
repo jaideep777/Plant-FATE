@@ -9,31 +9,49 @@ void ClimateStream::init(){
 		co2_stream.centered_t = false;
 		co2_stream.open({co2File}, "years CE");
 	}
-	if (update_met){
-		met_stream.set_tname("Decimal_year");
-		met_stream.periodic = true;
-		met_stream.centered_t = false;
-		met_stream.open({metFile}, "years CE");
+	if (update_i_met){
+		i_met_stream.set_tname("Decimal_year");
+		i_met_stream.periodic = true;
+		i_met_stream.centered_t = false;
+		i_met_stream.open({i_metFile}, "years CE");
+	}
+	if (update_a_met){
+		a_met_stream.set_tname("Decimal_year");
+		a_met_stream.periodic = true;
+		a_met_stream.centered_t = false;
+		a_met_stream.open({a_metFile}, "years CE");
 	}
 }
 
 
-void ClimateStream::updateClimate(double julian_time, Clim& C){
+void ClimateStream::updateClimate(double julian_time, Climate& C){
 	if (update_co2){
 		co2_stream.advance_to_time(julian_time);
 		std::cout << co2_stream.current_row << std::endl;
-		C.co2      = as<double>(co2_stream.current_row[1]); // co2 is in index 1
+		C.clim_inst.co2        = as<double>(co2_stream.current_row[1]); // co2 is in index 1
+		C.clim_acclim.co2 = as<double>(co2_stream.current_row[1]); // co2 is in index 1
 	}
-	if (update_met){
-		met_stream.advance_to_time(julian_time);
-		std::cout << met_stream.current_row << std::endl;
-		C.tc       = as<double>(met_stream.current_row[3]);
-		C.vpd      = as<double>(met_stream.current_row[4])*100; // convert hPa to Pa
-		C.ppfd     = as<double>(met_stream.current_row[5]);
-		C.ppfd_max = as<double>(met_stream.current_row[6]);
-		C.swp      = as<double>(met_stream.current_row[7])*(-1); // convert -MPa to MPa
+	if (update_i_met){
+		i_met_stream.advance_to_time(julian_time);
+		std::cout << i_met_stream.current_row << std::endl;
+		C.clim_inst.tc       = as<double>(i_met_stream.current_row[3]);
+		C.clim_inst.vpd      = as<double>(i_met_stream.current_row[4])*100; // convert hPa to Pa
+		C.clim_inst.ppfd     = as<double>(i_met_stream.current_row[5]);
+		C.clim_inst.ppfd_max = as<double>(i_met_stream.current_row[6]);
+		C.clim_inst.swp      = as<double>(i_met_stream.current_row[7])*(-1); // convert -MPa to MPa
 	}
-}
+	if (update_a_met){
+		a_met_stream.advance_to_time(julian_time);
+		std::cout << a_met_stream.current_row << std::endl;
+		C.clim_acclim.tc       = as<double>(a_met_stream.current_row[3]);
+		C.clim_acclim.vpd      = as<double>(a_met_stream.current_row[4])*100; // convert hPa to Pa
+		C.clim_acclim.ppfd     = as<double>(a_met_stream.current_row[5]);
+		C.clim_acclim.ppfd_max = as<double>(a_met_stream.current_row[6]);
+		C.clim_acclim.swp      = as<double>(a_met_stream.current_row[7])*(-1); // convert -MPa to MPa
+		// C.clim_acclim = C.clim;
+	}
 
 }
+
+} // namespace env
 

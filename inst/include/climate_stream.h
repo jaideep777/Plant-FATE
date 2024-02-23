@@ -15,13 +15,16 @@ namespace env{
 
 class ClimateStream{
 	public:
-	flare::CsvStream met_stream;
+	flare::CsvStream i_met_stream;
+	flare::CsvStream a_met_stream;
 	flare::CsvStream co2_stream;
 
-	std::string metFile = "";
+	std::string i_metFile = "";
+	std::string a_metFile = "";
 	std::string co2File = "";
 	
-	bool update_met = false;
+	bool update_i_met = false;
+	bool update_a_met = false;
 	bool update_co2 = false;
 
 	private: 
@@ -30,7 +33,7 @@ class ClimateStream{
 
 	public:
 	void init();
-	void updateClimate(double julian_time, Clim& C);
+	void updateClimate(double julian_time, Climate& C);
 };
 
 

@@ -24,7 +24,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	par_control.et_method = phydro::ET_DIFFUSION;
 
 	double Iabs_max  = fipar*C.clim_acclim.ppfd_max;
-	double Iabs_mean = fipar*C.clim.ppfd;
+	double Iabs_mean = fipar*C.clim_inst.ppfd;
 
 	auto out_phydro_acclim = phydro::phydro_analytical(
 		C.clim_acclim.tc,     // current temperature
@@ -51,7 +51,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	// This was completely wrong!
 	// auto photo_leaf1 = out_phydro_acclim;
 	// // the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
-	// double f = 1.18*C.clim.ppfd/C.clim.ppfd_max;
+	// double f = 1.18*C.clim_inst.ppfd/C.clim_inst.ppfd_max;
 	// photo_leaf1.a *= f;
 	// photo_leaf1.e *= f;
 	// ~~~~~
@@ -61,16 +61,16 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	auto photo_leaf = phydro::phydro_instantaneous_analytical(
 		out_phydro_acclim.vcmax25, // acclimated vcmax25
 		out_phydro_acclim.jmax25,  // acclimated jmax25
-		C.clim.tc,     // current temperature
-		C.clim.tc,     // growth temperature
+		C.clim_inst.tc,     // current temperature
+		C.clim_inst.tc,     // growth temperature
 		Iabs_mean,   // daily mean incident PAR [umol m-2 s-1]
-		C.clim.rn,     // Daily mean net radiation [W m-2] (only used for LE calculations which we dont use)
-		C.clim.vpd,    // vpd [kPa]
-		C.clim.co2,	 // co2 [ppm]
-		C.clim.pa,     // surface pressure [Pa]
+		C.clim_inst.rn,     // Daily mean net radiation [W m-2] (only used for LE calculations which we dont use)
+		C.clim_inst.vpd,    // vpd [kPa]
+		C.clim_inst.co2,	 // co2 [ppm]
+		C.clim_inst.pa,     // surface pressure [Pa]
 		fapar,       // fraction of absorbed PAR
 		par.kphio,   // phi0 - quantum yield
-		C.clim.swp,    // soil water potential [MPa]
+		C.clim_inst.swp,    // soil water potential [MPa]
 		par.rd,      // ratio or dark respiration to vcmax
 		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
 		par_plant,   // plant hydraulic traits

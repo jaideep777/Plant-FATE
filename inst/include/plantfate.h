@@ -78,7 +78,8 @@ class Simulator{
 	public:
 	Simulator(std::string params_file);
 	
-	void set_metFile(std::string metfile);
+	void set_i_metFile(std::string file);
+	void set_a_metFile(std::string file);
 	void set_co2File(std::string co2file);
 
 	void init(double tstart, double tend);
