@@ -33,9 +33,9 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		Iabs_max/2,  // Net radiation [W m-2] (only used for LE calculations which we dont use, so setting equivalent to PAR for now)
 		clim.vpd,    // vpd [kPa]
 		clim.co2,	 // co2 [ppm]
-		clim.elv,    // elevation [masl]
+		clim.pa,     // surface pressure [Pa]
 		fapar,       // fraction of absorbed PAR
-		par.kphio,   // phi0 - quantim yield
+		par.kphio,   // phi0 - quantum yield
 		clim.swp,    // soil water potential [MPa]
 		par.rd,      // ratio or dark respiration to vcmax
 		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
@@ -67,9 +67,9 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		Iabs_mean/2, // daily mean net radiation [W m-2] (only used for LE calculations which we dont use, so setting equivalent to PAR for now)
 		clim.vpd,    // vpd [kPa]
 		clim.co2,	 // co2 [ppm]
-		clim.elv,    // elevation [masl]
+		clim.pa,     // surface pressure [Pa]
 		fapar,       // fraction of absorbed PAR
-		par.kphio,   // phi0 - quantim yield
+		par.kphio,   // phi0 - quantum yield
 		clim.swp,    // soil water potential [MPa]
 		par.rd,      // ratio or dark respiration to vcmax
 		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s

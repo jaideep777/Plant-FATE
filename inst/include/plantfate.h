@@ -84,7 +84,7 @@ class Simulator{
 	void init(double tstart, double tend);
 
 	void simulate_to(double t);
-	void update_climate(double t, ClimateStream& c_stream);
+	void update_climate(double t, env::ClimateStream& c_stream);
 	void update_climate(double t, double co2, double tc, double vpd, double ppfd, double ppfd_max, double swp);
 
 	void simulate();

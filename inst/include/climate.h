@@ -7,20 +7,29 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-
+#include <phydro.h>  // for calc_patm()
 
 namespace env{
 
 class Clim{
 	public:
-	double tc = 25.5;         // temperature, deg C
-	double ppfd_max = 2000;   // umol/m2/s
-	double ppfd = 500;        // umol/m2/s
-	double vpd  = 540;        // Pa
-	double co2  = 368.9;      // ppm
-	double elv = 0;           // m.a.s.l
-	double swp = -0.04;       // MPa
+	double tc = 25.5;         // Temperature [C]
+	double ppfd_max = 2000;   // PAR (daytime max) [umol/m2/s]
+	double ppfd = 500;        // PAR (daily 24-hr mean) [umol/m2/s]
+	double vpd  = 540;        // Vapour pressure deficit [Pa]
+	double co2  = 368.9;      // Atmospheric CO2 [ppm]
+	double elv = 0;           // Site elevation [m.a.s.l]
+	double swp = -0.04;       // Soil water potential [MPa]
+	double pa;                // Surface pressure [Pa]
 
+	Clim(){
+		pa = phydro::calc_patm(elv);
+	}
+
+	void set_elevation(double _elv){
+		elv = _elv;
+		pa = phydro::calc_patm(elv);
+	}
 };
 
 
@@ -31,6 +40,7 @@ class Climate{
 	public:
 	Clim clim;
 
+	void set_elevation(double _elv);
 	virtual void print(double t);
 	void print_line(double t);
 };

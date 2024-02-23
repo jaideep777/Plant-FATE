@@ -7,6 +7,10 @@ using namespace std;
 
 namespace env{
 
+void Climate::set_elevation(double _elv){
+	clim.set_elevation(_elv);
+}
+
 void Climate::print(double t){
 	cout << "Current climate:\n";
 	cout << "   tc      = " << clim.tc  << '\n';

@@ -83,6 +83,7 @@ void Simulator::init(double tstart, double tend){
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	// E.metFile = met_file;
 	// E.co2File = co2_file;
+	E.set_elevation(0);
 	climate_stream.init();
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -363,7 +364,7 @@ void Simulator::simulate_to(double t){
 }
 
 
-void Simulator::update_climate(double t, ClimateStream& c_stream){
+void Simulator::update_climate(double t, env::ClimateStream& c_stream){
 	c_stream.updateClimate(flare::yearsCE_to_julian(t), E.clim);
 }
 
@@ -374,7 +375,6 @@ void Simulator::update_climate(double t, double _co2, double _tc, double _vpd, d
 	E.clim.ppfd = _ppfd;
 	E.clim.vpd = _vpd;
 	E.clim.co2 = _co2;
-	E.clim.elv = _elv;
 	E.clim.swp = _swp;
 }
 
