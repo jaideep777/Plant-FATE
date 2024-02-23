@@ -30,7 +30,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		clim.tc,     // current temperature
 		clim.tc,     // growth temperature
 		Iabs_max,    // midday incident PAR [umol m-2 s-1]
-		Iabs_max/2,  // Net radiation [W m-2] (only used for LE calculations which we dont use, so setting equivalent to PAR for now)
+		clim.rn,     // Net radiation [W m-2] (only used for LE calculations which we dont use) // FIXME. Should this be Rnl? See message to Beni
 		clim.vpd,    // vpd [kPa]
 		clim.co2,	 // co2 [ppm]
 		clim.pa,     // surface pressure [Pa]
@@ -64,7 +64,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		clim.tc,     // current temperature
 		clim.tc,     // growth temperature
 		Iabs_mean,   // daily mean incident PAR [umol m-2 s-1]
-		Iabs_mean/2, // daily mean net radiation [W m-2] (only used for LE calculations which we dont use, so setting equivalent to PAR for now)
+		clim.rn,     // Daily mean net radiation [W m-2] (only used for LE calculations which we dont use)
 		clim.vpd,    // vpd [kPa]
 		clim.co2,	 // co2 [ppm]
 		clim.pa,     // surface pressure [Pa]

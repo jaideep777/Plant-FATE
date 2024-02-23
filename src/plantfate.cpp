@@ -373,6 +373,7 @@ void Simulator::update_climate(double t, double _co2, double _tc, double _vpd, d
 	E.clim.tc = _tc;
 	E.clim.ppfd_max = _ppfd_max;
 	E.clim.ppfd = _ppfd;
+	E.clim.rn = _ppfd/2;  // Tentative, placeholder
 	E.clim.vpd = _vpd;
 	E.clim.co2 = _co2;
 	E.clim.swp = _swp;
