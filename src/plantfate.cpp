@@ -33,8 +33,8 @@ Simulator::Simulator(std::string params_file) : S("IEBT", "rk45ck") {
 	T_seed_rain_avg = I.get<double>("T_seed_rain_avg");
 	T_return = I.get<double>("T_return");
 
-	climate_stream.i_metFile = I.get<string>("metFile");
-	climate_stream.a_metFile = I.get<string>("metFile");
+	climate_stream.i_metFile = I.get<string>("i_metFile");
+	climate_stream.a_metFile = I.get<string>("a_metFile");
 	climate_stream.co2File   = I.get<string>("co2File");
 	climate_stream.update_i_met = (climate_stream.i_metFile == "null")? false : true;
 	climate_stream.update_a_met = (climate_stream.a_metFile == "null")? false : true;
@@ -375,9 +375,8 @@ void Simulator::update_climate(double julian_time, env::ClimateStream& c_stream)
 }
 
 
-void Simulator::update_climate(double t, double _co2, double _tc, double _vpd, double _ppfd, double _ppfd_max, double _swp){
+void Simulator::update_climate(double t, double _co2, double _tc, double _vpd, double _ppfd, double _swp){
 	E.clim_inst.tc = _tc;
-	E.clim_inst.ppfd_max = _ppfd_max;
 	E.clim_inst.ppfd = _ppfd;
 	E.clim_inst.rn = _ppfd/2;  // Tentative, placeholder
 	E.clim_inst.vpd = _vpd;

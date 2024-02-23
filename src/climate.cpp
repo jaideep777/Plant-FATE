@@ -20,7 +20,6 @@ void Climate::set_co2(double _co2){
 void Climate::print(double t){
 	cout << "Current climate (inst / acclim):\n";
 	cout << "   tc      = " << clim_inst.tc       << " / " << clim_acclim.tc       << '\n';
-	cout << "   ppfdmax = " << clim_inst.ppfd_max << " / " << clim_acclim.ppfd_max << '\n';
 	cout << "   ppfd    = " << clim_inst.ppfd     << " / " << clim_acclim.ppfd     << '\n';
 	cout << "   vpd     = " << clim_inst.vpd      << " / " << clim_acclim.vpd      << '\n';
 	cout << "   co2     = " << clim_inst.co2      << " / " << clim_acclim.co2      << '\n';
@@ -31,7 +30,6 @@ void Climate::print(double t){
 void Climate::print_line(double t){
 	cout << "Current climate (t=" << t << "): ";
 	cout << clim_inst.tc  << " ";
-	cout << clim_inst.ppfd_max << " ";
 	cout << clim_inst.ppfd << " ";
 	cout << clim_inst.vpd << " ";
 	cout << clim_inst.co2 << " ";

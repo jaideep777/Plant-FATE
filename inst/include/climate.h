@@ -14,7 +14,6 @@ namespace env{
 class Clim{
 	public:
 	double tc = 25.5;         // Temperature [C]
-	double ppfd_max = 2000;   // PAR (daytime max) [umol m-2 s-1]
 	double ppfd = 500;        // PAR (daily 24-hr mean) [umol m-2 s-1]
 	double rn = 250;          // Net radiation at surface [W m-2]
 	double vpd  = 540;        // Vapour pressure deficit [Pa]

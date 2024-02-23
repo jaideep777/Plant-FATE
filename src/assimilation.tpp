@@ -23,7 +23,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	par_control.gs_method = phydro::GS_APX;
 	par_control.et_method = phydro::ET_DIFFUSION;
 
-	double Iabs_acclim = fipar*C.clim_acclim.ppfd_max;
+	double Iabs_acclim = fipar*C.clim_acclim.ppfd;
 	double Iabs_inst   = fipar*C.clim_inst.ppfd;
 
 	auto out_phydro_acclim = phydro::phydro_analytical(
