@@ -23,13 +23,13 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	par_control.gs_method = phydro::GS_APX;
 	par_control.et_method = phydro::ET_DIFFUSION;
 
-	double Iabs_max  = fipar*C.clim_acclim.ppfd_max;
-	double Iabs_mean = fipar*C.clim_inst.ppfd;
+	double Iabs_acclim = fipar*C.clim_acclim.ppfd_max;
+	double Iabs_inst   = fipar*C.clim_inst.ppfd;
 
 	auto out_phydro_acclim = phydro::phydro_analytical(
 		C.clim_acclim.tc,     // current temperature
 		C.clim_acclim.tc,     // growth temperature
-		Iabs_max,    // midday incident PAR [umol m-2 s-1]
+		Iabs_acclim,    // midday incident PAR [umol m-2 s-1]
 		C.clim_acclim.rn,     // Net radiation [W m-2] (only used for LE calculations which we dont use) // FIXME. Should this be Rnl? See message to Beni
 		C.clim_acclim.vpd,    // vpd [kPa]
 		C.clim_acclim.co2,	 // co2 [ppm]
@@ -63,7 +63,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		out_phydro_acclim.jmax25,  // acclimated jmax25
 		C.clim_inst.tc,     // current temperature
 		C.clim_inst.tc,     // growth temperature
-		Iabs_mean,   // daily mean incident PAR [umol m-2 s-1]
+		Iabs_inst,   // daily mean incident PAR [umol m-2 s-1]
 		C.clim_inst.rn,     // Daily mean net radiation [W m-2] (only used for LE calculations which we dont use)
 		C.clim_inst.vpd,    // vpd [kPa]
 		C.clim_inst.co2,	 // co2 [ppm]
