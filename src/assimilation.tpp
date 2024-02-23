@@ -15,7 +15,7 @@ inline void print_phydro(const phydro::PHydroResult& res, std::string s){
 // ** Gross and Net Assimilation 
 // **
 template<class _Climate>
-phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fapar, _Climate &clim, PlantParameters &par, PlantTraits &traits){
+phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fapar, _Climate &C, PlantParameters &par, PlantTraits &traits){
 	phydro::ParCost par_cost(par.alpha, par.gamma);
 	phydro::ParPlant par_plant(traits.K_leaf, traits.p50_leaf, traits.b_leaf);
 	phydro::ParControl par_control;
@@ -23,20 +23,20 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	par_control.gs_method = phydro::GS_APX;
 	par_control.et_method = phydro::ET_DIFFUSION;
 
-	double Iabs_max  = fipar*clim.ppfd_max;
-	double Iabs_mean = fipar*clim.ppfd;
+	double Iabs_max  = fipar*C.clim.ppfd_max;
+	double Iabs_mean = fipar*C.clim.ppfd;
 
 	auto out_phydro_acclim = phydro::phydro_analytical(
-		clim.tc,     // current temperature
-		clim.tc,     // growth temperature
+		C.clim.tc,     // current temperature
+		C.clim.tc,     // growth temperature
 		Iabs_max,    // midday incident PAR [umol m-2 s-1]
-		clim.rn,     // Net radiation [W m-2] (only used for LE calculations which we dont use) // FIXME. Should this be Rnl? See message to Beni
-		clim.vpd,    // vpd [kPa]
-		clim.co2,	 // co2 [ppm]
-		clim.pa,     // surface pressure [Pa]
+		C.clim.rn,     // Net radiation [W m-2] (only used for LE calculations which we dont use) // FIXME. Should this be Rnl? See message to Beni
+		C.clim.vpd,    // vpd [kPa]
+		C.clim.co2,	 // co2 [ppm]
+		C.clim.pa,     // surface pressure [Pa]
 		fapar,       // fraction of absorbed PAR
 		par.kphio,   // phi0 - quantum yield
-		clim.swp,    // soil water potential [MPa]
+		C.clim.swp,    // soil water potential [MPa]
 		par.rd,      // ratio or dark respiration to vcmax
 		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
 		par_plant,   // plant hydraulic traits
@@ -51,7 +51,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	// This was completely wrong!
 	// auto photo_leaf1 = out_phydro_acclim;
 	// // the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
-	// double f = 1.18*clim.ppfd/clim.ppfd_max;
+	// double f = 1.18*C.clim.ppfd/C.clim.ppfd_max;
 	// photo_leaf1.a *= f;
 	// photo_leaf1.e *= f;
 	// ~~~~~
@@ -61,16 +61,16 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	auto photo_leaf = phydro::phydro_instantaneous_analytical(
 		out_phydro_acclim.vcmax25, // acclimated vcmax25
 		out_phydro_acclim.jmax25,  // acclimated jmax25
-		clim.tc,     // current temperature
-		clim.tc,     // growth temperature
+		C.clim.tc,     // current temperature
+		C.clim.tc,     // growth temperature
 		Iabs_mean,   // daily mean incident PAR [umol m-2 s-1]
-		clim.rn,     // Daily mean net radiation [W m-2] (only used for LE calculations which we dont use)
-		clim.vpd,    // vpd [kPa]
-		clim.co2,	 // co2 [ppm]
-		clim.pa,     // surface pressure [Pa]
+		C.clim.rn,     // Daily mean net radiation [W m-2] (only used for LE calculations which we dont use)
+		C.clim.vpd,    // vpd [kPa]
+		C.clim.co2,	 // co2 [ppm]
+		C.clim.pa,     // surface pressure [Pa]
 		fapar,       // fraction of absorbed PAR
 		par.kphio,   // phi0 - quantum yield
-		clim.swp,    // soil water potential [MPa]
+		C.clim.swp,    // soil water potential [MPa]
 		par.rd,      // ratio or dark respiration to vcmax
 		3.0,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
 		par_plant,   // plant hydraulic traits
@@ -108,7 +108,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		//std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << /*", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " <<*/ ", ca_layer = " << ca_layer << /*" m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << ", vcmax = " << res.vcmax <<*/ "\n"; 
 		
 		if (by_layer == true){
-			auto res = leaf_assimilation_rate(env.canopy_openness[ilayer], fapar, env.clim, par, traits);
+			auto res = leaf_assimilation_rate(env.canopy_openness[ilayer], fapar, env, par, traits);
 			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
 			plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
 			plant_assim.trans      += res.e * ca_layer;
@@ -137,7 +137,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	}
 
 	if (by_layer == false){
-		auto res = leaf_assimilation_rate(plant_assim.c_open_avg, fapar, env.clim, par, traits);
+		auto res = leaf_assimilation_rate(plant_assim.c_open_avg, fapar, env, par, traits);
 		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * ca_total;
 		plant_assim.rleaf      = (res.vcmax*par.rd) * ca_total;
 		plant_assim.trans      = res.e * ca_total;
