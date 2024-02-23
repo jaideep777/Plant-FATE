@@ -46,7 +46,11 @@ void ClimateStream::updateClimate(double julian_time, Climate& C){
 		C.clim_acclim.vpd      = as<double>(a_met_stream.current_row[4])*100; // convert hPa to Pa
 		C.clim_acclim.ppfd     = as<double>(a_met_stream.current_row[6]);      // max ppfd
 		C.clim_acclim.swp      = as<double>(a_met_stream.current_row[7])*(-1); // convert -MPa to MPa
-		// C.clim_acclim = C.clim;
+	} 
+	else {
+		// TODO. Replace with a proper function that computes acclim forcing from inst
+		C.clim_acclim = C.clim_inst;
+		C.clim_acclim.ppfd = C.clim_inst.ppfd * 4;
 	}
 
 }
