@@ -90,7 +90,7 @@ void Simulator::init(double tstart, double tend){
 	// E.metFile = met_file;
 	// E.co2File = co2_file;
 	E.set_elevation(0);
-	E.set_acclim_timescale(1e-20); // currently try with a tau ~ 0, so that test passes
+	E.set_acclim_timescale(7); // currently try with a tau ~ 0, so that test passes
 	climate_stream.init();
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
