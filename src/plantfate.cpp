@@ -90,6 +90,7 @@ void Simulator::init(double tstart, double tend){
 	// E.metFile = met_file;
 	// E.co2File = co2_file;
 	E.set_elevation(0);
+	E.set_acclim_timescale(1e-20); // currently try with a tau ~ 0, so that test passes
 	climate_stream.init();
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -375,13 +376,24 @@ void Simulator::update_climate(double julian_time, env::ClimateStream& c_stream)
 }
 
 
-void Simulator::update_climate(double t, double _co2, double _tc, double _vpd, double _ppfd, double _swp){
-	E.clim_inst.tc = _tc;
+void Simulator::update_climate(double _co2, double _tc, double _vpd, double _ppfd, double _swp){
+	E.clim_inst.tc   = _tc;
 	E.clim_inst.ppfd = _ppfd;
-	E.clim_inst.rn = _ppfd/2;  // Tentative, placeholder
-	E.clim_inst.vpd = _vpd;
-	E.clim_inst.co2 = _co2;
-	E.clim_inst.swp = _swp;
+	E.clim_inst.rn   = _ppfd/2;  // Tentative, placeholder
+	E.clim_inst.vpd  = _vpd;
+	E.clim_inst.co2  = _co2;
+	E.clim_inst.swp  = _swp;
+}
+
+void Simulator::update_climate_acclim(double t_julian, double _co2, double _tc, double _vpd, double _ppfd, double _swp){
+	env::Clim C = E.clim_acclim;
+	C.tc   = _tc;
+	C.ppfd = _ppfd;
+	C.rn   = _ppfd/2;  // Tentative, placeholder
+	C.vpd  = _vpd;
+	C.co2  = _co2;
+	C.swp  = _swp;
+	E.set_forcing_acclim(t_julian, C);
 }
 
 

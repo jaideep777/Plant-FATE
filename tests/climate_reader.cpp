@@ -22,11 +22,12 @@ int main(){
 
 	// C.print_all();
 
-
-
 //	C.updateClimate(2001.92);
 	env::Climate climate;
-	ofstream fout("climate.txt");
+	climate.set_acclim_timescale(60);
+
+	ofstream fout("climate_inst.txt");
+	ofstream fouta("climate_acclim.txt");
 	for (double t = 1921; t < 2081; t += 1/120.0){
 	// for (double t = 2000; t < 2005; t += 1/120.0){
 		int year = int(t);
@@ -36,6 +37,7 @@ int main(){
 		// C.print_line(t);
 		fout << t << "\t" << climate.clim_inst.tc << "\t" << climate.clim_inst.vpd << "\t" << climate.clim_inst.ppfd << "\t" << climate.clim_inst.swp << "\t" << climate.clim_inst.co2 << "\n";
 		cout << t << "\t" << climate.clim_inst.tc << "\t" << climate.clim_inst.vpd << "\t" << climate.clim_inst.ppfd << "\t" << climate.clim_inst.swp << "\t" << climate.clim_inst.co2 << "\n";
+		fouta << t << "\t" << climate.clim_acclim.tc << "\t" << climate.clim_acclim.vpd << "\t" << climate.clim_acclim.ppfd << "\t" << climate.clim_acclim.swp << "\t" << climate.clim_acclim.co2 << "\n";
 	}
 	fout.close();
 

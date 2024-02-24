@@ -19,7 +19,7 @@ int main(int argc, char ** argv){
 	for (int i=0; i<1; ++i){
 		Simulator sim(pfile);
 		// sim.expt_dir = sim.expt_dir + "_414ppm";
-		sim.E.set_co2(414);
+		sim.E.init_co2(414);
 		sim.init(-1000, 5000);
 		sim.simulate();
 		sim.close();
