@@ -14,6 +14,7 @@
 #include "community_properties.h"
 #include "trait_evolution.h"
 #include "state_restore.h"
+#include "climate_stream.h"
 
 class Simulator{
 	private:
@@ -44,13 +45,18 @@ class Simulator{
 	double      yf;
 	double      ye;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
-	double t_clear = 105000;
 	// t is years since 2000-01-01
-	double delta_T;
-	double timestep;
-	double T_seed_rain_avg;
-	double T_return; // return interval of disturbance
-	double T_invasion; 	// interval between successive species invasions
+	double timestep;            ///< Solver internal timestep
+	double T_cohort_insertion;  ///< Interval after which cohorts should be inserted, if using IEBT solver
+	double T_seed_rain_avg;     ///< Interval over which seed rains should be averaged (multi-patch dynamics)
+	double T_return;            ///< Return interval of disturbance (patch clearance)
+	double T_invasion; 	        ///< Interval between successive species invasions
+
+	double t_next_disturbance;
+	double t_next_invasion;
+	double t_last_evolution;
+	double t_next_savestate;
+	double t_next_writestate;
 
 	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 
@@ -59,9 +65,11 @@ class Simulator{
 	plant::PlantParameters par0;
 	plant::PlantTraits traits0;
 
-	io::Initializer          I;
-	Solver                   S;
-	PSPM_Dynamic_Environment E;
+	env::ClimateStream  climate_stream;  // should be moved out of patch
+
+	io::Initializer     I;
+	Solver              S;
+	PSPM_Environment    E;
 
 	SolverIO      sio;
 	SpeciesProps  cwm;
@@ -70,10 +78,18 @@ class Simulator{
 	public:
 	Simulator(std::string params_file);
 	
-	void set_metFile(std::string metfile);
+	void set_i_metFile(std::string file);
+	void set_a_metFile(std::string file);
 	void set_co2File(std::string co2file);
 
 	void init(double tstart, double tend);
+
+	void simulate_to(double t);
+
+	void update_climate(double julian_time, env::ClimateStream& c_stream);
+
+	void update_climate(double co2, double tc, double vpd, double ppfd, double swp);
+	void update_climate_acclim(double t_julian, double co2, double tc, double vpd, double ppfd, double swp);
 
 	void simulate();
 
@@ -88,7 +104,7 @@ class Simulator{
 	/// @ingroup   trait_evolution
 	/// @details   Species seed output rate is defined as,  
 	///            \f[S = \int_{x_b}^{x_m}{f(s)u(s)ds}\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
-	void calc_seed_output(double t, Solver& S);
+	// void calc_seed_output(double t, Solver& S);
 
 
 	// FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
@@ -99,14 +115,17 @@ class Simulator{
 	/// @ingroup   trait_evolution
 	/// @details   Species growth rate is defined from the seed perspective, i.e.,
 	///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species)
-	void calc_r0(double t, double dt, Solver &S);
+	void calc_seedrain_r0(double t);
 
 	void removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp);
+	void addSpeciesAndProbes(double t, const plant::PlantTraits& traits);
+	void shuffleSpecies();
 
-	void addSpeciesAndProbes(double t, std::string species_name, double lma, double wood_density, double hmat, double p50_xylem);
-	
-
-
+	void removeDeadSpecies(double t);
+	void addRandomSpecies(double t);
+	void evolveTraits(double t, double dt_evolution);
+	void disturbPatch(double t);
 };
 
 #endif
+

@@ -1,12 +1,14 @@
-#ifndef PLANT_FATE_ENV_LIGHT_ENVIRONMENT_H_
-#define PLANT_FATE_ENV_LIGHT_ENVIRONMENT_H_
+#ifndef PLANT_FATE_LIGHT_ENVIRONMENT_H_
+#define PLANT_FATE_LIGHT_ENVIRONMENT_H_
 
 #include <iostream>
 #include <vector>
+#include <environment_base.h>
+#include <solver.h>
 
 namespace env{
 
-class LightEnvironment {
+class LightEnvironment : public EnvironmentBase {
 	public:
 	bool use_ppa = true;
 
@@ -19,10 +21,15 @@ class LightEnvironment {
 	std::vector<double> fapar_tot;
 	std::vector<double> canopy_openness;
 	
-	
 	public:
 	LightEnvironment();
-	void print();
+
+	double projected_crown_area_above_z(double t, double z, Solver *S);
+	double fapar_layer(double t, int layer, Solver *S);
+
+	void computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt) override;
+
+	virtual void print(double t);
 	
 };
 

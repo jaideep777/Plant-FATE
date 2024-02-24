@@ -1,4 +1,5 @@
 #include "community_properties.h"
+#include "light_environment.h"
 
 using namespace std;
 
@@ -80,7 +81,7 @@ void SpeciesProps::update(double t, Solver &S){
 	n_ind_vec.resize(S.n_species(), 0);
 	for (int k=0; k<S.n_species(); ++k)
 		if (isResident(S.species_vec[k]))
-		n_ind_vec[k] = S.integrate_x([&S,k](int i, double t){
+		n_ind_vec[k] = S.state_integral([&S,k](int i, double t){
 											return 1;
 									}, t, k);
 	n_ind = std::accumulate(n_ind_vec.begin(), n_ind_vec.end(), 0.0);
@@ -92,7 +93,7 @@ void SpeciesProps::update(double t, Solver &S){
 		biomass_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
 											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 											return p.get_biomass();
-									}, t, 0.1, k);
+									}, t, {0.1}, k);
 	biomass = std::accumulate(biomass_vec.begin(), biomass_vec.end(), 0.0);
 
 	ba_vec.clear();
@@ -103,14 +104,14 @@ void SpeciesProps::update(double t, Solver &S){
 											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 											double D = p.geometry.diameter_at_height(1.3, p.traits);
 											return M_PI*D*D/4;
-									}, t, 0.1, k);
+									}, t, {0.1}, k);
 	ba = std::accumulate(ba_vec.begin(), ba_vec.end(), 0.0);
 
 	canopy_area_vec.clear();
 	canopy_area_vec.resize(S.n_species(), 0);
 	for (int k=0; k<S.n_species(); ++k)
 		if (isResident(S.species_vec[k]))
-		canopy_area_vec[k] = S.integrate_x([&S,k](int i, double t){
+		canopy_area_vec[k] = S.state_integral([&S,k](int i, double t){
 											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
 											return p.crown_area;
 									}, t, k);
@@ -121,7 +122,7 @@ void SpeciesProps::update(double t, Solver &S){
 	height_vec.resize(S.n_species(), 0);
 	for (int k=0; k<S.n_species(); ++k)
 		if (isResident(S.species_vec[k]))
-		height_vec[k] = S.integrate_x([&S,k](int i, double t){
+		height_vec[k] = S.state_integral([&S,k](int i, double t){
 											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 											return p.geometry.height;
 									}, t, k);
@@ -131,7 +132,7 @@ void SpeciesProps::update(double t, Solver &S){
 
 	hmat = 0;
 	// for (int k=0; k<S.n_species(); ++k)
-	// 	hmat += S.integrate_x([&S,k](int i, double t){
+	// 	hmat += S.state_integral([&S,k](int i, double t){
 	// 								      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 	// 								      return p.traits.hmat;
 	// 								}, t, k);
@@ -143,7 +144,7 @@ void SpeciesProps::update(double t, Solver &S){
 
 	lma = 0;
 	// for (int k=0; k<S.n_species(); ++k)
-	// 	lma += S.integrate_x([&S,k](int i, double t){
+	// 	lma += S.state_integral([&S,k](int i, double t){
 	// 								      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 	// 								      return p.traits.lma;
 	// 								}, t, k);
@@ -154,7 +155,7 @@ void SpeciesProps::update(double t, Solver &S){
 
 	wd = 0;
 	// for (int k=0; k<S.n_species(); ++k)
-	// 	wd += S.integrate_x([&S,k](int i, double t){
+	// 	wd += S.state_integral([&S,k](int i, double t){
 	// 								      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 	// 								      return p.traits.wood_density;
 	// 								}, t, k);
@@ -165,7 +166,7 @@ void SpeciesProps::update(double t, Solver &S){
 
 	p50 = 0;
 	// for (int k=0; k<S.n_species(); ++k)
-	// 	p50 += S.integrate_x([&S,k](int i, double t){
+	// 	p50 += S.state_integral([&S,k](int i, double t){
 	// 								      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 	// 								      return p.traits.p50_xylem;
 	// 								}, t, k);
@@ -178,7 +179,7 @@ void SpeciesProps::update(double t, Solver &S){
 	gs = 0;
 	for (int k=0; k<S.n_species(); ++k)
 		if (isResident(S.species_vec[k]))
-		gs += S.integrate_x([&S,k](int i, double t){
+		gs += S.state_integral([&S,k](int i, double t){
 											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 											return p.res.gs_avg * p.geometry.crown_area;
 									}, t, k);
@@ -191,7 +192,7 @@ void SpeciesProps::update(double t, Solver &S){
 		vcmax_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
 											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 											return p.res.vcmax_avg * p.geometry.crown_area;
-									}, t, 0.1, k);
+									}, t, {0.1}, k);
 	vcmax = std::accumulate(vcmax_vec.begin(), vcmax_vec.end(), 0.0);
 	vcmax /= canopy_area;
 }
@@ -254,7 +255,7 @@ void EmergentProps::update(double t, Solver &S){
 	stem_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.stem_mass(p->traits);});
 	croot_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.coarse_root_mass(p->traits);});
 	froot_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.root_mass(p->traits);});
-	gs = (trans*55.55/365/86400)/1.6/(static_cast<PSPM_Dynamic_Environment*>(S.env)->clim.vpd/1.0325e5);
+	gs = (trans*55.55/365/86400)/1.6/(static_cast<PSPM_Environment*>(S.env)->clim_inst.vpd/1.0325e5);
 	//     ^ convert kg/m2/yr --> mol/m2/s
 
 	double tleaf_comm = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.tleaf;});
@@ -267,7 +268,7 @@ void EmergentProps::update(double t, Solver &S){
 	for (int iz=0; iz<25; ++iz)
 		for (int k=0; k<S.n_species(); ++k)
 			if (isResident(S.species_vec[k]))
-			lai_vert[iz] += S.integrate_x([&S,k,iz](int i, double t){
+			lai_vert[iz] += S.state_integral([&S,k,iz](int i, double t){
 									auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 									return p.geometry.crown_area_above(iz,p.traits)*p.geometry.lai;
 							}, t, k);
@@ -290,6 +291,7 @@ void SolverIO::openStreams(std::string dir, io::Initializer &I){
 		cohort_props_out << "t\tspeciesID\tcohortID\t";
 		for (auto vname : varnames) cohort_props_out << vname << "\t";
 		cohort_props_out << std::endl;
+		cohort_props_out << std::setprecision(12);
 	}
 
 	size_dists_out.open(dir + "/size_distributions.txt");
@@ -359,7 +361,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << t << "\t";
 
 		std::vector<double> breaks = my_log_seq(0.01, 10, 100);
-		std::vector<double> dist = S->getDensitySpecies(s, breaks);
+		std::vector<double> dist = S->getDensitySpecies1D(s, 0, breaks);
 		//cout << "here: " << breaks.size() << " " << dist.size() << endl;
 
 		if (spp->isResident){
@@ -394,6 +396,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 					cohort_props_out << t << "\t" 
 									<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
 									<< j << "\t"
+									<< C.geometry.diameter << "\t"
 									<< C.geometry.height << "\t"
 									<< C.geometry.lai << "\t"
 									<< C.rates.dmort_dt << "\t"
@@ -491,11 +494,11 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 	
 
 	fzst << t << "\t";
-	for (auto z : static_cast<PSPM_Dynamic_Environment*>(S->env)->z_star) fzst << z << "\t";
+	for (auto z : static_cast<PSPM_Environment*>(S->env)->z_star) fzst << z << "\t";
 	fzst << std::endl;
 	
 	fco << t << "\t";
-	for (auto z : static_cast<PSPM_Dynamic_Environment*>(S->env)->canopy_openness) fco << z << "\t";
+	for (auto z : static_cast<PSPM_Environment*>(S->env)->canopy_openness) fco << z << "\t";
 	fco << std::endl;
 
 }

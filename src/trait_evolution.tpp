@@ -161,7 +161,7 @@ void MySpecies<Model>::restore(std::ifstream &fin){
 	//C.initFromFile(configfile_for_restore);  
 	C.par.restore(fin);
 	C.traits.restore(fin);
-	C.coordinateTraits();
+	C.init(C.par, C.traits);
 
 	C.traits.save(std::cout); std::cout.flush(); // For debug only
 

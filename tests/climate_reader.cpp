@@ -1,38 +1,43 @@
 #include <iostream>
 #include <fstream>
 
-#include "climate.h"
+#include "climate_stream.h"
 
 using namespace std;
 
 int main(){
 	
-	env::Climate C;
+	env::ClimateStream C;
 
-	C.metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
+	C.i_metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE_new.csv";
+	C.a_metFile = "tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE_new.csv";
 	C.co2File = "tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 	
-	C.update_met = true;
+	C.update_i_met = true;
+	C.update_a_met = true;
 	C.update_co2 = true;
 
 	C.init();
-	C.print();
+	// C.print();
 
-	C.print_all();
-
-
+	// C.print_all();
 
 //	C.updateClimate(2001.92);
+	env::Climate climate;
+	climate.set_acclim_timescale(60);
 
-	ofstream fout("climate.txt");
+	ofstream fout("climate_inst.txt");
+	ofstream fouta("climate_acclim.txt");
 	for (double t = 1921; t < 2081; t += 1/120.0){
+	// for (double t = 2000; t < 2005; t += 1/120.0){
 		int year = int(t);
 		double month = (t-int(t))*12;
-		int id = C.id(t);
-		//cout << "t = " << t << " id = " << id << " (" << year << "/" << month << ")\n";
-		C.updateClimate(t);
-		C.print_line(t);
-		fout << t << "\t" << C.clim.tc << "\t" << C.clim.vpd << "\t" << C.clim.ppfd << "\t" << C.clim.swp << "\t" << C.clim.co2 << "\n";
+		cout << setprecision(12) << "t = " << t << " id = " << C.i_met_stream.julian_to_indices(flare::yearsCE_to_julian(t)).idx << " (" << year << "/" << month << ")\n";
+		C.updateClimate(flare::yearsCE_to_julian(t), climate);
+		// C.print_line(t);
+		fout << t << "\t" << climate.clim_inst.tc << "\t" << climate.clim_inst.vpd << "\t" << climate.clim_inst.ppfd << "\t" << climate.clim_inst.swp << "\t" << climate.clim_inst.co2 << "\n";
+		cout << t << "\t" << climate.clim_inst.tc << "\t" << climate.clim_inst.vpd << "\t" << climate.clim_inst.ppfd << "\t" << climate.clim_inst.swp << "\t" << climate.clim_inst.co2 << "\n";
+		fouta << t << "\t" << climate.clim_acclim.tc << "\t" << climate.clim_acclim.vpd << "\t" << climate.clim_acclim.ppfd << "\t" << climate.clim_acclim.swp << "\t" << climate.clim_acclim.co2 << "\n";
 	}
 	fout.close();
 

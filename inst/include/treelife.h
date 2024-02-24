@@ -7,13 +7,17 @@
 #include "plant.h"
 
 #include "climate.h"
+#include "climate_stream.h"
 #include "light_environment.h"
 
 
-class ErgodicEnvironment : public env::Climate, public env::LightEnvironment {
+class ErgodicEnvironment : public env::LightEnvironment, public env::Climate {
 	public:
 	ErgodicEnvironment();
-	void print(double t);
+	void print(double t) override;
+
+	// override computeEnv() to NOT update the light profile
+	void computeEnv(double t, Solver * sol, std::vector<double>::iterator S, std::vector<double>::iterator dSdt) override;
 };
 
 
@@ -21,6 +25,7 @@ class LifeHistoryOptimizer{
 	public:
 	plant::Plant P;
 	ErgodicEnvironment C;
+	env::ClimateStream c_stream;
 
 	// std::string paramsFile;
 	// std::string met_file = "";
@@ -42,10 +47,13 @@ class LifeHistoryOptimizer{
 
 	LifeHistoryOptimizer(std::string params_file);
 	
-	void set_metFile(std::string metfile);
+	void set_i_metFile(std::string file);
+	void set_a_metFile(std::string file);
 	void set_co2File(std::string co2file);
 	
 	void init();
+
+	void update_climate(double julian_time);
 
 	std::vector<std::string> get_header();
 	void printHeader(std::ostream &lfout);

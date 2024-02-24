@@ -1,18 +1,86 @@
 namespace plant{
 
+inline void print_phydro(const phydro::PHydroResult& res, std::string s){
+	std::cout << "phydro: " << s << '\n';
+	std::cout << "   a = " << res.a << '\n' 
+	          << "   e = " << res.e << '\n' 
+			  << "   vcmax = " << res.vcmax << '\n' 
+			  << "   vcmax25 = " << res.vcmax25 << '\n'
+			  << "   rd = " << res.rd << '\n'
+			  << "   gs = " << res.gs << '\n'
+			  << "   dpsi = " << res.dpsi << '\n';
+}
+
 // **
 // ** Gross and Net Assimilation 
 // **
 template<class _Climate>
-phydro::PHydroResult Assimilator::leaf_assimilation_rate(double I0, double fapar, _Climate &clim, PlantParameters &par, PlantTraits &traits){
+phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fapar, _Climate &C, PlantParameters &par, PlantTraits &traits){
 	phydro::ParCost par_cost(par.alpha, par.gamma);
 	phydro::ParPlant par_plant(traits.K_leaf, traits.p50_leaf, traits.b_leaf);
-	par_plant.gs_method = phydro::GS_APX;
-	auto photo_leaf = phydro::phydro_analytical(clim.tc,       I0,   clim.vpd,  clim.co2,	
-												clim.elv,   fapar,  par.kphio,  clim.swp, 
-												par.rd, par_plant,   par_cost);
-	
-	return photo_leaf;	// umol m-2 s-1 
+	phydro::ParControl par_control;
+
+	par_control.gs_method = phydro::GS_APX;
+	par_control.et_method = phydro::ET_DIFFUSION;
+
+	double Iabs_acclim = fipar*C.clim_acclim.ppfd;
+	double Iabs_inst   = fipar*C.clim_inst.ppfd;
+
+	auto out_phydro_acclim = phydro::phydro_analytical(
+		C.clim_acclim.tc,     // current temperature
+		C.clim_acclim.tc,     // growth temperature
+		Iabs_acclim,          // midday incident PAR [umol m-2 s-1]
+		C.clim_acclim.rn,     // Net radiation [W m-2] (only used for LE calculations which we dont use) // FIXME. Should this be Rnl? See message to Beni
+		C.clim_acclim.vpd,    // vpd [kPa]
+		C.clim_acclim.co2,	  // co2 [ppm]
+		C.clim_acclim.pa,     // surface pressure [Pa]
+		fapar,                // fraction of absorbed PAR
+		par.kphio,            // phi0 - quantum yield
+		C.clim_acclim.swp,    // soil water potential [MPa]
+		par.rd,               // ratio or dark respiration to vcmax
+		C.clim_acclim.vwind,  // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
+		par_plant,            // plant hydraulic traits
+		par_cost,             // cost params
+		par_control           // configuration params for phydro
+	);
+
+	// print_phydro(out_phydro_acclim, "acclim");
+
+	// ~~~~~
+	// Note: Inst calcs were being done in a hacky way before the instantaneous model was ready, as follows. 
+	// This was completely wrong!
+	// auto photo_leaf1 = out_phydro_acclim;
+	// // the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
+	// double f = 1.18*C.clim_inst.ppfd/C.clim_inst.ppfd_max;
+	// photo_leaf1.a *= f;
+	// photo_leaf1.e *= f;
+	// ~~~~~
+
+	// print_phydro(photo_leaf1, "inst shortcut");
+
+	auto photo_leaf = phydro::phydro_instantaneous_analytical(
+		out_phydro_acclim.vcmax25, // acclimated vcmax25
+		out_phydro_acclim.jmax25,  // acclimated jmax25
+		C.clim_inst.tc,            // current temperature
+		C.clim_inst.tc,            // growth temperature
+		Iabs_inst,                 // mean incident PAR [umol m-2 s-1]
+		C.clim_inst.rn,            // mean net radiation [W m-2] (only used for LE calculations which we dont use)
+		C.clim_inst.vpd,           // vpd [kPa]
+		C.clim_inst.co2,	       // co2 [ppm]
+		C.clim_inst.pa,            // surface pressure [Pa]
+		fapar,                     // fraction of absorbed PAR
+		par.kphio,                 // phi0 - quantum yield
+		C.clim_inst.swp,           // soil water potential [MPa]
+		par.rd,                    // ratio or dark respiration to vcmax
+		C.clim_inst.vwind,         // wind speed [m s-1], only used by PML, which we dont use, so set to global average of 3 m/s
+		par_plant,                 // plant hydraulic traits
+		par_cost,                  // cost params
+		par_control                // configuration params for phydro
+	);
+
+	// print_phydro(photo_leaf, "inst real");
+
+	return photo_leaf;	
 }
 
 
@@ -40,8 +108,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 		//std::cout << "h = " << G->height << ", z* = " << zst << ", I = " << env.canopy_openness[ilayer] << ", fapar = " << fapar << /*", A = " << (res.a + res.vcmax*par.rd) << " umol/m2/s x " <<*/ ", ca_layer = " << ca_layer << /*" m2 = " << (res.a + res.vcmax*par.rd) * ca_layer << ", vcmax = " << res.vcmax <<*/ "\n"; 
 		
 		if (by_layer == true){
-			double I_top = env.clim.ppfd_max * env.canopy_openness[ilayer]; 
-			auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+			auto res = leaf_assimilation_rate(env.canopy_openness[ilayer], fapar, env, par, traits);
 			plant_assim.gpp        += (res.a + res.vcmax*par.rd) * ca_layer;
 			plant_assim.rleaf      += (res.vcmax*par.rd) * ca_layer;
 			plant_assim.trans      += res.e * ca_layer;
@@ -70,8 +137,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	}
 
 	if (by_layer == false){
-		double I_top = env.clim.ppfd_max * plant_assim.c_open_avg;
-		auto res = leaf_assimilation_rate(I_top, fapar, env.clim, par, traits);
+		auto res = leaf_assimilation_rate(plant_assim.c_open_avg, fapar, env, par, traits);
 		plant_assim.gpp        = (res.a + res.vcmax*par.rd) * ca_total;
 		plant_assim.rleaf      = (res.vcmax*par.rd) * ca_total;
 		plant_assim.trans      = res.e * ca_total;
@@ -87,16 +153,11 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 	//std::cout << "---\nCA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 	// calculate yearly averages in mol/yr	
-	// the factor 1.18 accounts for the non-linearity in the instantaneous sub-daily response in the P-hydro model
-	double f_light_day = 1.18*env.clim.ppfd/env.clim.ppfd_max; //0.25; // fraction day that receives max light (x0.5 sunlight hours, x0.5 average over sinusoid)
-	double f_growth_yr = 1.0;  // factor to convert daily mean PAR to yearly mean PAR
-	double f = f_light_day * f_growth_yr * 86400*365.2524; // s-1 ---> yr-1
+	double sec_per_yr = 86400*365.2524; // s-1 ---> yr-1
 
-	plant_assim.gpp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
-	plant_assim.npp   *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
-	plant_assim.rleaf *= (f * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
-	plant_assim.trans *= (f * 18e-3);                  // mol h2o/s  ----> mol h2o/yr  --> kg h2o /yr
-	// FIXME: Shouldn't gs also be scaled? Fine for now because it's not used (gs for plots is from emergent props, where it is calc from transpiration). 
+	plant_assim.gpp   *= (sec_per_yr * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
+	plant_assim.rleaf *= (sec_per_yr * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
+	plant_assim.trans *= (sec_per_yr * 18e-3);                  // mol h2o/s  ----> mol h2o/yr  --> kg h2o /yr
 }
 
 

@@ -1,6 +1,7 @@
 #ifndef PLANT_FATE_PSPM_INTERFACE_H_
 #define PLANT_FATE_PSPM_INTERFACE_H_
 
+#include <individual_base.h>
 #include <solver.h>
 #include "light_environment.h"
 #include "climate.h"
@@ -12,9 +13,13 @@
 /// @defgroup ppa_module PPA
 /// @brief    This module collects functions and classes that together implement the Perfect Plasticity Approximation 
 
+#define STATE_DIM 1
+
 /// @ingroup  libpspm_interface
 /// @brief    This class entends the Plant class to interface with the PSPM Solver.
-class PSPM_Plant : public plant::Plant {
+class PSPM_Plant : 
+	public plant::Plant, public IndividualBase<STATE_DIM> 
+{
 	public:
 	
 	double t_birth = 0;
@@ -32,50 +37,47 @@ class PSPM_Plant : public plant::Plant {
 
 	PSPM_Plant(); 
 
-	void set_size(double _x);
+	void set_size(const std::array<double,STATE_DIM>& _x) override;
 
-	double init_density(double x, void * _env, double input_seed_rain);
+	double init_density(void * _env, double input_seed_rain) override;
 
 	/// @ingroup libpspm_interface
-	void preCompute(double x, double t, void * _env);
-	void afterStep(double x, double t, void * _env);
+	void preCompute(double t, void * _env) override;
+	void afterStep(double t, void * _env);
 
 	/// @addtogroup libpspm_interface
 	/// Core demographic rate functions are specifically highlighted here
 	/// even though they are members of the PSPM_Plant class.
 	/// @{
-	double establishmentProbability(double t, void * _env);
+	double establishmentProbability(double t, void * _env) override;
 
-	double growthRate(double x, double t, void * _env);
-	double mortalityRate(double x, double t, void * _env);
-	double birthRate(double x, double t, void * _env);
+	std::array<double,STATE_DIM> growthRate(double t, void * _env) override;
+	double mortalityRate(double t, void * _env) override;
+	double birthRate(double t, void * _env) override;
 	/// @}
 	
-	void init_state(double t, void * _env);
+	void init_accumulators(double t, void * _env) override;
 
-	std::vector<double>::iterator set_state(std::vector<double>::iterator &it);
+	std::vector<double>::iterator set_accumulators(std::vector<double>::iterator &it) override;
 
-	std::vector<double>::iterator get_state(std::vector<double>::iterator &it);
-	std::vector<double>::iterator get_rates(std::vector<double>::iterator &it);
+	std::vector<double>::iterator get_accumulators(std::vector<double>::iterator &it) override;
+	std::vector<double>::iterator get_accumulatorRates(std::vector<double>::iterator &it) override;
 
-	void print(std::ostream &out = std::cout);
+	void print(std::ostream &out = std::cout) const override;
 
-	void save(std::ostream &fout);
-	void restore(std::istream &fin);
+	void save(std::ostream &fout) override;
+	void restore(std::istream &fin) override;
 };
+
 
 /// @ingroup  libpspm_interface
-/// @brief    Environment class for interfacing with the PSPM Solver
-class PSPM_Dynamic_Environment : public EnvironmentBase, public env::LightEnvironment, public env::Climate{
+/// @brief    This class provides a common interface to different components of the environment
+class PSPM_Environment : 
+	public env::LightEnvironment, public env::Climate
+{
 	public:
-	double projected_crown_area_above_z(double t, double z, Solver *S);
-	double fapar_layer(double t, int layer, Solver *S);
-	void computeEnv(double t, Solver *S, std::vector<double>::iterator _S, std::vector<double>::iterator _dSdt);
-	void print(double t);
+	void print(double t) override;
 };
-
-
-
 
 
 #endif

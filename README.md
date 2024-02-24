@@ -119,6 +119,14 @@ make clean testclean
 make check TEST_FILES=tests/pf.cpp
 ```
 
+### Python installation
+
+Python3 and pip3 is required to install plantFATE as a python library. Run: 
+
+```
+make python
+```
+
 ## Analyse results
 
 Analyse results with `tests/Rscripts/amazon_calibration.R` 

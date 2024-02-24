@@ -15,7 +15,7 @@ double integrate_prop(double t, Solver &S, const Func &f){
 	for (int k=0; k<S.n_species(); ++k){
 		bool is_resident = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k])->isResident;
 		if (is_resident){
-			x += S.integrate_x([&S,k,f](int i, double t){
+			x += S.state_integral([&S,k,f](int i, double t){
 					auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
 					const PSPM_Plant * pp = &p;
 					return f(pp);
@@ -100,7 +100,7 @@ class SolverIO{
 	public:
 	int nspecies;
 	Solver * S;
-	std::vector<std::string> varnames = {"height", "lai", "mort", "fec", "rgr", "gpp"};
+	std::vector<std::string> varnames = {"diameter", "height", "lai", "mort", "fec", "rgr", "gpp"};
 
 	bool b_output_cohort_props = false;
 

@@ -1,9 +1,10 @@
 #-------------------------------------------------------------------------------
 # executable name
-TARGET := 1
+TARGET := libpfate
 
 # files
-SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp, $(wildcard src/*.cpp))
+SRCFILES  :=  $(filter-out src/RcppExports.cpp src/r_interface.cpp $(wildcard src/pybind*.cpp), $(wildcard src/*.cpp))
+PYBINDFILES := $(wildcard src/pybind*.cpp)
 HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 # ------------------------------------------------------------------------------
 
@@ -18,8 +19,9 @@ ROOT_DIR := ${shell dirname ${shell pwd}}
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
-INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
-LIB_PATH := -L$(ROOT_DIR)/libpspm/lib
+INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include -I$(ROOT_DIR)/Flare_v2/include  #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
+PTH_PATH := $(shell python3 -m pybind11 --includes)
+LIB_PATH := -L$(ROOT_DIR)/libpspm/lib -L./lib
 
 # flags
 PROFILING_FLAGS = -g -pg
@@ -55,6 +57,7 @@ CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-parameter
 
 # libs
+AR = ar
 LIBS = 	 -lpspm	# additional libs
 #LIBS = -lcudart 			# cuda libs
 
@@ -62,19 +65,35 @@ LIBS = 	 -lpspm	# additional libs
 OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 
 
+# add_subdirectory(pybinds)
+# pybind11_add_module(simulator simulator_pybind.cpp)
+
+
 all: dir $(TARGET)
+
+# $(PYBINDFILES): build/%.o : src/%.cpp
+# 	g++ -c $(CPPFLAGS) $(PTH_PATH) $(INC_PATH) $< -o $@
+
+
+python: dir $(TARGET) # $(PYBINDFILES)
+	pip3 install .
 
 dir:
 	mkdir -p lib build tests/build
 
+hi:
+	echo $(SRCFILES)
+
+
 $(TARGET): $(OBJECTS)
-	g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
+	$(AR) rcs lib/$(TARGET).a $(OBJECTS) $(LIBS) 
+# g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 libclean:
-	rm -f $(TARGET) build/*.o log.txt gmon.out 
+	rm -f $(TARGET) build/*.o lib/*.a log.txt gmon.out 
 	
 re: clean all
 
@@ -83,13 +102,13 @@ clean: libclean testclean
 
 ## TESTING SUITE ##
 
-TEST_FILES = tests/save_test.cpp #$(wildcard tests/*.cpp)
+TEST_FILES = tests/pf_test.cpp #$(wildcard tests/*.cpp)
 TEST_OBJECTS = $(patsubst tests/%.cpp, tests/%.o, $(TEST_FILES))
 TEST_TARGETS = $(patsubst tests/%.cpp, tests/%.test, $(TEST_FILES))
 TEST_RUNS = $(patsubst tests/%.cpp, tests/%.run, $(TEST_FILES))
 ADD_OBJECTS =
 
-check: dir $(OBJECTS) compile_tests clean_log run_tests
+check: dir $(TARGET) compile_tests clean_log run_tests
 
 compile_tests: $(TEST_TARGETS)
 	
@@ -108,7 +127,7 @@ $(TEST_OBJECTS): tests/%.o : tests/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 $(TEST_TARGETS): tests/%.test : tests/%.o $(HEADERS)
-	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS)
+	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS) -lpfate
 
 testclean:
 	rm -f tests/*.o tests/*.test
