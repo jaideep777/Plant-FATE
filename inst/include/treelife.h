@@ -47,10 +47,13 @@ class LifeHistoryOptimizer{
 
 	LifeHistoryOptimizer(std::string params_file);
 	
-	void set_metFile(std::string metfile);
+	void set_i_metFile(std::string file);
+	void set_a_metFile(std::string file);
 	void set_co2File(std::string co2file);
 	
 	void init();
+
+	void update_climate(double julian_time);
 
 	std::vector<std::string> get_header();
 	void printHeader(std::ostream &lfout);

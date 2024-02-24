@@ -1,5 +1,8 @@
-dat = read.delim("~/codes/Plant-FATE/climate.txt", header=F)
+dat = read.delim("~/codes/Plant-FATE/climate_inst.txt", header=F)
 colnames(dat) = c("t", "Temp", "VPD", "PAR", "SWP", "co2")
+data = read.delim("~/codes/Plant-FATE/climate_acclim.txt", header=F)
+colnames(data) = c("t", "Temp", "VPD", "PAR", "SWP", "co2")
+
 dato = read.csv("~/codes/Plant-FATE/tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE_new.csv", header=T)
 # datco2 = read.csv("~/codes/tmodel_cpp/tests/data/CO2_AMB_AmzFACE2000_2100.csv", header=T)
 dato$t = dato$Year + (dato$Month-1)/12
@@ -16,7 +19,7 @@ dato$SWP = -dato$SWP
 #               rep(2010,12), rep(2011,12))
 # dato_rep$t = dato_rep$Year + (dato_rep$Month-1)/12
 
-par(mfrow=c(5,1), mar=c(4,4,1,1), oma=c(1,1,1,1))
+par(mfrow=c(5,1), mar=c(2,4,1,1), oma=c(1,1,1,1), xlab="")
 plot(dat$Temp~dat$t, type="l", col="black", xlim=c(2000,2005))
 points(dato$Temp~dato$t, pch=20, type="p", col="red", cex=0.6)
 plot(dat$Temp~dat$t, type="l", col="black")
@@ -27,6 +30,14 @@ plot(dat$PAR~dat$t, type="l", col="black")
 points(dato$PAR~dato$t, pch=20, type="l", col="red", cex=0.6)
 plot(dat$SWP~dat$t, type="l", col="black")
 points(dato$SWP~dato$t, pch=20, type="l", col="red", cex=0.6)
+
+
+par(mfrow=c(5,1), mar=c(2,4,1,1), oma=c(1,1,1,1), xlab="")
+matplot(y=cbind(dat$Temp,data$Temp), x=dat$t, type="l", lty=1, col=c("black", "green3"), xlim=c(2000,2005))
+matplot(y=cbind(dat$VPD,data$VPD), x=dat$t, type="l", lty=1, col=c("black", "green3"), xlim=c(2000,2005))
+matplot(y=cbind(dat$co2,data$co2), x=dat$t, type="l", lty=1, col=c("black", "green3"), xlim=c(2000,2005), ylim=c(360,400))
+matplot(y=cbind(dat$PAR,data$PAR), x=dat$t, type="l", lty=1, col=c("black", "green3"), xlim=c(2000,2005))
+matplot(y=cbind(dat$SWP,data$SWP), x=dat$t, type="l", lty=1, col=c("black", "green3"), xlim=c(2000,2005))
 
 
 

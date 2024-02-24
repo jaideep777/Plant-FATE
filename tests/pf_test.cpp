@@ -30,7 +30,7 @@ int main(int argc, char ** argv){
 	for (int i=0; i<1; ++i){
 		Simulator sim(pfile);
 		// sim.expt_dir = sim.expt_dir + "_414ppm";
-		sim.E.clim.co2 = 414;
+		sim.E.init_co2(414);
 		sim.init(2000, 2100);
 		sim.simulate();
 
@@ -42,11 +42,12 @@ int main(int argc, char ** argv){
 		// err = is_equal(ba, {1.569239985, 7.069009343, 27.21039394});  // this is the output  at yearly step_to after ODE bugfix in libpspm @8d0eb68
 		// err = is_equal(ba, {1.569239985, 7.069009343, 27.21039394});  // this is the output  at yearly step_to after ODE bugfix in libpspm @118d623
 		// err = is_equal(ba, {1.569460052, 7.060768412, 27.17424297});  // this is the output  at BIWEEKLY step_to. This difference is due to insertion of an extra point in R0 moving averager at integer t in yearly stepping - this doesnt happen at biweekly stepping, which seems more correct. This is the best level of investigattion I can do for now, so I'm going to take this as the expected test result and proceed with other stuff.
-		// err = is_equal(ba, {1.569063555, 7.059273716, 27.16867421});  // this is the output  at BIWEEKLY step_to after moving climate update to before step. Difference is because not climate is not updated in after_step() before computation of seed rain
+		// err = is_equal(ba, {1.569063555, 7.059273716, 27.16867421});  // this is the output  at BIWEEKLY step_to after moving climate update to before step. Difference is because now climate is not updated in after_step() before computation of seed rain
 		// err = is_equal(ba, {1.570225188, 7.046974989, 27.14456976});  // this is the output  at BIWEEKLY step_to after new climate stream impl. Difference is because the two versions skip different sets of climate indices due to floating point comparisons.
 		// err = is_equal(ba, {1.579158228, 7.140990396, 26.88772544});  // this is the output  at BIWEEKLY step_to after upgrade to latest version of phydro @6fc30d6. Difference is due to new temperature dependencies in phydro
-		err = is_equal(ba, {1.723965758, 7.637388237, 26.86261917});     // this is the output  at BIWEEKLY step_to after imlemented instantaneous version of phydro @ea5b867.
-
+		// err = is_equal(ba, {1.723965758, 7.637388237, 26.86261917});  // this is the output  at BIWEEKLY step_to after imlepmenting instantaneous version of phydro @ea5b867. 
+		err = is_equal(ba, {1.724216996, 7.638630557, 26.87059782});    // this is the output  at BIWEEKLY step_to after setting acclimation timescale to 7 days.
+ 
 		sim.close();
 	}
 
@@ -55,7 +56,7 @@ int main(int argc, char ** argv){
 	// for (int i=0; i<1; ++i){
 	// 	Simulator sim(pfile);
 	// 	sim.expt_dir = sim.expt_dir + "_614ppm";
-	// 	sim.E.clim.co2 = 614;
+	// 	sim.E.clim_inst.co2 = 614;
 	// 	sim.init(1000, 5000);
 	// 	sim.simulate();
 	// 	sim.close();
@@ -99,7 +100,7 @@ int main(int argc, char ** argv){
 	// for (auto cc : co2_vec){
 	// 	Simulator sim("tests/params/p.ini");
 	// 	sim.expt_dir = "scan_co2_" + to_string(cc);
-	// 	sim.E.clim.co2 = cc;
+	// 	sim.E.clim_inst.co2 = cc;
 	// 	sim.init(1000, 1500);
 	// 	sim.simulate();
 	// 	sim.close();

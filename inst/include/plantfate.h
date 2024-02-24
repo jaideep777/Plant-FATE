@@ -78,14 +78,18 @@ class Simulator{
 	public:
 	Simulator(std::string params_file);
 	
-	void set_metFile(std::string metfile);
+	void set_i_metFile(std::string file);
+	void set_a_metFile(std::string file);
 	void set_co2File(std::string co2file);
 
 	void init(double tstart, double tend);
 
 	void simulate_to(double t);
-	void update_climate(double t, env::ClimateStream& c_stream);
-	void update_climate(double t, double co2, double tc, double vpd, double ppfd, double ppfd_max, double swp);
+
+	void update_climate(double julian_time, env::ClimateStream& c_stream);
+
+	void update_climate(double co2, double tc, double vpd, double ppfd, double swp);
+	void update_climate_acclim(double t_julian, double co2, double tc, double vpd, double ppfd, double swp);
 
 	void simulate();
 

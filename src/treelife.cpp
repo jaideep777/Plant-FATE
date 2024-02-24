@@ -27,14 +27,20 @@ LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file){
 	traits0.init(I);
 	par0.init(I);
 
-	c_stream.metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
+	c_stream.i_metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
+	c_stream.a_metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	c_stream.co2File = ""; //"tests/data/CO2_AMB_AmzFACE2000_2100.csv";
 
 }
 
-void LifeHistoryOptimizer::set_metFile(std::string metfile){
-	c_stream.metFile = metfile;
-	c_stream.update_met = (metfile == "")? false : true;
+void LifeHistoryOptimizer::set_i_metFile(std::string file){
+	c_stream.i_metFile = file;
+	c_stream.update_i_met = (file == "")? false : true;
+}
+
+void LifeHistoryOptimizer::set_a_metFile(std::string file){
+	c_stream.a_metFile = file;
+	c_stream.update_a_met = (file == "")? false : true;
 }
 
 void LifeHistoryOptimizer::set_co2File(std::string co2file){
@@ -115,7 +121,7 @@ void LifeHistoryOptimizer::printHeader(ostream &lfout){
 vector<double> LifeHistoryOptimizer::get_state(double t){
 	return {
 		  t 
-		, C.clim.ppfd
+		, C.clim_inst.ppfd
 		, P.assimilator.plant_assim.npp 
 		, P.assimilator.plant_assim.gpp 
 		, P.assimilator.plant_assim.rleaf
@@ -193,11 +199,16 @@ void LifeHistoryOptimizer::get_rates(vector<double>::iterator it){
 	*it++ = P.rates.dmort_dt;
 }
 
+
+void LifeHistoryOptimizer::update_climate(double julian_time){
+	c_stream.updateClimate(julian_time, C);
+}
+
 void LifeHistoryOptimizer::grow_for_dt(double t, double dt){
 
 	auto derivs = [this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 		//if (fabs(t - 2050) < 1e-5) 
-		c_stream.updateClimate(flare::yearsCE_to_julian(t), C.clim);
+		update_climate(flare::yearsCE_to_julian(t));
 		set_state(S.begin());
 		P.calc_demographic_rates(C, t);
 		

@@ -17,7 +17,9 @@
 
 /// @ingroup  libpspm_interface
 /// @brief    This class entends the Plant class to interface with the PSPM Solver.
-class PSPM_Plant : public plant::Plant, public IndividualBase<STATE_DIM> {
+class PSPM_Plant : 
+	public plant::Plant, public IndividualBase<STATE_DIM> 
+{
 	public:
 	
 	double t_birth = 0;

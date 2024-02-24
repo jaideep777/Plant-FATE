@@ -105,7 +105,7 @@ int main(){
 		//if (abs(P.get_biomass() - total_prod) > 1e-6) return 1;
 		
 		fout << t << "\t"
-			 << C.clim.ppfd << "\t"
+			 << C.clim_inst.ppfd << "\t"
 			 << P.assimilator.plant_assim.npp << "\t" 
 			 << P.assimilator.plant_assim.gpp << "\t" 
 			 << P.assimilator.plant_assim.rleaf << "\t"

@@ -33,10 +33,12 @@ Simulator::Simulator(std::string params_file) : S("IEBT", "rk45ck") {
 	T_seed_rain_avg = I.get<double>("T_seed_rain_avg");
 	T_return = I.get<double>("T_return");
 
-	climate_stream.metFile = I.get<string>("metFile");
-	climate_stream.co2File = I.get<string>("co2File");
-	climate_stream.update_met = (climate_stream.metFile == "null")? false : true;
-	climate_stream.update_co2 = (climate_stream.co2File == "null")? false : true;
+	climate_stream.i_metFile = I.get<string>("i_metFile");
+	climate_stream.a_metFile = I.get<string>("a_metFile");
+	climate_stream.co2File   = I.get<string>("co2File");
+	climate_stream.update_i_met = (climate_stream.i_metFile == "null")? false : true;
+	climate_stream.update_a_met = (climate_stream.a_metFile == "null")? false : true;
+	climate_stream.update_co2   = (climate_stream.co2File   == "null")? false : true;
 
 	E.use_ppa = true;
 
@@ -45,11 +47,15 @@ Simulator::Simulator(std::string params_file) : S("IEBT", "rk45ck") {
 }
 
 
-void Simulator::set_metFile(std::string metfile){
-	climate_stream.metFile = metfile;
-	climate_stream.update_met = (metfile == "")? false : true;
+void Simulator::set_i_metFile(std::string file){
+	climate_stream.i_metFile = file;
+	climate_stream.update_i_met = (file == "")? false : true;
 }
 
+void Simulator::set_a_metFile(std::string file){
+	climate_stream.a_metFile = file;
+	climate_stream.update_a_met = (file == "")? false : true;
+}
 
 void Simulator::set_co2File(std::string co2file){
 	climate_stream.co2File = co2file;
@@ -84,6 +90,7 @@ void Simulator::init(double tstart, double tend){
 	// E.metFile = met_file;
 	// E.co2File = co2_file;
 	E.set_elevation(0);
+	E.set_acclim_timescale(7); // currently try with a tau ~ 0, so that test passes
 	climate_stream.init();
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -364,19 +371,29 @@ void Simulator::simulate_to(double t){
 }
 
 
-void Simulator::update_climate(double t, env::ClimateStream& c_stream){
-	c_stream.updateClimate(flare::yearsCE_to_julian(t), E.clim);
+void Simulator::update_climate(double julian_time, env::ClimateStream& c_stream){
+	c_stream.updateClimate(julian_time, E);
 }
 
 
-void Simulator::update_climate(double t, double _co2, double _tc, double _vpd, double _ppfd, double _ppfd_max, double _swp){
-	E.clim.tc = _tc;
-	E.clim.ppfd_max = _ppfd_max;
-	E.clim.ppfd = _ppfd;
-	E.clim.rn = _ppfd/2;  // Tentative, placeholder
-	E.clim.vpd = _vpd;
-	E.clim.co2 = _co2;
-	E.clim.swp = _swp;
+void Simulator::update_climate(double _co2, double _tc, double _vpd, double _ppfd, double _swp){
+	E.clim_inst.tc   = _tc;
+	E.clim_inst.ppfd = _ppfd;
+	E.clim_inst.rn   = _ppfd/2;  // Tentative, placeholder
+	E.clim_inst.vpd  = _vpd;
+	E.clim_inst.co2  = _co2;
+	E.clim_inst.swp  = _swp;
+}
+
+void Simulator::update_climate_acclim(double t_julian, double _co2, double _tc, double _vpd, double _ppfd, double _swp){
+	env::Clim C = E.clim_acclim;
+	C.tc   = _tc;
+	C.ppfd = _ppfd;
+	C.rn   = _ppfd/2;  // Tentative, placeholder
+	C.vpd  = _vpd;
+	C.co2  = _co2;
+	C.swp  = _swp;
+	E.set_forcing_acclim(t_julian, C);
 }
 
 
@@ -432,8 +449,9 @@ void Simulator::simulate(){
 
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
 		// read forcing inputs
-		climate_stream.updateClimate(flare::yearsCE_to_julian(S.current_time), E.clim);
-		std::cout << "update Env (explicit)... t = " << S.current_time << ": tc = " << E.clim.tc << '\n';
+		update_climate(flare::yearsCE_to_julian(S.current_time), climate_stream);
+		std::cout << "update Env (explicit)... t = " << S.current_time << ":\n";
+		((env::Climate&)E).print(t);
 
 		// simulate patch
 		simulate_to(t);

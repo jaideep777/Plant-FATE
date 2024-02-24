@@ -28,20 +28,20 @@ int main(int argc, char ** argv){
 			sim.S.current_time = t;
 
 			sim.S.updateEnv(sim.S.current_time,  sim.S.state.begin(), sim.S.rates.begin());
-			sim.E.clim.co2 = 414;
-			double co21 = sim.E.clim.co2;
+			sim.E.clim_inst.co2 = 414;
+			double co21 = sim.E.clim_inst.co2;
 			sim.S.calcRates_EBT(sim.S.current_time, sim.S.state.begin(), sim.S.rates.begin());
 			sim.props.update(sim.S.current_time, sim.S);
 			double gpp1 = sim.props.gpp*0.5;
 
 			sim.S.updateEnv(sim.S.current_time,  sim.S.state.begin(), sim.S.rates.begin());
-			sim.E.clim.co2 = 614;
-			double co22 = sim.E.clim.co2;
+			sim.E.clim_inst.co2 = 614;
+			double co22 = sim.E.clim_inst.co2;
 			sim.S.calcRates_EBT(sim.S.current_time, sim.S.state.begin(), sim.S.rates.begin());
 			sim.props.update(sim.S.current_time, sim.S);
 			double gpp2 = sim.props.gpp*0.5;
 
-			cout << t << "\t" << sim.E.clim.tc << "\t" << co21 << "\t" << gpp1 << "\t" << co22 << "\t" << gpp2 << "\t" << (gpp2/gpp1-1)*100 << "\n";
+			cout << t << "\t" << sim.E.clim_inst.tc << "\t" << co21 << "\t" << gpp1 << "\t" << co22 << "\t" << gpp2 << "\t" << (gpp2/gpp1-1)*100 << "\n";
 
 		}
 
