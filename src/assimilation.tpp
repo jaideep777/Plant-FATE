@@ -62,7 +62,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		out_phydro_acclim.vcmax25, // acclimated vcmax25
 		out_phydro_acclim.jmax25,  // acclimated jmax25
 		C.clim_inst.tc,            // current temperature
-		C.clim_inst.tc,            // growth temperature
+		C.clim_acclim.tc,          // growth temperature
 		Iabs_inst,                 // mean incident PAR [umol m-2 s-1]
 		C.clim_inst.rn,            // mean net radiation [W m-2] (only used for LE calculations which we dont use)
 		C.clim_inst.vpd,           // vpd [kPa]

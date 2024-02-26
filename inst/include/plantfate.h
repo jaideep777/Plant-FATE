@@ -65,6 +65,10 @@ class Simulator{
 	plant::PlantParameters par0;
 	plant::PlantTraits traits0;
 
+	std::vector<double> trait_variances;
+	std::vector<double> trait_scalars;
+	double T_r0_avg;
+
 	env::ClimateStream  climate_stream;  // should be moved out of patch
 
 	io::Initializer     I;

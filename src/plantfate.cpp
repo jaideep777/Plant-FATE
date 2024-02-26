@@ -21,7 +21,11 @@ Simulator::Simulator(std::string params_file) : S("IEBT", "rk45ck") {
 
 	traits_file = I.get<string>("traitsFile");
 	n_species = I.get<double>("nSpecies");
+
 	evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
+	trait_scalars = I.get_vector<double>("traitScalars");
+	trait_variances = I.get_vector<double>("traitVariances");
+	T_r0_avg = I.get<double>("T_r0_averaging");
 
 	timestep = I.get<double>("timestep");  // ODE Solver timestep
  	T_cohort_insertion = I.get<double>("T_cohort_insertion");    // Cohort insertion timestep
@@ -233,10 +237,9 @@ void Simulator::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 	
 	MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
 	spp->species_name = traits.species_name;
-	spp->trait_scalars = {0.2, 700};
-	// spp->fg_dx = 0.01;
-	spp->trait_variance = vector<double>(2, 0.1);
-	spp->r0_hist.set_interval(100);
+	spp->trait_scalars = trait_scalars; //{800, 25};
+	spp->trait_variance = trait_variances; // vector<double>(2, 0.01);
+	spp->r0_hist.set_interval(T_r0_avg);
 	spp->t_introduction = t;
 
 	spp->seeds_hist.set_interval(T_seed_rain_avg);
@@ -357,7 +360,7 @@ void Simulator::simulate_to(double t){
 	}
 
 	// Save simulation state at specified intervals
-	if (t >= t_next_savestate){
+	if (t > t_next_savestate || fabs(t-t_next_savestate) < 1e-6){
 		saveState(&S, 
 			out_dir + "/" + std::to_string(t) + "_" + state_outfile, 
 			out_dir + "/" + std::to_string(t) + "_" + config_outfile, 
@@ -447,9 +450,9 @@ void Simulator::update_climate_acclim(double t_julian, double _co2, double _tc, 
 //      }
 void Simulator::simulate(){
 
-	for (double t=y0; t <= yf+1e-6; t=t+timestep) {
+	for (double t=y0; t <= yf+1e-6; t=t+timestep) {  // 1e-6 ensures that last timestep to reach yf is actually executed
 		// read forcing inputs
-		update_climate(flare::yearsCE_to_julian(S.current_time), climate_stream);
+		update_climate(flare::yearsCE_to_julian(S.current_time)+1e-6, climate_stream); // The 1e-6 is to ensure that when t coincides exactly with time in climate file, we ensure that the value in climate file is read by asking for a slightly higher t
 		std::cout << "update Env (explicit)... t = " << S.current_time << ":\n";
 		((env::Climate&)E).print(t);
 
@@ -457,7 +460,7 @@ void Simulator::simulate(){
 		simulate_to(t);
 
 		// write outputs
-		if (t >= t_next_writestate){
+		if (t > t_next_writestate || fabs(t-t_next_writestate) < 1e-6){
 			sio.writeState(t, cwm, props);
 			t_next_writestate += 1;
 		}

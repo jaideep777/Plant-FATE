@@ -3,6 +3,9 @@ colnames(dat) = c("t", "Temp", "VPD", "PAR", "SWP", "co2")
 data = read.delim("~/codes/Plant-FATE/climate_acclim.txt", header=F)
 colnames(data) = c("t", "Temp", "VPD", "PAR", "SWP", "co2")
 
+# dat = dat %>% filter(t > 1450 & t < 1550)
+# data = data %>% filter(t > 1450 & t < 1550)
+
 dato = read.csv("~/codes/Plant-FATE/tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE_new.csv", header=T)
 # datco2 = read.csv("~/codes/tmodel_cpp/tests/data/CO2_AMB_AmzFACE2000_2100.csv", header=T)
 dato$t = dato$Year + (dato$Month-1)/12

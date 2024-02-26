@@ -46,7 +46,8 @@ int main(int argc, char ** argv){
 		// err = is_equal(ba, {1.570225188, 7.046974989, 27.14456976});  // this is the output  at BIWEEKLY step_to after new climate stream impl. Difference is because the two versions skip different sets of climate indices due to floating point comparisons.
 		// err = is_equal(ba, {1.579158228, 7.140990396, 26.88772544});  // this is the output  at BIWEEKLY step_to after upgrade to latest version of phydro @6fc30d6. Difference is due to new temperature dependencies in phydro
 		// err = is_equal(ba, {1.723965758, 7.637388237, 26.86261917});  // this is the output  at BIWEEKLY step_to after imlepmenting instantaneous version of phydro @ea5b867. 
-		err = is_equal(ba, {1.724216996, 7.638630557, 26.87059782});    // this is the output  at BIWEEKLY step_to after setting acclimation timescale to 7 days.
+		// err = is_equal(ba, {1.724216996, 7.638630557, 26.87059782});  // this is the output  at BIWEEKLY step_to after setting acclimation timescale to 7 days.
+		err = is_equal(ba, {1.723887226, 7.637860375, 26.86129712});  // this is the output  at BIWEEKLY step_to after adding 1-e6 to t in climate reading, and setting acclim_tc as t_growth in inst model.
  
 		sim.close();
 	}

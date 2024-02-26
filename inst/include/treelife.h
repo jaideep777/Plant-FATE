@@ -63,8 +63,8 @@ class LifeHistoryOptimizer{
 
 	void printMeta();
 
-	void set_traits(std::vector<double> tvec);
-	std::vector<double> get_traits();
+	// void set_traits(std::vector<double> tvec);
+	// std::vector<double> get_traits();
 
 	void set_state(std::vector<double>::iterator it);
 

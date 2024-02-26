@@ -16,9 +16,9 @@ add_label <- function(xfrac = 0.0, yfrac = 0.1, label, pos = 4, ...) {
 }
 
 
-output_dir = "~/codes/Plant-FATE/pspm_output_ewd_scan"
+output_dir = "~/codes/Plant-FATE/pspm_output_alloc_change"
 # output_dir = "~/output_data/pspm_output_36sims"
-expt_dir = "par_ea-1.1493_eg-1.8392_ewd-0.8" #_old_params"
+expt_dir = "zeta_0.2_to_0.200000" #_old_params"
 
 setwd(paste0(output_dir,"/",expt_dir))
 
@@ -59,7 +59,7 @@ n_year = length(unique(dat2$YEAR))
 eco2_col = rgb(190/255,190/255,0)
 
 
-if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props.pdf", width=7*1.1, height = 4.5*1.1)
+if (plot_to_file) cairo_pdf("../../paper_figs3/emg_props.pdf", width=7*1.1, height = 4.5*1.1)
 
 
 # par(mfrow=c(3,3), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=0)
@@ -87,7 +87,7 @@ add_label(label = "B")
 
 matplot(y=cbind(dat$VCMAX), x=dat$YEAR, type="l", lty=1, col=scales::alpha(c("red4"), 0.2), ylab="Vcmax\n(umol m-2 s-1)", xlab="Year")
 matlines(y=cbind(fitted(loess(dat$VCMAX~dat$YEAR, span=0.006))), x=dat$YEAR, type="l", lty=1, col="black", ylab="GPP, NPP\n(kgC m-2 yr-1)", xlab="Year")
-add_hband(c(20,45)) #, col=scales::muted("green4"))
+add_hband(c(36.56,41.72)) #, col=scales::muted("green4"))
 add_band()
 add_label(label = "C")
 
@@ -125,7 +125,7 @@ dev.off()
 
 cols_amb_ele = scales::viridis_pal(begin = 0.3, end = 0.8)(3)[c(1,3)]
 
-if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props_structural.pdf", width=6*1.1, height = 5.5*1.1)
+if (plot_to_file) cairo_pdf("../../paper_figs3/emg_props_structural.pdf", width=6*1.1, height = 5.5*1.1)
 
 # par(mfrow=c(3,3), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=0)
 par(mfrow=c(2,2), mar=c(4.5,5,.5,1), oma=c(3,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(2.6,1,0), las=1)
@@ -134,7 +134,7 @@ matplot(y=cbind(as.numeric(dist_amb[gtools::mixedsort(names(dist_amb))][-1]),
                 as.numeric(dist_ele[gtools::mixedsort(names(dist_ele))][-1])
 )*1e-2*1e4, # Convert stems m-1 m-2 --> stems cm-1 ha-1
 x=x, type="l", log="y", lty=1, col=cols_amb_ele, lwd=2,
-xlim=c(0.01, 1.2), ylim=c(1e-4, 1000), ylab="Density\n(stems cm-1 ha-1)", xlab="Diameter (m)", las=0)
+xlim=c(0.01, 1.2), ylim=c(1e-4, 1000), ylab="Stem density\n(cm-1 ha-1)", xlab="Diameter (m)", las=0)
 # abline(v=1, col=scales::alpha("red", 0.2))
 xobs = c(15,25,35,45,55,65,75,85,95,105)/100
 # Data for Manaus from https://link.springer.com/article/10.1007/s00442-004-1598-z 
@@ -184,7 +184,7 @@ try(
 )
 add_label(label = "C")
 
-traits_obs %>% select(Height_Max.m., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Height_Max.m., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.25), las=0, main="", xlab="Max. height", col=NA, lwd=2)
+traits_obs %>% select(Height_Max.m., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Height_Max.m., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.25), las=0, main="", xlab="Maximum height (m)", col=NA, lwd=2)
 traits_obs %>% select(Height_Max.m., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =Height_Max.m., weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% polygon(col=scales::alpha("grey30", 0.2), border=scales::alpha("grey30",0.4))
 try(
   dat2 %>% select(YEAR, PID, BA) %>% 
@@ -209,21 +209,17 @@ if (plot_to_file) dev.off()
 
 ##### 
 
-if (plot_to_file) cairo_pdf("../../paper_figs2/emg_props_si.pdf", width=7, height = 5)
+if (plot_to_file) cairo_pdf("../../paper_figs3/emg_props_si.pdf", width=5.5*1.2, height = 5*1.2)
 
-par(mfrow=c(2,3), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(3.2,1,0), las=1)
+par(mfrow=c(2,2), mar=c(6,6,1,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(3.2,1,0), las=1)
 
 
 # matplot(y=1:24, x=t(-lai_v[,3:26]+lai_v[,2:25]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
 #         las=1, xlab="Leaf area density", ylab="Height")
-matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
+matplot(y=1:25, x=t(lai_v[c(3000,6000),2:26]), lty=1, lwd=2, col=cols_amb_ele, type="l",
         las=1, xlab="Cumulative LAI", ylab="Height (m)")
 
 
-
-matplot(Zp$V1, Zp[,-1], lty=1, col=scales::viridis_pal(end = 0.95, direction = -1)(5), type="l",
-        las=1, xlab="Year", ylab="Canopy layer\nheights (m)")
-add_band()
 
 matplot(co$V1, co[,-1]*100, lty=1, col=scales::viridis_pal(end = 0.95, direction = -1)(5), type="l",
         las=1, xlab="Year", ylab="PAR in layer (%)", ylim=c(0,100))
@@ -374,31 +370,23 @@ if (plot_to_file) dev.off()
 
 
 #### Sample results  ####
-plot_sample=F
+plot_sample=T
 
 if (plot_sample){
-par(mfrow=c(1,3), mar=c(5,6,4,1), oma=c(1,1,2,1), cex.lab=1.3, cex.axis=1.2, mgp=c(3.2,1,0), las=1)
+png("../../paper_figs3/emg_props_sample.png", width=700*2.4, height = 300*2.4, res=300)
+par(mfrow=c(1,3), mar=c(5,5.5,4,1), oma=c(1,1,1,1)*0.2, mgp=c(2.6,1,0), cex.lab=1.3, cex.axis=1.0, las=1)
 
-with(dat %>% filter(YEAR<1200), matplot(y=cbind(GPP, NPP)*1e-3*365, x=YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC m-2 yr-1)", xlab="Year"))
+datsam = dat %>% filter(YEAR < -900)
+matplot(y=cbind(datsam$GPP, datsam$NPP)*1e-3*365, x=datsam$YEAR+2900, type="l", lty=1, lwd=c(2,1), col="black", ylab="GPP, NPP\n(kgC m-2 yr-1)", xlab="Year", ylim=c(0,4))
+# points(y=dat$NPP/dat$GPP*4, x=dat$YEAR, type="l", lty=1, col=c("yellow1"))
 # abline(h=c(3,3.5), col="grey")
-add_hband(c(3,3.5), col=scales::alpha("black",0.2))
-add_hband(c(1.31,1.4), col=scales::alpha("black", 0.4))#, col=scales::alpha("black",0.3))
+add_hband(c(3,3.5), col=scales::alpha("springgreen",0.3))
+add_hband(c(1.31-.1,1.31+.1), col=scales::alpha("springgreen",0.3))
 # abline(h=c(1.31), col=scales::muted("green3"))
-mtext(text = "CO2 Fluxes", side=3, line=1)
-
-traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.005), las=0, main="", xlab="Wood density", col=NA, lwd=2)
-traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% polygon(col=scales::alpha("grey30", 0.2), border=scales::alpha("grey30",0.4))
-dat2 %>% select(YEAR, PID, BA) %>%
-  left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>%
-  filter(YEAR == 2000) %>%
-  with(density(x =WD, weights=BA/sum(BA))) %>% points(col="black", type="l", lwd=1.5)
-mtext(text = "Sample\ntrait distribution", side=3, line=1)
+# add_band()
+mtext(text = "A. CO2 Fluxes", side=3, line=1.2, col="grey40")
 
 
-matplot(y=cbind(as.numeric(dist_amb[gtools::mixedsort(names(dist_amb))][-1])
-)*1e-2*1e4, # Convert stems m-1 m-2 --> stems cm-1 ha-1
-x=x, type="l", log="y", lty=1, col=c("black", "yellow3"),
-xlim=c(0.01, 1.2), ylim=c(1e-4, 1000), ylab="Density\n(stems cm-1 ha-1)", xlab="Diameter (m)", las=0)
 
 # abline(v=1, col=scales::alpha("red", 0.2))
 
@@ -414,10 +402,27 @@ yobs=c(350.5221340921042,
        1.5968055466971947,
        0.7006940913385968,
        0.5597156879584093)/10
-points(yobs~xobs, pch=20, col=scales::alpha("grey30", 0.4), cex=1.7)
-mtext(text = "Size distribution", side=3, line=1)
+plot(yobs~xobs, pch=20, col=scales::alpha("springgreen",0.7), cex=1.4, xlim=c(0.01, 1.2), ylim=c(1e-3, 1000), log="y", las=0, ylab="Stem density\n(cm-1 ha-1)", xlab="Diameter (m)")
+points(yobs~xobs, pch=1, col=scales::alpha("green4",0.7), cex=1.4)
+mtext(text = "B. Size distribution", side=3, line=1.2, col="grey40")
+
+matlines(y=cbind(as.numeric(dist_amb[gtools::mixedsort(names(dist_amb))][-1])
+)*1e-2*1e4, # Convert stems m-1 m-2 --> stems cm-1 ha-1
+x=x, type="l", log="y", lty=1, col=c("black", "yellow3"),
+xlim=c(0.01, 1.2), ylim=c(1e-4, 1000))
+
+
+traits_obs = read.csv(file = "../../tests/data/Amz_trait_filled_HD.csv")
+
+traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% plot(ylim=c(0,0.004), las=0, main="", xlab="Wood density", col=NA, lwd=2)
+traits_obs %>% select(meanWoodDensity..g.cm3., Total.BasalArea_2017.cm2.) %>% drop_na %>% with(density(x =meanWoodDensity..g.cm3.*1000, weights=Total.BasalArea_2017.cm2./sum(Total.BasalArea_2017.cm2.))) %>% polygon(col=scales::alpha("springgreen", 0.2), border=scales::alpha("green4",0.7))
+dat2 %>% select(YEAR, PID, BA) %>%
+  left_join(traits, by = c("PID"="SPP", "YEAR"="YEAR")) %>%
+  filter(YEAR == 2000) %>%
+  with(density(x =WD, weights=BA/sum(BA))) %>% points(col="black", type="l", lwd=1.5)
+mtext(text = "C. Trait diversity", side=3, line=1.2, col="grey40")
+add_hband(c(-0.0001,0.00003), col="white", xlim = c(201, 1199))
+
+dev.off()
 }
-
-
-
 
