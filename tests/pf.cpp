@@ -5,7 +5,6 @@
 #include <numeric>
 #include <functional>
 #include <algorithm>
-#include <execution>
 
 #include "plantfate.h"
 

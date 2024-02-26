@@ -86,7 +86,7 @@ hi:
 
 $(TARGET): $(OBJECTS)
 	$(AR) rcs lib/$(TARGET).a $(OBJECTS) $(LIBS)	
-	g++ $(LDFLAGS) $(CPPFLAGS) $(INC_PATH) $(LIB_PATH) -o bin/pfate $(OBJECTS) tests/pf.cpp $(LIBS) -lpfate -ltbb
+	g++ $(LDFLAGS) $(CPPFLAGS) $(INC_PATH) $(LIB_PATH) -o bin/pfate $(OBJECTS) tests/pf.cpp $(LIBS) -lpfate 
 # g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
@@ -127,7 +127,7 @@ $(TEST_OBJECTS): tests/%.o : tests/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 $(TEST_TARGETS): tests/%.test : tests/%.o $(HEADERS)
-	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS) -lpfate -ltbb
+	g++ $(LDFLAGS) -o $@ $(LIB_PATH) $(OBJECTS) $(ADD_OBJECTS) $< $(LIBS) -lpfate 
 
 testclean:
 	rm -f tests/*.o tests/*.test
