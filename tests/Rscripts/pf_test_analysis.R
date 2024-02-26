@@ -8,7 +8,7 @@ solver = "IEBT"
 
 setwd(paste0(output_dir,"/",expt_dir))
 
-plot_to_file = F
+plot_to_file = T
 plot_trait_space = F
 
 add_band = function(){

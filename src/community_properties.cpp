@@ -185,16 +185,38 @@ void SpeciesProps::update(double t, Solver &S){
 									}, t, k);
 	gs /= canopy_area;
 
+	// Mean Vcmax
+	// vcmax_vec.clear();
+	// vcmax_vec.resize(S.n_species(), 0);
+	// for (int k=0; k<S.n_species(); ++k)
+	// 	if (isResident(S.species_vec[k]))
+	// 	vcmax_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
+	// 										auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+	// 										return p.res.vcmax25_avg * p.geometry.crown_area;
+	// 								}, t, {0.1}, k);
+	// vcmax = std::accumulate(vcmax_vec.begin(), vcmax_vec.end(), 0.0);
+	// vcmax /= canopy_area;
+
+	// Upper canopy Vcmax
+	double h_uc = static_cast<PSPM_Environment*>(S.env)->z_star[0];
 	vcmax_vec.clear();
 	vcmax_vec.resize(S.n_species(), 0);
+	vector<double> canopy_area_uc(S.n_species(), 0);
 	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k]))
-		vcmax_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
+		if (isResident(S.species_vec[k])){
+			vcmax_vec[k] = S.integrate_wudx_above([&S,k, h_uc](int i, double t){
 											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-											return p.res.vcmax_avg * p.geometry.crown_area;
-									}, t, {0.1}, k);
+											return (p.geometry.height > h_uc)? (p.res.vcmax25_avg * p.geometry.crown_area) : 0;
+									}, t, {0.01}, k);
+			canopy_area_uc[k] = S.integrate_wudx_above([&S,k, h_uc](int i, double t){
+											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+											return (p.geometry.height > h_uc)? p.geometry.crown_area : 0;
+									}, t, {0.01}, k);
+		}	
 	vcmax = std::accumulate(vcmax_vec.begin(), vcmax_vec.end(), 0.0);
-	vcmax /= canopy_area;
+	double ca_uc = std::accumulate(canopy_area_uc.begin(), canopy_area_uc.end(), 0.0);
+	vcmax /= ca_uc;
+
 }
 
 
@@ -409,8 +431,8 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 		}
 	}
 
-	foutd << int(t) << "\t"
-			<< (t-int(t))*365 << "\t"
+	foutd << t << "\t"
+			<< (t-floor(t))*365 << "\t"
 			<< props.gpp*0.5/365*1000 << "\t"
 			<< props.npp*0.5/365*1000 << "\t"
 			<< props.resp_auto*0.5/365*1000 << "\t"  // gC/m2/d
@@ -424,9 +446,9 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 			<< props.lai << "\t"
 			<< cwm.vcmax << "\t"
 			<< props.cc_est << "\t"
-			<< static_cast<PSPM_Dynamic_Environment*>(S->env)->clim.co2 << std::endl;
+			<< static_cast<PSPM_Environment*>(S->env)->clim_inst.co2 << std::endl;
 	
-	fouty << int(t) << "\t"
+	fouty << t << "\t"
 			<< -9999  << "\t"
 			<< cwm.n_ind << "\t"
 			<< -9999  << "\t"
@@ -443,7 +465,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 	for (int k=0; k<S->species_vec.size(); ++k){
 		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
 		fouty_spp 
-				<< int(t) << "\t"
+				<< t << "\t"
 				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 				<< cwm.n_ind_vec[k] << "\t"
 				<< -9999  << "\t"

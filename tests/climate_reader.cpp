@@ -28,12 +28,13 @@ int main(){
 
 	ofstream fout("climate_inst.txt");
 	ofstream fouta("climate_acclim.txt");
-	for (double t = 1921; t < 2081; t += 1/120.0){
+	// for (double t = 1921; t < 2081; t += 1/120.0){
 	// for (double t = 2000; t < 2005; t += 1/120.0){
+	for (double t = -1000+1e-6; t < 2021+1e-6; t += 1/12.0){
 		int year = int(t);
 		double month = (t-int(t))*12;
 		cout << setprecision(12) << "t = " << t << " id = " << C.i_met_stream.julian_to_indices(flare::yearsCE_to_julian(t)).idx << " (" << year << "/" << month << ")\n";
-		C.updateClimate(flare::yearsCE_to_julian(t), climate);
+		C.updateClimate(flare::yearsCE_to_julian(t)+1e-6, climate);
 		// C.print_line(t);
 		fout << t << "\t" << climate.clim_inst.tc << "\t" << climate.clim_inst.vpd << "\t" << climate.clim_inst.ppfd << "\t" << climate.clim_inst.swp << "\t" << climate.clim_inst.co2 << "\n";
 		cout << t << "\t" << climate.clim_inst.tc << "\t" << climate.clim_inst.vpd << "\t" << climate.clim_inst.ppfd << "\t" << climate.clim_inst.swp << "\t" << climate.clim_inst.co2 << "\n";
