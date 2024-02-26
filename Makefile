@@ -19,7 +19,7 @@ ROOT_DIR := ${shell dirname ${shell pwd}}
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
-INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include -I$(ROOT_DIR)/Flare_v2/include  #-isystem $(ROOT_DIR)/phydro/inst/LBFGSpp/include -isystem /usr/include/eigen3
+INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include -I$(ROOT_DIR)/Flare_v2/include 
 PTH_PATH := $(shell python3 -m pybind11 --includes)
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib -L./lib
 
@@ -79,21 +79,21 @@ python: dir $(TARGET) # $(PYBINDFILES)
 	pip3 install .
 
 dir:
-	mkdir -p lib build tests/build
+	mkdir -p lib build tests/build bin
 
 hi:
 	echo $(SRCFILES)
 
-
 $(TARGET): $(OBJECTS)
-	$(AR) rcs lib/$(TARGET).a $(OBJECTS) $(LIBS) 
+	$(AR) rcs lib/$(TARGET).a $(OBJECTS) $(LIBS)	
+	g++ $(LDFLAGS) $(CPPFLAGS) $(INC_PATH) $(LIB_PATH) -o bin/pfate $(OBJECTS) tests/pf.cpp $(LIBS) -lpfate -ltbb
 # g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
 	g++ -c $(CPPFLAGS) $(INC_PATH) $< -o $@
 
 libclean:
-	rm -f $(TARGET) build/*.o lib/*.a log.txt gmon.out 
+	rm -f $(TARGET) build/*.o lib/*.a src/*.o bin/* log.txt gmon.out
 	
 re: clean all
 

@@ -27,13 +27,13 @@ void ClimateStream::init(){
 void ClimateStream::updateClimate(double julian_time, Climate& C){
 	if (update_co2){
 		co2_stream.advance_to_time(julian_time);
-		std::cout << co2_stream.current_row << std::endl;
+		// std::cout << co2_stream.current_row << std::endl;
 		C.clim_inst.co2   = as<double>(co2_stream.current_row[1]); // co2 is in index 1
 		C.clim_acclim.co2 = as<double>(co2_stream.current_row[1]); // co2 is in index 1
 	}
 	if (update_i_met){
 		i_met_stream.advance_to_time(julian_time);
-		std::cout << i_met_stream.current_row << std::endl;
+		// std::cout << i_met_stream.current_row << std::endl;
 		C.clim_inst.tc   = as<double>(i_met_stream.current_row[3]);
 		C.clim_inst.vpd  = as<double>(i_met_stream.current_row[4])*100; // convert hPa to Pa
 		C.clim_inst.ppfd = as<double>(i_met_stream.current_row[5]);      // ppfd
@@ -41,7 +41,7 @@ void ClimateStream::updateClimate(double julian_time, Climate& C){
 	}
 	if (update_a_met){
 		a_met_stream.advance_to_time(julian_time);
-		std::cout << a_met_stream.current_row << std::endl;
+		// std::cout << a_met_stream.current_row << std::endl;
 		Clim cnew = C.clim_acclim;
 		cnew.tc   = as<double>(a_met_stream.current_row[3]);
 		cnew.vpd  = as<double>(a_met_stream.current_row[4])*100; // convert hPa to Pa

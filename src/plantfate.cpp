@@ -317,10 +317,11 @@ void Simulator::disturbPatch(double t){
 /// @brief This function simulates patch to time t
 /// @param t Final time up to which patch should be simulated
 void Simulator::simulate_to(double t){
-	cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
-	for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
-	cout << ")" << endl;
-
+	if (int(t*12) % 12 == 0){
+		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
+		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
+		cout << ")" << endl;
+	}
 	// Step size to be used for evolutionary dynamics, 
 	// since trait evolution is done after completing step_to call
 	double dt_evol = t - S.current_time; 
@@ -453,8 +454,8 @@ void Simulator::simulate(){
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {  // 1e-6 ensures that last timestep to reach yf is actually executed
 		// read forcing inputs
 		update_climate(flare::yearsCE_to_julian(S.current_time)+1e-6, climate_stream); // The 1e-6 is to ensure that when t coincides exactly with time in climate file, we ensure that the value in climate file is read by asking for a slightly higher t
-		std::cout << "update Env (explicit)... t = " << S.current_time << ":\n";
-		((env::Climate&)E).print(t);
+		// std::cout << "update Env (explicit)... t = " << S.current_time << ":\n";
+		// ((env::Climate&)E).print(t);
 
 		// simulate patch
 		simulate_to(t);
