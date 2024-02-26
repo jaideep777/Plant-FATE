@@ -13,25 +13,45 @@ using namespace std;
 
 int main(int argc, char ** argv){
 
-	string pfile = "tests/params/p_base.ini";
-	if (argc > 1) pfile = argv[1];
+	if (argc < 4){
+		cout << "Plant-FATE error: pf needs three arguments: ./pf.test <params_file.ini> <start_year> <end_year>\n";
+		return 1;
+	}
 
-	double zeta_new = 0.3;
+	pfile = argv[1];
+	double y0 = argv[2], yf = argv[3];
+
+	if (y0 > yf){
+		cout << "Plant-FATE error: start year should be <= end year\n";
+	}
 
 	Simulator sim(pfile);
-	sim.expt_dir = "zeta_0.2_to_" + std::to_string(zeta_new);
-	sim.E.init_co2(414);
-
-	sim.init(-1000, 2000);
+	sim.init(y0, yf);
 	sim.simulate();
-
-	sim.y0 = sim.yf + sim.delta_T;
-	sim.yf = 5000;
-	sim.traits0.zeta = zeta_new;
-	for (auto spp : sim.S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->set_traits({zeta_new});
-	sim.simulate();
-
 	sim.close();
+
+}
+
+// int main(){
+	// string pfile = "tests/params/p_base.ini";
+	// if (argc > 1) pfile = argv[1];
+
+	// double zeta_new = 0.3;
+
+	// Simulator sim(pfile);
+	// sim.expt_dir = "zeta_0.2_to_" + std::to_string(zeta_new);
+	// sim.E.init_co2(414);
+
+	// sim.init(-1000, 2000);
+	// sim.simulate();
+
+	// sim.y0 = sim.yf + sim.delta_T;
+	// sim.yf = 5000;
+	// sim.traits0.zeta = zeta_new;
+	// for (auto spp : sim.S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->set_traits({zeta_new});
+	// sim.simulate();
+
+	// sim.close();
 
 
 	// for (int i=0; i<1; ++i){
@@ -132,6 +152,6 @@ int main(int argc, char ** argv){
 	// }
 
 
-}
+// }
 
 
