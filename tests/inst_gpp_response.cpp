@@ -17,7 +17,7 @@ int main(int argc, char ** argv){
 	if (argc > 1) pfile = argv[1];
 
 	for (int i=0; i<1; ++i){
-		Simulator sim(pfile);
+		Patch sim(pfile);
 		sim.init(-1000, 5000);
 
 		sim.set_co2File("");

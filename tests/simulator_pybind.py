@@ -16,9 +16,9 @@ t.print()
 
 print(c.co2)
 
-print("TEST the Simulator")
+print("TEST the Patch")
 
-s = plantFATE.Simulator("tests/params/p.ini")
+s = plantFATE.Patch("tests/params/p.ini")
 s.init(1001, 1050)
 s.simulate()
 s.close

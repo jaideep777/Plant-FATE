@@ -18,7 +18,7 @@ int main(int argc, char ** argv){
 
 	// reference run
 	{
-		Simulator sim(par_file);
+		Patch sim(par_file);
 		sim.continuePrevious = false;
 		sim.expt_dir = "cont_test_ref";
 		sim.init(1000, 1350);
@@ -28,7 +28,7 @@ int main(int argc, char ** argv){
 
 	// spinup run
 	{
-		Simulator sim(par_file);
+		Patch sim(par_file);
 		sim.continuePrevious = false;
 		sim.expt_dir = "cont_test_spinup";
 		sim.init(1000, 1200);
@@ -38,7 +38,7 @@ int main(int argc, char ** argv){
 
 	// continuation run
 	{
-		Simulator sim(par_file);
+		Patch sim(par_file);
 		sim.continuePrevious = true;
 		sim.continueFrom_stateFile    = sim.parent_dir + "/" + "cont_test_spinup/pf_saved_state.txt"; 
 		sim.continueFrom_configFile   = sim.parent_dir + "/" + "cont_test_spinup/pf_saved_config.ini"; 

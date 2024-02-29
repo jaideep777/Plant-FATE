@@ -13,15 +13,15 @@ namespace env{
 
 class Clim{
 	public:
-	double tc = 25.5;         // Temperature [C]
-	double ppfd = 500;        // PAR (daily 24-hr mean) [umol m-2 s-1]
-	double rn = 250;          // Net radiation at surface [W m-2]
-	double vpd  = 540;        // Vapour pressure deficit [Pa]
-	double co2  = 368.9;      // Atmospheric CO2 [ppm]
-	double elv = 0;           // Site elevation [m.a.s.l]
-	double swp = -0.04;       // Soil water potential [MPa]
-	double vwind = 3;         // Wind speed [m s-1]
-	double pa;                // Surface pressure [Pa]
+	double tc = 25.5;         ///< Temperature [C]
+	double ppfd = 500;        ///< PAR (daily 24-hr mean) [umol m-2 s-1]
+	double rn = 250;          ///< Net radiation at surface [W m-2]
+	double vpd  = 540;        ///< Vapour pressure deficit [Pa]
+	double co2  = 368.9;      ///< Atmospheric CO2 [ppm]
+	double elv = 0;           ///< Site elevation [m.a.s.l]
+	double swp = -0.04;       ///< Soil water potential [MPa]
+	double vwind = 3;         ///< Wind speed [m s-1]
+	double pa;                ///< Surface pressure [Pa]
 
 	Clim();
 
@@ -77,8 +77,8 @@ class Climate{
 	double t_last = -1e20;       ///< Time of last updated clim_acclim [julian day] 
 
 	public:
-	Clim clim_inst;
-	Clim clim_acclim;
+	Clim clim_inst;    ///< Mean climate over the timestep
+	Clim clim_acclim;  ///< Daily climate measured as mean over 3 hrs around max radiation
 
 	void set_elevation(double _elv);
 	void init_co2(double _co2);

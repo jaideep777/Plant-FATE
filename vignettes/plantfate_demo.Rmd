@@ -28,7 +28,7 @@ To run PlantFATE, follow these steps
 4. close it
 
 ```{r}
-sim = new(Simulator, "tests/params/p.ini")
+sim = new(Patch, "tests/params/p.ini")
 sim$init(1000, 1050)
 sim$simulate()
 sim$close()
