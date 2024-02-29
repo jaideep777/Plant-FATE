@@ -2,6 +2,7 @@
 #include <io_utils.h>
 using namespace std;
 
+namespace pfate{
 
 ErgodicEnvironment::ErgodicEnvironment() : LightEnvironment(), Climate() {
 	z_star = {15, 10, 5, 0};
@@ -235,3 +236,5 @@ double LifeHistoryOptimizer::calcFitness(){
 	}
 	return seeds;
 }
+
+} // namespace pfate

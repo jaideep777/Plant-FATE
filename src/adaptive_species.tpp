@@ -1,3 +1,4 @@
+namespace pfate{
 
 template <class Model>
 AdaptiveSpecies<Model>::AdaptiveSpecies(Model M, bool res) : Species<Model>(M) {
@@ -168,3 +169,4 @@ void AdaptiveSpecies<Model>::restore(std::istream &fin){
 	Species<Model>::restore(fin);
 }
 
+} // namespace pfate

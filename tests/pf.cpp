@@ -24,7 +24,7 @@ int main(int argc, char ** argv){
 		cout << "Plant-FATE error: start year should be <= end year\n";
 	}
 
-	Patch sim(pfile);
+	pfate::Patch sim(pfile);
 	sim.init(y0, yf);
 	sim.simulate();
 	sim.close();

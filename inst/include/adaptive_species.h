@@ -1,5 +1,5 @@
-#ifndef PLANT_FATE_TRAIT_EVOLUTION_H_
-#define PLANT_FATE_TRAIT_EVOLUTION_H_
+#ifndef PLANT_FATE_PFATE_ADAPTIVE_SPECIES_H_
+#define PLANT_FATE_PFATE_ADAPTIVE_SPECIES_H_
 
 #include <solver.h>
 #include <vector>
@@ -15,6 +15,8 @@
 ///
 ///          Any changes to the algorithm or to the evolving traits will 
 ///          typically require changes in these variables.
+
+namespace pfate {
 
 /// @ingroup trait_evolution
 /// @brief   This classes extends the Species class provided by the solver
@@ -64,6 +66,8 @@ class AdaptiveSpecies : public Species<Model>{
 	void restore(std::istream &fin) override;
 
 };
+
+} // namespace pfate
 
 #include "adaptive_species.tpp"
 

@@ -1,5 +1,5 @@
-#ifndef PLANT_FATE_COMMUNITY_PROPERTIES_H_
-#define PLANT_FATE_COMMUNITY_PROPERTIES_H_
+#ifndef PLANT_FATE_PFATE_COMMUNITY_PROPERTIES_H_
+#define PLANT_FATE_PFATE_COMMUNITY_PROPERTIES_H_
 
 #include "pspm_interface.h"
 #include "adaptive_species.h"
@@ -8,6 +8,8 @@
 #ifndef M_PI
 #define M_PI 3.14159265358
 #endif
+
+namespace pfate {
 
 template<class Func>
 double integrate_prop(double t, Solver &S, const Func &f){
@@ -132,6 +134,6 @@ class SolverIO{
 	void writeState(double t, SpeciesProps& cwm, EmergentProps& props);
 };
 
-
+} // namespace pfate
 
 #endif

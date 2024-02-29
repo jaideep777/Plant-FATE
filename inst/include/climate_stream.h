@@ -11,6 +11,7 @@
 #include "climate.h"
 #include <csvstream.h> // from Flare
 
+namespace pfate{
 namespace env{
 
 class ClimateStream{
@@ -47,6 +48,6 @@ T ClimateStream::as(std::string s){
 
 
 } // namespace env
-
+} // namespace pfate
 
 #endif

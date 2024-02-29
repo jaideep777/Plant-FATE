@@ -6,6 +6,7 @@
 #include "adaptive_species.h"
 #include "pspm_interface.h"
 
+namespace pfate{
 namespace env{
 
 LightEnvironment::LightEnvironment(){ 
@@ -171,5 +172,5 @@ void LightEnvironment::print(double t){
 
 
 } // env
-
+} // namespace pfate
 

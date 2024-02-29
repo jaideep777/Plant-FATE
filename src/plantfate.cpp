@@ -2,6 +2,8 @@
 #include <filesystem>
 using namespace std;
 
+namespace pfate{
+
 Patch::Patch(std::string params_file) : S("IEBT", "rk45ck") {
 	config.paramsFile = params_file; // = "tests/params/p.ini";
 	io::Initializer I;
@@ -481,3 +483,5 @@ void Patch::simulate(){
 
 	}
 }
+
+} // namespace pfate

@@ -2,6 +2,8 @@
 #include <filesystem>
 using namespace std;
 
+namespace pfate{
+
 void saveState(Solver *S, string state_outfile, string config_outfile, string params_file){
 
 	cout << "Saving state to: " << state_outfile << '\n';
@@ -116,3 +118,4 @@ void restoreState(Solver * S, string state_infile, string config_infile){
 	fin.close();
 }
 
+} // namespace pfate

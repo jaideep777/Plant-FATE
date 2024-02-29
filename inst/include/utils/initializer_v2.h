@@ -10,6 +10,9 @@
 #include <stdexcept>
 #include <unordered_map>
 
+namespace io{
+
+
 /**
 	\brief A simple initializer that reads parameters from an ini file.
 	
@@ -53,8 +56,6 @@
 	I.get_vector<double>("array", "array1");
 
 */
-namespace io{
-
 class Initializer{
 	using section = std::unordered_map<std::string, std::string>;
 

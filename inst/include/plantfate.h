@@ -1,5 +1,5 @@
-#ifndef PLANT_FATE_PLANTFATE_H_
-#define PLANT_FATE_PLANTFATE_H_
+#ifndef PLANT_FATE_PFATE_PATCH_H_
+#define PLANT_FATE_PFATE_PATCH_H_
 
 #include <vector>
 #include <iostream>
@@ -15,6 +15,8 @@
 #include "adaptive_species.h"
 #include "state_restore.h"
 #include "climate_stream.h"
+
+namespace pfate{
 
 class PlantFateConfig{
 
@@ -56,9 +58,6 @@ class PlantFateConfig{
 	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
 
 	std::string solver_method;
-
-	plant::PlantParameters par0;
-	plant::PlantTraits traits0;
 
 	std::vector<double> trait_variances;
 	std::vector<double> trait_scalars;
@@ -132,6 +131,7 @@ class Patch{
 	void disturbPatch(double t);
 };
 
+} // namespace pfate
 
 #endif
 

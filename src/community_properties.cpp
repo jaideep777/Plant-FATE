@@ -3,6 +3,7 @@
 
 using namespace std;
 
+namespace pfate{
 
 void SpeciesProps::resize(int n){
 	n_ind_vec.resize(n);
@@ -526,3 +527,4 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 }
 
 
+} // namespace pfate

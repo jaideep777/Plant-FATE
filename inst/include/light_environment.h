@@ -6,6 +6,7 @@
 #include <environment_base.h>
 #include <solver.h>
 
+namespace pfate{
 namespace env{
 
 class LightEnvironment : public EnvironmentBase {
@@ -34,6 +35,7 @@ class LightEnvironment : public EnvironmentBase {
 };
 
 } // env
+} // namespace pfate
 
 /*#include "../src/light_environment.tpp"*/
 

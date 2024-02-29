@@ -3,6 +3,8 @@
 #include <iomanip>
 using namespace std;
 
+namespace pfate{
+
 using EnvUsed = PSPM_Environment;
 
 // **********************************************************
@@ -148,3 +150,5 @@ void PSPM_Environment::print(double t){
 	Climate::print(t);
 	env::LightEnvironment::print(t);
 }
+
+} // namespace pfate

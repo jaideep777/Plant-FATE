@@ -1,5 +1,5 @@
-#ifndef PLANT_FATE_PSPM_INTERFACE_H_
-#define PLANT_FATE_PSPM_INTERFACE_H_
+#ifndef PLANT_FATE_PFATE_PSPM_INTERFACE_H_
+#define PLANT_FATE_PFATE_PSPM_INTERFACE_H_
 
 #include <individual_base.h>
 #include <solver.h>
@@ -12,6 +12,8 @@
 
 /// @defgroup ppa_module PPA
 /// @brief    This module collects functions and classes that together implement the Perfect Plasticity Approximation 
+
+namespace pfate{
 
 #define STATE_DIM 1
 
@@ -79,5 +81,6 @@ class PSPM_Environment :
 	void print(double t) override;
 };
 
+} // namespace pfate
 
 #endif
