@@ -306,7 +306,7 @@ EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
 
 
 
-void SolverIO::openStreams(std::string dir, io::Initializer &I){
+void SolverIO::openStreams(std::string dir){
 
 	if (b_output_cohort_props){
 		cohort_props_out.open(dir + "/cohort_props.txt");
@@ -341,10 +341,10 @@ void SolverIO::openStreams(std::string dir, io::Initializer &I){
 	// fseed.open(std::string(dir + "/seeds.txt").c_str());
 	// fabase.open(std::string(dir + "/basal_area.txt").c_str());
 	flai.open(std::string(dir + "/lai_profile.txt").c_str());
-	foutd.open(std::string(dir + "/" + I.get<std::string>("emgProps")).c_str());
-	fouty.open(std::string(dir + "/" + I.get<std::string>("cwmAvg")).c_str());
-	fouty_spp.open(std::string(dir + "/" + I.get<std::string>("cwmperSpecies")).c_str());
-	ftraits.open(std::string(dir + "/" + I.get<std::string>("traits")).c_str());
+	foutd.open(std::string(dir + "/" + emgProps_file).c_str());
+	fouty.open(std::string(dir + "/" + cwmAvg_file).c_str());
+	fouty_spp.open(std::string(dir + "/" + cwmperSpecies_file).c_str());
+	ftraits.open(std::string(dir + "/" + traits_file).c_str());
 	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\tCO2\n";

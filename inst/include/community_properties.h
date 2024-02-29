@@ -104,6 +104,11 @@ class SolverIO{
 
 	bool b_output_cohort_props = false;
 
+	std::string emgProps_file;
+	std::string cwmAvg_file;
+	std::string cwmperSpecies_file;
+	std::string traits_file;
+
 	// std::vector <std::vector<std::ofstream>> streams;
 	std::ofstream cohort_props_out;
 	std::ofstream size_dists_out;
@@ -120,7 +125,7 @@ class SolverIO{
 
 	std::ofstream fclim;
 
-	void openStreams(std::string dir, io::Initializer &I);
+	void openStreams(std::string dir);
 
 	void closeStreams();
 
