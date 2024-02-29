@@ -19,7 +19,7 @@ ROOT_DIR := ${shell dirname ${shell pwd}}
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
-INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include -I$(ROOT_DIR)/Flare_v2/include 
+INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include -I$(ROOT_DIR)/Flare.v2/include 
 PTH_PATH := $(shell python3 -m pybind11 --includes)
 LIB_PATH := -L$(ROOT_DIR)/libpspm/lib -L./lib
 
