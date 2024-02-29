@@ -2,7 +2,7 @@
 #include <filesystem>
 using namespace std;
 
-Simulator::Simulator(std::string params_file) : S("IEBT", "rk45ck") {
+Patch::Patch(std::string params_file) : S("IEBT", "rk45ck") {
 	paramsFile = params_file; // = "tests/params/p.ini";
 	I.parse(params_file);
 
@@ -51,23 +51,23 @@ Simulator::Simulator(std::string params_file) : S("IEBT", "rk45ck") {
 }
 
 
-void Simulator::set_i_metFile(std::string file){
+void Patch::set_i_metFile(std::string file){
 	climate_stream.i_metFile = file;
 	climate_stream.update_i_met = (file == "")? false : true;
 }
 
-void Simulator::set_a_metFile(std::string file){
+void Patch::set_a_metFile(std::string file){
 	climate_stream.a_metFile = file;
 	climate_stream.update_a_met = (file == "")? false : true;
 }
 
-void Simulator::set_co2File(std::string co2file){
+void Patch::set_co2File(std::string co2file){
 	climate_stream.co2File = co2file;
 	climate_stream.update_co2 = (co2file == "")? false : true;
 }
 
 
-void Simulator::init(double tstart, double tend){
+void Patch::init(double tstart, double tend){
 	out_dir  = parent_dir  + "/" + expt_dir;
 
 	// string command = "mkdir -p " + out_dir;
@@ -147,7 +147,7 @@ void Simulator::init(double tstart, double tend){
 }
 
 
-void Simulator::close(){
+void Patch::close(){
 	//S.print();
 	sio.closeStreams();
 
@@ -162,13 +162,13 @@ void Simulator::close(){
 }
 
 
-double Simulator::runif(double rmin, double rmax){
+double Patch::runif(double rmin, double rmax){
 	double r = double(rand())/RAND_MAX; 
 	return rmin + (rmax-rmin)*r;
 }
 
 
-void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
+void Patch::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 	// delete species probes and remove their pointers from solver
 	for (auto p : spp->probes){ // probes vector is not modified in the loop, so we can use it directly to iterate
 		delete p;               // this will delete the object, but the pointer p and its copy in the solver remain
@@ -184,7 +184,7 @@ void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 }
 
 
-void Simulator::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
+void Patch::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 
 	PSPM_Plant p1;
 	//p1.initFromFile(paramsFile);
@@ -221,7 +221,7 @@ void Simulator::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 }
 
 
-void Simulator::shuffleSpecies(){
+void Patch::shuffleSpecies(){
 	// Shuffle species in the species vector -- just for debugging
 	cout << "shuffling...\n";
 	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
@@ -229,7 +229,7 @@ void Simulator::shuffleSpecies(){
 }
 
 
-void Simulator::removeDeadSpecies(double t){
+void Patch::removeDeadSpecies(double t){
 	// Remove dead species
 	vector<MySpecies<PSPM_Plant>*> toRemove;
 	for (int k=0; k<S.species_vec.size(); ++k){
@@ -242,7 +242,7 @@ void Simulator::removeDeadSpecies(double t){
 }
 
 
-void Simulator::addRandomSpecies(double t){
+void Patch::addRandomSpecies(double t){
 	cout << "**** Invasion ****\n";
 
 	plant::PlantTraits traits = traits0;
@@ -255,12 +255,12 @@ void Simulator::addRandomSpecies(double t){
 	addSpeciesAndProbes(t, traits);
 }
 
-void Simulator::evolveTraits(double t, double dt_evolution){
+void Patch::evolveTraits(double t, double dt_evolution){
 	for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
 	for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(dt_evolution);
 }
 
-void Simulator::disturbPatch(double t){
+void Patch::disturbPatch(double t){
 	for (auto spp : S.species_vec){
 		for (int i=0; i<spp->xsize(); ++i){
 			auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
@@ -282,7 +282,7 @@ void Simulator::disturbPatch(double t){
 /// @ingroup   trait_evolution
 /// @details   Species growth rate is defined from the seed perspective, i.e., 
 ///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
-void Simulator::calc_seedrain_r0(double t){
+void Patch::calc_seedrain_r0(double t){
 	
 	// calculate output seed rain at time t, S(t)
 	vector<double> seeds = S.newborns_out(t);
@@ -323,7 +323,7 @@ void Simulator::calc_seedrain_r0(double t){
 
 /// @brief This function simulates patch to time t
 /// @param t Final time up to which patch should be simulated
-void Simulator::simulate_to(double t){
+void Patch::simulate_to(double t){
 	if (int(t*12) % 12 == 0){
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
@@ -386,12 +386,12 @@ void Simulator::simulate_to(double t){
 }
 
 
-void Simulator::update_climate(double julian_time, env::ClimateStream& c_stream){
+void Patch::update_climate(double julian_time, env::ClimateStream& c_stream){
 	c_stream.updateClimate(julian_time, E);
 }
 
 
-void Simulator::update_climate(double _co2, double _tc, double _vpd, double _ppfd, double _swp){
+void Patch::update_climate(double _co2, double _tc, double _vpd, double _ppfd, double _swp){
 	E.clim_inst.tc   = _tc;
 	E.clim_inst.ppfd = _ppfd;
 	E.clim_inst.rn   = _ppfd/2;  // Tentative, placeholder
@@ -400,7 +400,7 @@ void Simulator::update_climate(double _co2, double _tc, double _vpd, double _ppf
 	E.clim_inst.swp  = _swp;
 }
 
-void Simulator::update_climate_acclim(double t_julian, double _co2, double _tc, double _vpd, double _ppfd, double _swp){
+void Patch::update_climate_acclim(double t_julian, double _co2, double _tc, double _vpd, double _ppfd, double _swp){
 	env::Clim C = E.clim_acclim;
 	C.tc   = _tc;
 	C.ppfd = _ppfd;
@@ -460,7 +460,7 @@ void Simulator::update_climate_acclim(double t_julian, double _co2, double _tc, 
 //      for (double t=y0; t <= yf+1e-6; t=t+T_long) {
 //      	simulate_to(t);
 //      }
-void Simulator::simulate(){
+void Patch::simulate(){
 
 	for (double t=y0; t <= yf+1e-6; t=t+timestep) {  // 1e-6 ensures that last timestep to reach yf is actually executed
 		// read forcing inputs

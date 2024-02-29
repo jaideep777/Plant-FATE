@@ -11,7 +11,7 @@ using namespace std;
 
 int main(){
 
-	Simulator sim("tests/params/p_calib.ini");
+	Patch sim("tests/params/p_calib.ini");
 	//sim.expt_dir = "AMB_HD_CALIB";
 	sim.S.control.ebt_merge_dxcut = 0.001;
 	sim.E.init_co2(414);

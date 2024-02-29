@@ -16,7 +16,7 @@
 #include "state_restore.h"
 #include "climate_stream.h"
 
-class Simulator{
+class Patch{
 	private:
 	std::string out_dir;
 	
@@ -80,7 +80,7 @@ class Simulator{
 	EmergentProps props; 
 
 	public:
-	Simulator(std::string params_file);
+	Patch(std::string params_file);
 	
 	void set_i_metFile(std::string file);
 	void set_a_metFile(std::string file);

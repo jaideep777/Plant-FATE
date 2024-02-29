@@ -24,7 +24,7 @@ int main(int argc, char ** argv){
 		cout << "Plant-FATE error: start year should be <= end year\n";
 	}
 
-	Simulator sim(pfile);
+	Patch sim(pfile);
 	sim.init(y0, yf);
 	sim.simulate();
 	sim.close();
@@ -37,7 +37,7 @@ int main(int argc, char ** argv){
 
 	// double zeta_new = 0.3;
 
-	// Simulator sim(pfile);
+	// Patch sim(pfile);
 	// sim.expt_dir = "zeta_0.2_to_" + std::to_string(zeta_new);
 	// sim.E.init_co2(414);
 
@@ -54,7 +54,7 @@ int main(int argc, char ** argv){
 
 
 	// for (int i=0; i<1; ++i){
-	// 	Simulator sim(pfile);
+	// 	Patch sim(pfile);
 	// 	sim.expt_dir = sim.expt_dir + "_614ppm";
 	// 	sim.E.clim_inst.co2 = 614;
 	// 	sim.init(1000, 5000);
@@ -67,7 +67,7 @@ int main(int argc, char ** argv){
 	// vector<double> zeta = {0.2, 0.08};
 
 	// for (int i=0; i<1; ++i){
-	// 	Simulator sim(pfile);
+	// 	Patch sim(pfile);
 	// 	sim.traits0.zeta = zeta[i];
 	// 	sim.expt_dir = "HIST_ELE_zeta_" + to_string(zeta[i]);
 	// 	sim.init(-1000, 5000);
@@ -84,7 +84,7 @@ int main(int argc, char ** argv){
 	// 	zeta.begin(),
 	// 	zeta.end(),
 	// 	[](double zz){
-	// 		Simulator sim("tests/params/p.ini");
+	// 		Patch sim("tests/params/p.ini");
 	// 		sim.traits0.zeta = zz;
 	// 		sim.expt_dir = "HIST_zeta_" + to_string(zz);
 	// 		sim.init(1000, 1500);
@@ -98,7 +98,7 @@ int main(int argc, char ** argv){
 	// // Effect of CO2
 	// vector<double> co2_vec = myseq(360, 600, 12);
 	// for (auto cc : co2_vec){
-	// 	Simulator sim("tests/params/p.ini");
+	// 	Patch sim("tests/params/p.ini");
 	// 	sim.expt_dir = "scan_co2_" + to_string(cc);
 	// 	sim.E.clim_inst.co2 = cc;
 	// 	sim.init(1000, 1500);
@@ -109,7 +109,7 @@ int main(int argc, char ** argv){
 
 	// Ensure that 1 mo timestep is good enough... 
 	// {
-	// 	Simulator sim("tests/params/p.ini");
+	// 	Patch sim("tests/params/p.ini");
 	// 	sim.timestep = 1.0/12.0/2.0;
 	// 	sim.expt_dir = "BASE_dt_2wk";
 	// 	sim.init(1000, 2000);
@@ -118,7 +118,7 @@ int main(int argc, char ** argv){
 	// }
 
 	// {
-	// 	Simulator sim("tests/params/p.ini");
+	// 	Patch sim("tests/params/p.ini");
 	// 	sim.timestep = 1.0/12.0;
 	// 	sim.expt_dir = "BASE_dt_4wk";
 	// 	sim.init(1000, 2000);
@@ -130,21 +130,21 @@ int main(int argc, char ** argv){
 
 	// Test effect of eCO2 under different zeta
 	// {
-	// 	Simulator sim("tests/params/p_ele_base.ini");
+	// 	Patch sim("tests/params/p_ele_base.ini");
 	// 	sim.init(1000, 2000);
 	// 	sim.simulate();
 	// 	sim.close();
 	// }
 
 	// {
-	// 	Simulator sim("tests/params/p_ele_hi.ini");
+	// 	Patch sim("tests/params/p_ele_hi.ini");
 	// 	sim.init(1000, 3000);
 	// 	sim.simulate();
 	// 	sim.close();
 	// }
 
 	// {
-	// 	Simulator sim("tests/params/p_ele_low.ini");
+	// 	Patch sim("tests/params/p_ele_low.ini");
 	// 	sim.init(1000, 3000);
 	// 	sim.simulate();
 	// 	sim.close();

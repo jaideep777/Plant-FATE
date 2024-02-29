@@ -76,31 +76,31 @@ PYBIND11_MODULE(plantFATE, m)
 		// .def_readwrite("traits0", &LifeHistoryOptimizer::traits0)
 		// .def_readwrite("par0", &LifeHistoryOptimizer::par0);
 
-	py::class_<Simulator>(m, "Simulator")
+	py::class_<Patch>(m, "Patch")
 		.def(py::init<std::string>())
-		.def("init", &Simulator::init)
-		.def("simulate", &Simulator::simulate)
-		.def("close", &Simulator::close)
-		// .def("set_metFile", &Simulator::set_metFile)
-		// .def("set_co2File", &Simulator::set_co2File)
-		// .def_readwrite("E", &Simulator::E)
-        .def_readwrite("paramsFile", &Simulator::paramsFile)
-		.def_readwrite("parent_dir", &Simulator::parent_dir)
-		.def_readwrite("expt_dir", &Simulator::expt_dir)
-		// .def_readwrite("met_file", &Simulator::met_file)
-		// .def_readwrite("co2_file", &Simulator::co2_file)
-		.def_readwrite("save_state", &Simulator::save_state)
-		.def_readwrite("state_outfile", &Simulator::state_outfile)
-		.def_readwrite("config_outfile", &Simulator::config_outfile)
-		.def_readwrite("continueFrom_stateFile", &Simulator::continueFrom_stateFile)
-		.def_readwrite("continueFrom_configFile", &Simulator::continueFrom_configFile)
-		.def_readwrite("continuePrevious", &Simulator::continuePrevious)
-		.def_readwrite("evolve_traits", &Simulator::evolve_traits)
-		.def_readwrite("y0", &Simulator::y0)
-		.def_readwrite("yf", &Simulator::yf)
-		.def_readwrite("ye", &Simulator::ye);
-		// .def_readwrite("traits0", &Simulator::traits0)
-		// .def_readwrite("par0", &Simulator::par0);
+		.def("init", &Patch::init)
+		.def("simulate", &Patch::simulate)
+		.def("close", &Patch::close)
+		// .def("set_metFile", &Patch::set_metFile)
+		// .def("set_co2File", &Patch::set_co2File)
+		// .def_readwrite("E", &Patch::E)
+        .def_readwrite("paramsFile", &Patch::paramsFile)
+		.def_readwrite("parent_dir", &Patch::parent_dir)
+		.def_readwrite("expt_dir", &Patch::expt_dir)
+		// .def_readwrite("met_file", &Patch::met_file)
+		// .def_readwrite("co2_file", &Patch::co2_file)
+		.def_readwrite("save_state", &Patch::save_state)
+		.def_readwrite("state_outfile", &Patch::state_outfile)
+		.def_readwrite("config_outfile", &Patch::config_outfile)
+		.def_readwrite("continueFrom_stateFile", &Patch::continueFrom_stateFile)
+		.def_readwrite("continueFrom_configFile", &Patch::continueFrom_configFile)
+		.def_readwrite("continuePrevious", &Patch::continuePrevious)
+		.def_readwrite("evolve_traits", &Patch::evolve_traits)
+		.def_readwrite("y0", &Patch::y0)
+		.def_readwrite("yf", &Patch::yf)
+		.def_readwrite("ye", &Patch::ye);
+		// .def_readwrite("traits0", &Patch::traits0)
+		// .def_readwrite("par0", &Patch::par0);
 
 	py::class_<plant::PlantTraits>(m, "PlantTraits")
 		.def(py::init<>())
@@ -166,8 +166,8 @@ PYBIND11_MODULE(plantFATE, m)
 // PYBIND11_MODULE(simulator, m)
 // {
     
-//         // .def("simulate", &Simulator::simulate)
-//         // .def("close", &Simulator::close);
+//         // .def("simulate", &Patch::simulate)
+//         // .def("close", &Patch::close);
 // // }
 // 
 /*
