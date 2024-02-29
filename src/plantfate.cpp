@@ -168,53 +168,6 @@ double Simulator::runif(double rmin, double rmax){
 }
 
 
-// FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
-/// @brief     Calculate growth rates of all species and update seed input
-/// @param t   Current time 
-/// @param dt  timestep over which species growth rate is to be calculated
-/// @param S   Solver
-/// @ingroup   trait_evolution
-/// @details   Species growth rate is defined from the seed perspective, i.e., 
-///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
-void Simulator::calc_seedrain_r0(double t){
-	
-	// calculate output seed rain at time t, S(t)
-	vector<double> seeds = S.newborns_out(t);
-	for (int k=0; k<seeds.size(); ++k){
-		if (seeds[k] < 0){
-			cout << "seeds[" << k << "] = " << seeds[k] << endl;
-			S.print();
-			static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k])->seeds_hist.print_summary(); 
-			cout.flush();
-		}
-	}
-
-	// calculate r0 and update input seed rain
-	for (int k=0; k<S.species_vec.size(); ++k){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
-
-		double dt = t - spp->seeds_hist.get_last_t(); // Note: Due to this line, first value of r0 will be garbage, unless initialized!
-		if (dt < timestep/2){
-			cout << "dt = " << dt << '\n';
-			spp->r0_hist.print();
-			spp->seeds_hist.print();
-			throw std::runtime_error("r0 dt is less than the timestep!");
-		}
-
-		spp->seeds_hist.push(t, seeds[k]);        // Push S(t) into averager so that S_avg(t) can be computed
-
-		double seeds_in = spp->birth_flux_in;     // This was S_avg(t-dt)
-		double seeds_out = spp->seeds_hist.get(); // This is  S_avg(t),    i.e. average over seed-rain-avg interval, either a year or successional time window 
-		double eps = 1e-20;
-		double r0 = log((seeds_out+eps)/(seeds_in+eps))/dt;   // t0 = (log(S_avg(t)/S_avg(t-dt))/dt
-		
-		spp->set_inputBirthFlux(seeds_out);       // S_avg(t) will be input for next step
-		spp->r0_hist.push(t, r0);                 // r0 is averaged again for better evolutoinary convergence 
-		// spp->r0_hist.print_summary();
-	}
-}
-
-
 void Simulator::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
 	// delete species probes and remove their pointers from solver
 	for (auto p : spp->probes){ // probes vector is not modified in the loop, so we can use it directly to iterate
@@ -321,6 +274,52 @@ void Simulator::disturbPatch(double t){
 }
 
 
+// FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
+/// @brief     Calculate growth rates of all species and update seed input
+/// @param t   Current time 
+/// @param dt  timestep over which species growth rate is to be calculated
+/// @param S   Solver
+/// @ingroup   trait_evolution
+/// @details   Species growth rate is defined from the seed perspective, i.e., 
+///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species) 
+void Simulator::calc_seedrain_r0(double t){
+	
+	// calculate output seed rain at time t, S(t)
+	vector<double> seeds = S.newborns_out(t);
+	for (int k=0; k<seeds.size(); ++k){
+		if (seeds[k] < 0){
+			cout << "seeds[" << k << "] = " << seeds[k] << endl;
+			S.print();
+			static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k])->seeds_hist.print_summary(); 
+			cout.flush();
+		}
+	}
+
+	// calculate r0 and update input seed rain
+	for (int k=0; k<S.species_vec.size(); ++k){
+		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+
+		double dt = t - spp->seeds_hist.get_last_t(); // Note: Due to this line, first value of r0 will be garbage, unless initialized!
+		if (dt < timestep/2){
+			cout << "dt = " << dt << '\n';
+			spp->r0_hist.print();
+			spp->seeds_hist.print();
+			throw std::runtime_error("r0 dt is less than the timestep!");
+		}
+
+		spp->seeds_hist.push(t, seeds[k]);        // Push S(t) into averager so that S_avg(t) can be computed
+
+		double seeds_in = spp->birth_flux_in;     // This was S_avg(t-dt)
+		double seeds_out = spp->seeds_hist.get(); // This is  S_avg(t),    i.e. average over seed-rain-avg interval, either a year or successional time window 
+		double eps = 1e-20;
+		double r0 = log((seeds_out+eps)/(seeds_in+eps))/dt;   // t0 = (log(S_avg(t)/S_avg(t-dt))/dt
+		
+		spp->set_inputBirthFlux(seeds_out);       // S_avg(t) will be input for next step
+		spp->r0_hist.push(t, r0);                 // r0 is averaged again for better evolutoinary convergence 
+		// spp->r0_hist.print_summary();
+	}
+}
+
 
 /// @brief This function simulates patch to time t
 /// @param t Final time up to which patch should be simulated
@@ -346,7 +345,7 @@ void Simulator::simulate_to(double t){
 	// this implies that seed tain and r0 are not updated during internal steps - I think thats okay.
 	calc_seedrain_r0(t);
 
-	// update output metrics 
+	// update output metrics - needed before removeDeadSpecies()
 	cwm.update(t, S);
 	props.update(t, S);
 
