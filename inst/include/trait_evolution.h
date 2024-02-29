@@ -60,8 +60,8 @@ class MySpecies : public Species<Model>{
 
 	void print_extra();
 
-	void save(std::ofstream &fout);
-	void restore(std::ifstream &fin);
+	void save(std::ostream &fout) override;
+	void restore(std::istream &fin) override;
 
 };
 

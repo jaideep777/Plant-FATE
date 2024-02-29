@@ -194,7 +194,7 @@ class MovingAverager{
 		return avg;
 	}
 
-	void save(std::ofstream &fout){
+	void save(std::ostream &fout){
 		fout << "MovingAverager::v1\n";
 
 		fout << area_sum << ' '
@@ -218,7 +218,7 @@ class MovingAverager{
 		
 	}
 
-	void restore(std::ifstream &fin){
+	void restore(std::istream &fin){
 		std::string s; fin >> s; // discard version number
 		assert(s == "MovingAverager::v1");
 

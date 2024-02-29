@@ -82,7 +82,7 @@ void Simulator::init(double tstart, double tend){
 
 	y0 = tstart; //I.get<double>("year0");
 	yf = tend;   //I.get<double>("yearf");
-	ye = y0 + 120;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
+	ye = y0 + T_r0_avg + 20;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
 	t_next_disturbance = T_return;
 	t_next_invasion = T_invasion;
@@ -106,6 +106,7 @@ void Simulator::init(double tstart, double tend){
 	S.control.ifmu_centered_grids = false; //true;
 	S.control.ebt_ucut = 1e-7;
 	S.control.cm_use_log_densities = true;
+	// S.control.cohort_insertion_tol = 1e-6;
 	S.setEnvironment(&E);
 
 	// Add species
@@ -193,12 +194,19 @@ void Simulator::calc_seedrain_r0(double t){
 		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
 
 		double dt = t - spp->seeds_hist.get_last_t(); // Note: Due to this line, first value of r0 will be garbage, unless initialized!
+		if (dt < timestep/2){
+			cout << "dt = " << dt << '\n';
+			spp->r0_hist.print();
+			spp->seeds_hist.print();
+			throw std::runtime_error("r0 dt is less than the timestep!");
+		}
 
 		spp->seeds_hist.push(t, seeds[k]);        // Push S(t) into averager so that S_avg(t) can be computed
 
 		double seeds_in = spp->birth_flux_in;     // This was S_avg(t-dt)
 		double seeds_out = spp->seeds_hist.get(); // This is  S_avg(t),    i.e. average over seed-rain-avg interval, either a year or successional time window 
-		double r0 = log(seeds_out/seeds_in)/dt;   // t0 = (log(S_avg(t)/S_avg(t-dt))/dt
+		double eps = 1e-20;
+		double r0 = log((seeds_out+eps)/(seeds_in+eps))/dt;   // t0 = (log(S_avg(t)/S_avg(t-dt))/dt
 		
 		spp->set_inputBirthFlux(seeds_out);       // S_avg(t) will be input for next step
 		spp->r0_hist.push(t, r0);                 // r0 is averaged again for better evolutoinary convergence 
@@ -329,10 +337,14 @@ void Simulator::simulate_to(double t){
 	// perform step
 	auto after_step = [this](double _t){
 		// Calc r0, update seed rain
-		calc_seedrain_r0(_t);
+		// calc_seedrain_r0(_t);
 	};
 
 	S.step_to(t, after_step);
+
+	// update r0 and seed rain after step
+	// this implies that seed tain and r0 are not updated during internal steps - I think thats okay.
+	calc_seedrain_r0(t);
 
 	// update output metrics 
 	cwm.update(t, S);

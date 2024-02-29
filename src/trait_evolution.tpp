@@ -99,7 +99,7 @@ void MySpecies<Model>::print_extra(){
 // Changelog:
 // v2: Save plant parameters also from boundary cohort, so that ini file is not needed during restore (for plant parameters)
 template <class Model>
-void MySpecies<Model>::save(std::ofstream &fout){
+void MySpecies<Model>::save(std::ostream &fout){
 	fout << "MySpecies<T>::v2\n";
 	
 	// save species-level data
@@ -131,7 +131,7 @@ void MySpecies<Model>::save(std::ofstream &fout){
 
 
 template <class Model>
-void MySpecies<Model>::restore(std::ifstream &fin){
+void MySpecies<Model>::restore(std::istream &fin){
 	std::cout << "Restoring MySpecies<Model>...\n";
 	std::string s; fin >> s; // discard version number
 	assert(s == "MySpecies<T>::v2");
