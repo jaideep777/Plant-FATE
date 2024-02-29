@@ -27,7 +27,7 @@ LightEnvironment::LightEnvironment(){
 /// @return     Total crown area above z
 /// @details    The crown area above z from all individuals of species `k` is calculated as \f[A_k = \int_{x_b}^{x_m}{A_{cp}(s)u(s)ds},\f]
 ///             where \f$A_{cp}\f$ is the projected crown area at height z, including area covered by gaps. This is
-///             calculated by the function plant::PlantGeometry::crown_area_extent_projected.  
+///             calculated by the function plant::PlantArchitecture::crown_area_extent_projected.  
 ///             The total crown area above z is the \f[A = \sum_k {A_k}\f]
 double LightEnvironment::projected_crown_area_above_z(double t, double z, Solver *S){
 	double ca_above_z = 0;

@@ -1,6 +1,6 @@
 #include "utils/rk4.h"
 #include "utils/incbeta.h"
-#include "plant_geometry.h"
+#include "plant_architecture.h"
 #include "utils/initializer_v2.h"
 #include "utils/lambertw.h"
 //#include "assimilation.h"

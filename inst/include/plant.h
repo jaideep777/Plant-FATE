@@ -2,7 +2,7 @@
 #define PLANT_FATE_PLANT_PLANT_H_
 #include <fstream>
 #include "traits_params.h"
-#include "plant_geometry.h"
+#include "plant_architecture.h"
 #include "assimilation.h"
 #include "utils/rk4.h"
 #include "utils/moving_average.h"
@@ -55,7 +55,7 @@ class Plant{
 	PlantParameters par;  ///< Collection of all model parameters that are not traits
 
 	Assimilator assimilator; 
-	PlantGeometry geometry;
+	PlantArchitecture geometry;
 
 	protected:
 	/// @brief Set traits that are calculated from other traits (e.g., leaf_p50, a, c)

@@ -5,7 +5,7 @@
 #include <ostream>
 
 #include "traits_params.h"
-#include "plant_geometry.h"
+#include "plant_architecture.h"
 #include "assimilation.h"
 #include "plant.h"
 

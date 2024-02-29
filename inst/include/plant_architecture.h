@@ -1,5 +1,5 @@
-#ifndef PLANT_FATE_PLANT_GEOMETRY_H_
-#define PLANT_FATE_PLANT_GEOMETRY_H_
+#ifndef PLANT_FATE_PLANT_ARCHITECTURE_H_
+#define PLANT_FATE_PLANT_ARCHITECTURE_H_
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -8,19 +8,19 @@
 
 namespace plant{
 
-/// @brief   Everything about the plant's physical dimensions
+/// @brief   Everything about the plant's architecture, i.e. relationships among various physical dimensions.
 /// @ingroup physiology
 /// @details Two variables completely define dimensional state of the 
 ///          plant: diameter and crown LAI. All other dimensions (height, 
 ///          crown area, leaf area, biomass, etc) are calculated from these two.
-class PlantGeometry{
+class PlantArchitecture{
 	public:
 	/// @brief Traits that control dimensional scaling
 	struct{
-		// geometry traits
+		// crown traits
 		double m, n;    ///< crown shape paramaters
-		double a;       ///< height-diameter allometry
-		double c;       ///< crown area allometry
+		double a;       ///< Seedling height-to-diameter ratio
+		double c;       ///< Crown area to sapwood area ratio
 		double fg;      ///< upper canopy gap fraction
 		
 		// Precomputed Geometric parameters

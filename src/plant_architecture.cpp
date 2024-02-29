@@ -1,4 +1,4 @@
-#include "plant_geometry.h"
+#include "plant_architecture.h"
 
 #include "utils/rk4.h"
 #include "utils/incbeta.h"
@@ -8,7 +8,7 @@
 
 namespace plant{
 
-void PlantGeometry::init(PlantParameters &par, PlantTraits &traits){
+void PlantArchitecture::init(PlantParameters &par, PlantTraits &traits){
 	geom.m = traits.m; geom.n = traits.n; 
 	geom.a = traits.a; geom.c = traits.c;
 	geom.fg = par.fg;
@@ -32,7 +32,7 @@ void PlantGeometry::init(PlantParameters &par, PlantTraits &traits){
 // **
 // ** Crown geometry
 // **
-double PlantGeometry::q(double z){
+double PlantArchitecture::q(double z){
 	if (z > height || z < 0) return 0;
 	else{
 		double m = geom.m, n = geom.n;
@@ -42,7 +42,7 @@ double PlantGeometry::q(double z){
 	}
 }
 
-double PlantGeometry::zm(){
+double PlantArchitecture::zm(){
 	return geom.zm_H * height;
 } 
 
@@ -51,7 +51,7 @@ double PlantGeometry::zm(){
 ///            be potentially occupied by leaves, including the area that currently consists of gaps. 
 ///            \f[A_{cp} = \pi r(z)^2 = \pi r_0^2 q(z)^2 = (A_c/q_m^2) q(z)^2 = A_c (q(z)/q_m)^2\f]
 /// @ingroup   ppa_module
-double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits){
+double PlantArchitecture::crown_area_extent_projected(double z, PlantTraits &traits){
 	if (z >= zm()){
 		double fq = q(z)/geom.qm;
 		return crown_area * fq*fq;
@@ -64,7 +64,7 @@ double PlantGeometry::crown_area_extent_projected(double z, PlantTraits &traits)
 /// @details This is the area within
 ///          the potential crown that is actually occupied by leaves  
 /// @ingroup ppa_module
-double PlantGeometry::crown_area_above(double z, PlantTraits &traits){
+double PlantArchitecture::crown_area_above(double z, PlantTraits &traits){
 	if (z == 0) return crown_area; // shortcut because z=0 is used often
 
 	double fq = q(z)/geom.qm;
@@ -76,7 +76,7 @@ double PlantGeometry::crown_area_above(double z, PlantTraits &traits){
 	}
 }
 
-double PlantGeometry::diameter_at_height(double z, PlantTraits &traits){
+double PlantArchitecture::diameter_at_height(double z, PlantTraits &traits){
 	double as_z = crown_area_above(z, traits)/geom.c;
 	double a_z  = as_z/sapwood_fraction;
 	return sqrt(4*a_z/M_PI);
@@ -85,7 +85,7 @@ double PlantGeometry::diameter_at_height(double z, PlantTraits &traits){
 // **
 // ** Biomass partitioning
 // **
-double PlantGeometry::dsize_dmass(PlantTraits &traits) const {
+double PlantArchitecture::dsize_dmass(PlantTraits &traits) const {
 	double dh_dd = geom.a * exp(-geom.a*diameter/traits.hmat);
 	double dmleaf_dd = traits.lma * lai * geom.pic_4a * (height + diameter*dh_dd);	// LAI variation is accounted for in biomass production rate
 	double dmtrunk_dd = (geom.eta_c * M_PI * traits.wood_density / 4) * (2*height + diameter*dh_dd)*diameter;
@@ -97,7 +97,7 @@ double PlantGeometry::dsize_dmass(PlantTraits &traits) const {
 	return 1/dmass_dd;
 }
 
-double PlantGeometry::dreproduction_dmass(PlantParameters &par, PlantTraits &traits){
+double PlantArchitecture::dreproduction_dmass(PlantParameters &par, PlantTraits &traits){
 	return par.a_f1 / (1.0 + exp(par.a_f2 * (1.0 - diameter / geom.dmat))); 
 }
 
@@ -108,7 +108,7 @@ double PlantGeometry::dreproduction_dmass(PlantParameters &par, PlantTraits &tra
 ///          allowed mass increment, then mass increment is set to dmass_dt_max and dL_dt is revised accordingly. 
 ///          Complete coordination between fine roots and leaves is assumed. Thus, both leaves and fine roots need to increase for increasing LAI, 
 ///          and both are simultaneously shed if LAI decreases.
-double PlantGeometry::dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTraits &traits){
+double PlantArchitecture::dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTraits &traits){
 	double l2m = crown_area * (traits.lma + traits.zeta);    // biomass required to support a unit LAI
 	double dm_dt_lai = std::min(dL_dt * l2m, dmass_dt_max);  // biomass change resulting from LAI change. 
 	dL_dt = dm_dt_lai / l2m;   // Revise dL_dt, in case dm_lai_dt was capped at the maximum
@@ -120,15 +120,15 @@ double PlantGeometry::dmass_dt_lai(double &dL_dt, double dmass_dt_max, PlantTrai
 // **
 // ** Carbon pools
 // **
-double PlantGeometry::leaf_mass(const PlantTraits &traits) const{
+double PlantArchitecture::leaf_mass(const PlantTraits &traits) const{
 	return crown_area * lai * traits.lma;
 }
 
-double PlantGeometry::root_mass(const PlantTraits &traits) const{
+double PlantArchitecture::root_mass(const PlantTraits &traits) const{
 	return crown_area * lai * traits.zeta;
 }
 
-double PlantGeometry::coarse_root_mass(const PlantTraits &traits) const{
+double PlantArchitecture::coarse_root_mass(const PlantTraits &traits) const{
 	return stem_mass(traits)*traits.fcr;	
 }
 
@@ -136,48 +136,48 @@ double PlantGeometry::coarse_root_mass(const PlantTraits &traits) const{
 	//return traits.wood_density*(hvlc/geom.c)*crown_area*geom.eta_l*height;
 //}
 	
-double PlantGeometry::sapwood_mass(const PlantTraits &traits) const{
+double PlantArchitecture::sapwood_mass(const PlantTraits &traits) const{
 	return stem_mass(traits)*sapwood_fraction;
 }
 
-double PlantGeometry::sapwood_mass_real(const PlantTraits &traits) const{
+double PlantArchitecture::sapwood_mass_real(const PlantTraits &traits) const{
 	return sapwood_mass(traits)*functional_xylem_fraction;
 }
 
-double PlantGeometry::stem_mass(const PlantTraits &traits) const{
+double PlantArchitecture::stem_mass(const PlantTraits &traits) const{
 	double trunk_mass = traits.wood_density*(M_PI*diameter*diameter/4)*height*geom.eta_c;
 	double branch_mass = traits.wood_density * (M_PI*diameter*diameter/12)*height * sqrt((geom.c/geom.a)*(diameter/height));	
 	return trunk_mass + branch_mass;
 }
 
-double PlantGeometry::heartwood_mass(const PlantTraits &traits) const{
+double PlantArchitecture::heartwood_mass(const PlantTraits &traits) const{
 	return stem_mass(traits)*(1-sapwood_fraction);
 }
 
-double PlantGeometry::total_mass(const PlantTraits &traits) const{
+double PlantArchitecture::total_mass(const PlantTraits &traits) const{
 	return stem_mass(traits)*(1+traits.fcr) + leaf_mass(traits) + root_mass(traits);
 }
 
 // **
 // ** state manipulations
 // **	
-double PlantGeometry::get_size() const {
+double PlantArchitecture::get_size() const {
 	return diameter;
 }
 
-void PlantGeometry::set_lai(double _l){
+void PlantArchitecture::set_lai(double _l){
 	lai = _l;
 }
 
 /// @details Sets the following properties: diameter, height, crown area, sapwood fraction 
-void PlantGeometry::set_size(double _x, PlantTraits &traits){
+void PlantArchitecture::set_size(double _x, PlantTraits &traits){
 	diameter = _x;
 	height = traits.hmat * (1 - exp(-geom.a*diameter/traits.hmat));
 	crown_area = geom.pic_4a * height * diameter;
 	sapwood_fraction = height / (diameter * geom.a);	
 }
 
-std::vector<double>::iterator PlantGeometry::set_state(std::vector<double>::iterator S, PlantTraits &traits){
+std::vector<double>::iterator PlantArchitecture::set_state(std::vector<double>::iterator S, PlantTraits &traits){
 	set_lai(*S++);             // must be set first as it is used bt set_size() - not required any more
 	set_size(*S++, traits);
 //	litter_pool = *S++;
@@ -189,7 +189,7 @@ std::vector<double>::iterator PlantGeometry::set_state(std::vector<double>::iter
 // ** Simple growth simulator for testing purposes
 // ** - simulates growth over dt with constant assimilation rate A
 // ** 
-void PlantGeometry::grow_for_dt(double t, double dt, double &prod, double &litter_pool, double A, PlantTraits &traits){
+void PlantArchitecture::grow_for_dt(double t, double dt, double &prod, double &litter_pool, double A, PlantTraits &traits){
 
 	auto derivs = [A, &traits, &litter_pool, this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 		set_lai(S[5]);
