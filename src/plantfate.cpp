@@ -157,7 +157,7 @@ void Patch::close(){
 			  paramsFile);
 
 	// free memory associated
-	for (auto s : S.species_vec) delete static_cast<MySpecies<PSPM_Plant>*>(s); 
+	for (auto s : S.species_vec) delete static_cast<AdaptiveSpecies<PSPM_Plant>*>(s); 
 
 }
 
@@ -168,7 +168,7 @@ double Patch::runif(double rmin, double rmax){
 }
 
 
-void Patch::removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp){
+void Patch::removeSpeciesAndProbes(AdaptiveSpecies<PSPM_Plant>* spp){
 	// delete species probes and remove their pointers from solver
 	for (auto p : spp->probes){ // probes vector is not modified in the loop, so we can use it directly to iterate
 		delete p;               // this will delete the object, but the pointer p and its copy in the solver remain
@@ -196,7 +196,7 @@ void Patch::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 	//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
 	p1.set_size({0.01});
 	
-	MySpecies<PSPM_Plant>* spp = new MySpecies<PSPM_Plant>(p1);
+	AdaptiveSpecies<PSPM_Plant>* spp = new AdaptiveSpecies<PSPM_Plant>(p1);
 	spp->species_name = traits.species_name;
 	spp->trait_scalars = trait_scalars; //{800, 25};
 	spp->trait_variance = trait_variances; // vector<double>(2, 0.01);
@@ -213,7 +213,7 @@ void Patch::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 
 	// Add variants (probes) to solver
 	if (evolve_traits){
-		for (auto m : static_cast<MySpecies<PSPM_Plant>*>(spp)->probes) 
+		for (auto m : static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp)->probes) 
 			S.addSpecies({static_cast<int>(res)}, {0.01}, {10}, {true}, m, 2, 1e-3);
 	}
 
@@ -231,9 +231,9 @@ void Patch::shuffleSpecies(){
 
 void Patch::removeDeadSpecies(double t){
 	// Remove dead species
-	vector<MySpecies<PSPM_Plant>*> toRemove;
+	vector<AdaptiveSpecies<PSPM_Plant>*> toRemove;
 	for (int k=0; k<S.species_vec.size(); ++k){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k]);
 		if (spp->isResident){
 			if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
 		}
@@ -256,14 +256,14 @@ void Patch::addRandomSpecies(double t){
 }
 
 void Patch::evolveTraits(double t, double dt_evolution){
-	for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
-	for (auto spp : S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->evolveTraits(dt_evolution);
+	for (auto spp : S.species_vec) static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp)->calcFitnessGradient();
+	for (auto spp : S.species_vec) static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp)->evolveTraits(dt_evolution);
 }
 
 void Patch::disturbPatch(double t){
 	for (auto spp : S.species_vec){
 		for (int i=0; i<spp->xsize(); ++i){
-			auto& p = (static_cast<MySpecies<PSPM_Plant>*>(spp))->getCohort(i);
+			auto& p = (static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp))->getCohort(i);
 			p.geometry.lai = p.par.lai0;
 			double u_new = spp->getU(i) * 0 * double(rand())/RAND_MAX;
 			spp->setU(i, u_new);
@@ -290,14 +290,14 @@ void Patch::calc_seedrain_r0(double t){
 		if (seeds[k] < 0){
 			cout << "seeds[" << k << "] = " << seeds[k] << endl;
 			S.print();
-			static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k])->seeds_hist.print_summary(); 
+			static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k])->seeds_hist.print_summary(); 
 			cout.flush();
 		}
 	}
 
 	// calculate r0 and update input seed rain
 	for (int k=0; k<S.species_vec.size(); ++k){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k]);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k]);
 
 		double dt = t - spp->seeds_hist.get_last_t(); // Note: Due to this line, first value of r0 will be garbage, unless initialized!
 		if (dt < timestep/2){

@@ -34,7 +34,7 @@ double LightEnvironment::projected_crown_area_above_z(double t, double z, Solver
 	for (int k=0; k<S->species_vec.size(); ++k){
 
 		// skip mutants
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		if (!spp->isResident) continue;
 
 		auto ca_above = [z,spp](int i, double t){
@@ -58,7 +58,7 @@ double LightEnvironment::fapar_layer(double t, int layer, Solver *S){
 	for (int k=0; k<S->species_vec.size(); ++k){
 		
 		// skip mutants
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		if (!spp->isResident) continue;
 
 		auto photons_absorbed_plant_layer = [layer,spp, this](int i, double t){

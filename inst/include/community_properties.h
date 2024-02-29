@@ -13,7 +13,7 @@ template<class Func>
 double integrate_prop(double t, Solver &S, const Func &f){
 	double x = 0;
 	for (int k=0; k<S.n_species(); ++k){
-		bool is_resident = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k])->isResident;
+		bool is_resident = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k])->isResident;
 		if (is_resident){
 			x += S.state_integral([&S,k,f](int i, double t){
 					auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);

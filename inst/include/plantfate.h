@@ -121,7 +121,7 @@ class Patch{
 	///            \f[r = \frac{1}{\Delta t}log\left(\frac{S_\text{out}}{S_\text{in}}\right),\f] where \f$S\f$ is the seed rain (rate of seed production summed over all individuals of the species)
 	void calc_seedrain_r0(double t);
 
-	void removeSpeciesAndProbes(MySpecies<PSPM_Plant>* spp);
+	void removeSpeciesAndProbes(AdaptiveSpecies<PSPM_Plant>* spp);
 	void addSpeciesAndProbes(double t, const plant::PlantTraits& traits);
 	void shuffleSpecies();
 
