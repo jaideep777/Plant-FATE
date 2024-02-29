@@ -3,8 +3,8 @@
 
 #include <phydro.h>
 
-#include "plant_params.h"
-#include "plant_geometry.h"
+#include "traits_params.h"
+#include "plant_architecture.h"
 
 namespace plant{
 
@@ -58,12 +58,12 @@ class Assimilator{
 
 	/// @brief  Calculate whole-plant gross assimilation, transpiration, gs, etc. 
 	template<class Env>
-	void  calc_plant_assimilation_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
+	void  calc_plant_assimilation_rate(Env &env, PlantArchitecture *G, PlantParameters &par, PlantTraits &traits);
 
 
 	/// @brief  Calculate whole-plant net assimilation 
 	template<class Env>
-	PlantAssimilationResult net_production(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
+	PlantAssimilationResult net_production(Env &env, PlantArchitecture *G, PlantParameters &par, PlantTraits &traits);
 
 
 	/// @brief Leaf economics - calculate optimal leaf lifespan 
@@ -76,16 +76,16 @@ class Assimilator{
 	/// @brief Calculate leaf and fine-root respiration rates 
 	/// @{
 	// leaf respiration rate - should be calculated AFTER asimialtion (needs updated Phydro outputs)
-	double leaf_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
-	double root_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
-	double sapwood_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
+	double leaf_respiration_rate(PlantArchitecture *G, PlantParameters &par, PlantTraits &traits);
+	double root_respiration_rate(PlantArchitecture *G, PlantParameters &par, PlantTraits &traits);
+	double sapwood_respiration_rate(PlantArchitecture *G, PlantParameters &par, PlantTraits &traits);
 	/// @}
 
 
 	/// @brief Calculate leaf and fine-root turnover rates 
 	/// @{
-	double leaf_turnover_rate(double _kappa_l, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
-	double root_turnover_rate(double _kappa_r, PlantGeometry *G, PlantParameters &par, PlantTraits &traits);
+	double leaf_turnover_rate(double _kappa_l, PlantArchitecture *G, PlantParameters &par, PlantTraits &traits);
+	double root_turnover_rate(double _kappa_r, PlantArchitecture *G, PlantParameters &par, PlantTraits &traits);
 	/// @}
 
 };

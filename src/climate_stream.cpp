@@ -1,5 +1,6 @@
 #include "climate_stream.h"
 
+namespace pfate{
 namespace env{
 
 void ClimateStream::init(){
@@ -60,4 +61,4 @@ void ClimateStream::updateClimate(double julian_time, Climate& C){
 }
 
 } // namespace env
-
+} // namespace pfate

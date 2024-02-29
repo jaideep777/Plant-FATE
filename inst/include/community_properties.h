@@ -1,19 +1,21 @@
-#ifndef PLANT_FATE_COMMUNITY_PROPERTIES_H_
-#define PLANT_FATE_COMMUNITY_PROPERTIES_H_
+#ifndef PLANT_FATE_PFATE_COMMUNITY_PROPERTIES_H_
+#define PLANT_FATE_PFATE_COMMUNITY_PROPERTIES_H_
 
 #include "pspm_interface.h"
-#include "trait_evolution.h"
+#include "adaptive_species.h"
 #include "utils/sequence.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358
 #endif
 
+namespace pfate {
+
 template<class Func>
 double integrate_prop(double t, Solver &S, const Func &f){
 	double x = 0;
 	for (int k=0; k<S.n_species(); ++k){
-		bool is_resident = static_cast<MySpecies<PSPM_Plant>*>(S.species_vec[k])->isResident;
+		bool is_resident = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k])->isResident;
 		if (is_resident){
 			x += S.state_integral([&S,k,f](int i, double t){
 					auto p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
@@ -104,6 +106,11 @@ class SolverIO{
 
 	bool b_output_cohort_props = false;
 
+	std::string emgProps_file;
+	std::string cwmAvg_file;
+	std::string cwmperSpecies_file;
+	std::string traits_file;
+
 	// std::vector <std::vector<std::ofstream>> streams;
 	std::ofstream cohort_props_out;
 	std::ofstream size_dists_out;
@@ -120,13 +127,13 @@ class SolverIO{
 
 	std::ofstream fclim;
 
-	void openStreams(std::string dir, io::Initializer &I);
+	void openStreams(std::string dir);
 
 	void closeStreams();
 
 	void writeState(double t, SpeciesProps& cwm, EmergentProps& props);
 };
 
-
+} // namespace pfate
 
 #endif

@@ -3,6 +3,7 @@
 
 using namespace std;
 
+namespace pfate{
 
 void SpeciesProps::resize(int n){
 	n_ind_vec.resize(n);
@@ -72,7 +73,7 @@ SpeciesProps& SpeciesProps::operator += (const SpeciesProps &s){
 }
 
 bool SpeciesProps::isResident(Species_Base * spp){
-	return static_cast<MySpecies<PSPM_Plant>*>(spp)->isResident;
+	return static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp)->isResident;
 }
 
 void SpeciesProps::update(double t, Solver &S){
@@ -263,7 +264,7 @@ EmergentProps & EmergentProps::operator += (const EmergentProps &s){
 }
 
 bool EmergentProps::isResident(Species_Base * spp){
-	return static_cast<MySpecies<PSPM_Plant>*>(spp)->isResident;
+	return static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp)->isResident;
 }
 
 
@@ -306,7 +307,7 @@ EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
 
 
 
-void SolverIO::openStreams(std::string dir, io::Initializer &I){
+void SolverIO::openStreams(std::string dir){
 
 	if (b_output_cohort_props){
 		cohort_props_out.open(dir + "/cohort_props.txt");
@@ -341,10 +342,10 @@ void SolverIO::openStreams(std::string dir, io::Initializer &I){
 	// fseed.open(std::string(dir + "/seeds.txt").c_str());
 	// fabase.open(std::string(dir + "/basal_area.txt").c_str());
 	flai.open(std::string(dir + "/lai_profile.txt").c_str());
-	foutd.open(std::string(dir + "/" + I.get<std::string>("emgProps")).c_str());
-	fouty.open(std::string(dir + "/" + I.get<std::string>("cwmAvg")).c_str());
-	fouty_spp.open(std::string(dir + "/" + I.get<std::string>("cwmperSpecies")).c_str());
-	ftraits.open(std::string(dir + "/" + I.get<std::string>("traits")).c_str());
+	foutd.open(std::string(dir + "/" + emgProps_file).c_str());
+	fouty.open(std::string(dir + "/" + cwmAvg_file).c_str());
+	fouty_spp.open(std::string(dir + "/" + cwmperSpecies_file).c_str());
+	ftraits.open(std::string(dir + "/" + traits_file).c_str());
 	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
 	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\tCO2\n";
@@ -378,7 +379,7 @@ void SolverIO::closeStreams(){
 
 void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 	for (int s=0; s < S->species_vec.size(); ++s){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[s]);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[s]);
 
 		// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << t << "\t";
 
@@ -463,7 +464,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 			<< cwm.p50  << std::endl;
 	
 	for (int k=0; k<S->species_vec.size(); ++k){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		fouty_spp 
 				<< t << "\t"
 				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
@@ -482,7 +483,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 	}
 
 	for (int k=0; k<S->species_vec.size(); ++k){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[k]);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		ftraits 
 				<< t << "\t"
 				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
@@ -507,7 +508,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 
 	// // FIXME: Delete this
 	// fseed << t << "\t";
-	// for (int i=0; i<S->n_species(); ++i) fseed << static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[i])->seeds_hist.get() << "\t";
+	// for (int i=0; i<S->n_species(); ++i) fseed << static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[i])->seeds_hist.get() << "\t";
 	// fseed << endl;
 	
 	// fabase << t << "\t";
@@ -526,3 +527,4 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 }
 
 
+} // namespace pfate

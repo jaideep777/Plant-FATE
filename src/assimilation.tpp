@@ -85,7 +85,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 
 
 template<class Env>
-void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantArchitecture *G, PlantParameters &par, PlantTraits &traits){
 	//double GPP_plant = 0, Rl_plant = 0, dpsi_avg = 0;
 	double fapar = 1-exp(-par.k_light*G->lai);
 	bool by_layer = false;
@@ -162,7 +162,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantGeometry *G, Plan
 
 
 template<class Env>
-PlantAssimilationResult Assimilator::net_production(Env &env, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+PlantAssimilationResult Assimilator::net_production(Env &env, PlantArchitecture *G, PlantParameters &par, PlantTraits &traits){
 	plant_assim = PlantAssimilationResult(); // reset plant_assim
 
 	calc_plant_assimilation_rate(env, G, par, traits); // update plant_assim

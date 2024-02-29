@@ -5,6 +5,7 @@
 #include "climate.h"
 using namespace std;
 
+namespace pfate{
 namespace env{
 
 Clim::Clim(){
@@ -116,5 +117,5 @@ void Climate::print_line(double t){
 }
 
 } // namespace env
-
+} // namespace pfate
 

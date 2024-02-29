@@ -6,7 +6,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "plantfate.h"
+#include "plantfate_patch.h"
 
 using namespace std;
 
@@ -27,7 +27,7 @@ int main(int argc, char ** argv){
 	int err = 0;
 
 	for (int i=0; i<1; ++i){
-		Patch sim(pfile);
+		pfate::Patch sim(pfile);
 		// sim.expt_dir = sim.expt_dir + "_414ppm";
 		sim.E.init_co2(414);
 		sim.init(2000, 2100);

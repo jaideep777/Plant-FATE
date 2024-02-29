@@ -1,6 +1,7 @@
+namespace pfate{
 
 template <class Model>
-MySpecies<Model>::MySpecies(Model M, bool res) : Species<Model>(M) {
+AdaptiveSpecies<Model>::AdaptiveSpecies(Model M, bool res) : Species<Model>(M) {
 	int n = get_traits().size();
 	fitness_gradient.resize(n, 0);
 	trait_scalars.resize(n,1);
@@ -14,25 +15,25 @@ MySpecies<Model>::MySpecies(Model M, bool res) : Species<Model>(M) {
 
 
 template <class Model>
-void MySpecies<Model>::set_traits(std::vector<double> tvec){
+void AdaptiveSpecies<Model>::set_traits(std::vector<double> tvec){
 	this->boundaryCohort.set_evolvableTraits(tvec);
 	for (auto& c : this->cohorts) c.set_evolvableTraits(tvec);
 }
 
 
 template <class Model>
-std::vector<double> MySpecies<Model>::get_traits(){
+std::vector<double> AdaptiveSpecies<Model>::get_traits(){
 	return this->boundaryCohort.get_evolvableTraits();
 }
 
 
 template <class Model>
-void MySpecies<Model>::createVariants(Model M){
+void AdaptiveSpecies<Model>::createVariants(Model M){
 	std::vector<double> traits = get_traits();
 	for (int i=0; i<traits.size(); ++i){
 		std::vector<double> traits_mutant = traits;
 		traits_mutant[i] += fg_dx * trait_scalars[i];
-		MySpecies<Model> * m = new MySpecies<Model>(*this); // copy-construct the variant, then edit traits
+		AdaptiveSpecies<Model> * m = new AdaptiveSpecies<Model>(*this); // copy-construct the variant, then edit traits
 		m->set_traits(traits_mutant);
 		m->isResident = false;
 		m->probes.clear(); // mutants dont have probes
@@ -43,7 +44,7 @@ void MySpecies<Model>::createVariants(Model M){
 
 
 template <class Model>
-void MySpecies<Model>::evolveTraits(double dt){
+void AdaptiveSpecies<Model>::evolveTraits(double dt){
 	if (!isResident) return;
 
 	std::vector<double> traits_res = get_traits();
@@ -66,7 +67,7 @@ void MySpecies<Model>::evolveTraits(double dt){
 
 
 template <class Model>
-void MySpecies<Model>::calcFitnessGradient(){
+void AdaptiveSpecies<Model>::calcFitnessGradient(){
 	if (!isResident) return;
 
 	fitness_gradient.clear();
@@ -79,7 +80,7 @@ void MySpecies<Model>::calcFitnessGradient(){
 
 
 template <class Model>
-void MySpecies<Model>::print_extra(){
+void AdaptiveSpecies<Model>::print_extra(){
 	std::cout << "Name: " << species_name << "\n";
 	std::cout << "Resident: " << ((isResident)? "Yes" : "No") << "\n";
 	std::cout << "Probes: ";
@@ -99,8 +100,8 @@ void MySpecies<Model>::print_extra(){
 // Changelog:
 // v2: Save plant parameters also from boundary cohort, so that ini file is not needed during restore (for plant parameters)
 template <class Model>
-void MySpecies<Model>::save(std::ostream &fout){
-	fout << "MySpecies<T>::v2\n";
+void AdaptiveSpecies<Model>::save(std::ostream &fout){
+	fout << "AdaptiveSpecies<T>::v2\n";
 	
 	// save species-level data
 	fout << std::make_tuple(
@@ -131,10 +132,10 @@ void MySpecies<Model>::save(std::ostream &fout){
 
 
 template <class Model>
-void MySpecies<Model>::restore(std::istream &fin){
-	std::cout << "Restoring MySpecies<Model>...\n";
+void AdaptiveSpecies<Model>::restore(std::istream &fin){
+	std::cout << "Restoring AdaptiveSpecies<Model>...\n";
 	std::string s; fin >> s; // discard version number
-	assert(s == "MySpecies<T>::v2");
+	assert(s == "AdaptiveSpecies<T>::v2");
 
 	if (configfile_for_restore == "") throw std::runtime_error("Config file has not been set");
 
@@ -168,3 +169,4 @@ void MySpecies<Model>::restore(std::istream &fin){
 	Species<Model>::restore(fin);
 }
 
+} // namespace pfate

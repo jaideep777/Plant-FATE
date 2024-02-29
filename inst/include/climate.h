@@ -9,6 +9,7 @@
 #include <vector>
 #include <phydro.h>  // for calc_patm()
 
+namespace pfate{
 namespace env{
 
 class Clim{
@@ -102,6 +103,6 @@ class Climate{
 };
 
 } // namespace env
-
+} // namespace pfate
 
 #endif

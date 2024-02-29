@@ -1,8 +1,11 @@
+#ifndef PLANT_FATE_PFATE_TREELIFE_H_
+#define PLANT_FATE_PFATE_TREELIFE_H_
+
 #include <vector>
 #include <ostream>
 
-#include "plant_params.h"
-#include "plant_geometry.h"
+#include "traits_params.h"
+#include "plant_architecture.h"
 #include "assimilation.h"
 #include "plant.h"
 
@@ -10,6 +13,7 @@
 #include "climate_stream.h"
 #include "light_environment.h"
 
+namespace pfate{
 
 class ErgodicEnvironment : public env::LightEnvironment, public env::Climate {
 	public:
@@ -77,4 +81,6 @@ class LifeHistoryOptimizer{
 
 };
 
+} // namespace pfate
 
+#endif

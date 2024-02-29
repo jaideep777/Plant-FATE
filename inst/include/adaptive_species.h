@@ -1,5 +1,5 @@
-#ifndef PLANT_FATE_TRAIT_EVOLUTION_H_
-#define PLANT_FATE_TRAIT_EVOLUTION_H_
+#ifndef PLANT_FATE_PFATE_ADAPTIVE_SPECIES_H_
+#define PLANT_FATE_PFATE_ADAPTIVE_SPECIES_H_
 
 #include <solver.h>
 #include <vector>
@@ -16,13 +16,15 @@
 ///          Any changes to the algorithm or to the evolving traits will 
 ///          typically require changes in these variables.
 
+namespace pfate {
+
 /// @ingroup trait_evolution
 /// @brief   This classes extends the Species class provided by the solver
 ///          to implement the evolutionary algorithm.
 /// @tparam  Model 'Model' represents an individual plant which is used as a
 ///          prototype to construct the indiviuals in the species.
 template <class Model>
-class MySpecies : public Species<Model>{
+class AdaptiveSpecies : public Species<Model>{
 	private:
 	double fg_dx = 0.001;
 	
@@ -33,7 +35,7 @@ class MySpecies : public Species<Model>{
 
 	double invasion_fitness;
 	double r0;
-	std::vector<MySpecies<Model>*> probes;
+	std::vector<AdaptiveSpecies<Model>*> probes;
 	std::vector<double> fitness_gradient;
 	std::vector<double> trait_variance;
 	std::vector<double> trait_scalars;     // these scalars will be applied to fg_dx
@@ -46,7 +48,7 @@ class MySpecies : public Species<Model>{
 	/*NO_SAVE_RESTORE*/ std::string configfile_for_restore = "";  // Dont output this variable in save/restore. This is set by restoreState() to provide the saved config file for recreating cohorts  
 
 	public:
-	MySpecies(Model M, bool res=true);
+	AdaptiveSpecies(Model M, bool res=true);
 
 	void set_traits(std::vector<double> tvec);
 	std::vector<double> get_traits();
@@ -65,7 +67,9 @@ class MySpecies : public Species<Model>{
 
 };
 
-#include "trait_evolution.tpp"
+} // namespace pfate
+
+#include "adaptive_species.tpp"
 
 #endif
 

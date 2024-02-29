@@ -25,19 +25,19 @@ double Assimilator::les_assim_reduction_factor(phydro::PHydroResult& res, PlantP
 
 
 //// leaf respiration rate - should be calculated AFTER asimialtion (needs updated Phydro outputs)
-double Assimilator::leaf_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+double Assimilator::leaf_respiration_rate(PlantArchitecture *G, PlantParameters &par, PlantTraits &traits){
 	//double vcmax_kg_yr = photo_leaf.vcmax * par.cbio * G->leaf_area;  // mol-CO2 m-2 year-1 * kg / mol-CO2 * m2
 	//return par.rd * vcmax_kg_yr;
 	return plant_assim.rleaf; // + par.rl * G->leaf_mass(traits);
 }
 
 
-double Assimilator::root_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+double Assimilator::root_respiration_rate(PlantArchitecture *G, PlantParameters &par, PlantTraits &traits){
 	return par.rr * G->root_mass(traits) * (plant_assim.gpp/G->crown_area);
 }
 
 
-double Assimilator::sapwood_respiration_rate(PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+double Assimilator::sapwood_respiration_rate(PlantArchitecture *G, PlantParameters &par, PlantTraits &traits){
 	//return par.rs * G->sapwood_mass(traits);
 //	double dpsi_gravity = (1000*10*G->height/1e6);
 	double factor = traits.p50_xylem;
@@ -46,12 +46,12 @@ double Assimilator::sapwood_respiration_rate(PlantGeometry *G, PlantParameters &
 }
 
 
-double Assimilator::leaf_turnover_rate(double _kappa_l, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+double Assimilator::leaf_turnover_rate(double _kappa_l, PlantArchitecture *G, PlantParameters &par, PlantTraits &traits){
 	return G->leaf_mass(traits) * _kappa_l; // / traits.ll;	
 }
 
 
-double Assimilator::root_turnover_rate(double _kappa_r, PlantGeometry *G, PlantParameters &par, PlantTraits &traits){
+double Assimilator::root_turnover_rate(double _kappa_r, PlantArchitecture *G, PlantParameters &par, PlantTraits &traits){
 	return G->root_mass(traits) * _kappa_r; // / par.lr;
 }
 

@@ -2,6 +2,8 @@
 #include <filesystem>
 using namespace std;
 
+namespace pfate{
+
 void saveState(Solver *S, string state_outfile, string config_outfile, string params_file){
 
 	cout << "Saving state to: " << state_outfile << '\n';
@@ -24,14 +26,14 @@ void saveState(Solver *S, string state_outfile, string config_outfile, string pa
 	// write species names vector
 	fout << S->species_vec.size() << " | ";
 	for (auto s : S->species_vec){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(s);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(s);
 		fout << std::quoted(spp->species_name) << ' ';
 	}
 	fout << '\n';
 
 	// write species associations (list of probes)
 	for (auto s : S->species_vec){
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(s);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(s);
 		fout << std::quoted(spp->species_name) << ' ';
 		fout << spp->probes.size() << " | "; 
 		for (auto p : spp->probes) fout << std::quoted(p->species_name) << ' ';
@@ -92,8 +94,8 @@ void restoreState(Solver * S, string state_infile, string config_infile){
 	PSPM_Plant p;
 	vector<Species_Base*> spp_proto;
 	for (int i=0; i<spp_names.size(); ++i){
-		auto spp = new MySpecies<PSPM_Plant>(p);
-		spp->configfile_for_restore = config_infile; // set config file that MySpecies will use to restore cohorts FIXME: Maybe this can be prevented by simply writing parameters only once? - but configfile will be needed even after continuation for inserting new species (immigration)
+		auto spp = new AdaptiveSpecies<PSPM_Plant>(p);
+		spp->configfile_for_restore = config_infile; // set config file that AdaptiveSpecies will use to restore cohorts FIXME: Maybe this can be prevented by simply writing parameters only once? - but configfile will be needed even after continuation for inserting new species (immigration)
 		spp_proto.push_back(static_cast<Species_Base*>(spp));
 	}
 
@@ -107,12 +109,13 @@ void restoreState(Solver * S, string state_infile, string config_infile){
 	// recreate species associations
 	for (string s : spp_names){
 		int res_id = indices[s];
-		auto spp = static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[res_id]);
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[res_id]);
 		for (int probe_id : probe_lists[res_id]){
-			spp->probes.push_back(static_cast<MySpecies<PSPM_Plant>*>(S->species_vec[probe_id]));
+			spp->probes.push_back(static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[probe_id]));
 		}	
 	}
 
 	fin.close();
 }
 
+} // namespace pfate

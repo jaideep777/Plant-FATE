@@ -46,9 +46,12 @@ pspm_output*
 .DS_Store
 docs
 .Rbuildignore
+tests_old
+tests/data
 
 venv/
 env/
 lib/
+bin/
 
 py_plantFATE.egg-info/

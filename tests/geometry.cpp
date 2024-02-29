@@ -1,8 +1,8 @@
 #include <iomanip>
 #include <fstream>
 
-#include "plant_params.h"
-#include "plant_geometry.h"
+#include "traits_params.h"
+#include "plant_architecture.h"
 
 using namespace std;
 
@@ -10,7 +10,7 @@ int main(){
 
 	plant::PlantParameters par;
 	plant::PlantTraits traits;
-	plant::PlantGeometry G;
+	plant::PlantArchitecture G;
 
 	par.initFromFile("tests/params/p.ini");
 	par.print();

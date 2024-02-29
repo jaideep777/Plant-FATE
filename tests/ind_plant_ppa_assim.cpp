@@ -1,8 +1,8 @@
 #include <iomanip>
 #include <fstream>
 
-#include "plant_params.h"
-#include "plant_geometry.h"
+#include "traits_params.h"
+#include "plant_architecture.h"
 #include "assimilation.h"
 #include "plant.h"
 

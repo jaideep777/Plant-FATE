@@ -7,7 +7,7 @@ __version__ = "0.0.1"
 
 root_dir = '/home/admini/my_work/plantFATE_root/'
 package_dir = {name: "pybinds"}
-depends = ["./inst/include/plantfate.h",
+depends = ["./inst/include/plantfate_patch.h",
            "./inst/include/pspm_interface.h",
            "./src/plantfate.cpp",
            "./src/plantfate.o",

@@ -6,7 +6,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "plantfate.h"
+#include "plantfate_patch.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ int main(int argc, char ** argv){
 		cout << "Plant-FATE error: start year should be <= end year\n";
 	}
 
-	Patch sim(pfile);
+	pfate::Patch sim(pfile);
 	sim.init(y0, yf);
 	sim.simulate();
 	sim.close();
@@ -47,7 +47,7 @@ int main(int argc, char ** argv){
 	// sim.y0 = sim.yf + sim.delta_T;
 	// sim.yf = 5000;
 	// sim.traits0.zeta = zeta_new;
-	// for (auto spp : sim.S.species_vec) static_cast<MySpecies<PSPM_Plant>*>(spp)->set_traits({zeta_new});
+	// for (auto spp : sim.S.species_vec) static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp)->set_traits({zeta_new});
 	// sim.simulate();
 
 	// sim.close();
