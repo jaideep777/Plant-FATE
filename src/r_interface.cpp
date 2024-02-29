@@ -21,7 +21,7 @@ RCPP_EXPOSED_CLASS(EnvironmentBase);
 
 RCPP_EXPOSED_CLASS(ErgodicEnvironment);
 
-#include "plantfate.h"
+#include "plantfate_patch.h"
 
 RCPP_EXPOSED_CLASS(PSPM_Dynamic_Environment);
 
