@@ -10,7 +10,6 @@
 
 #include <solver.h>
 #include "pspm_interface.h"
-#include "trait_reader.h"
 #include "community_properties.h"
 #include "adaptive_species.h"
 #include "state_restore.h"
@@ -110,6 +109,8 @@ class Patch{
 
 	private: 
 	double runif(double rmin=0, double rmax=1);
+
+	std::vector<plant::PlantTraits> readTraitsFromFile(std::string fname);
 
 	// FIXME: Setting const input seed rain for mutants doesnt work. Is that a problem? 
 	/// @brief     Calculate growth rates of all species and update seed input

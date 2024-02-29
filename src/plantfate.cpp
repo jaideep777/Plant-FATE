@@ -1,5 +1,6 @@
 #include "plantfate.h"
 #include <filesystem>
+#include <csvrow.h>
 using namespace std;
 
 namespace pfate{
@@ -62,14 +63,61 @@ void Patch::set_i_metFile(std::string file){
 	climate_stream.update_i_met = (file == "")? false : true;
 }
 
+
 void Patch::set_a_metFile(std::string file){
 	climate_stream.a_metFile = file;
 	climate_stream.update_a_met = (file == "")? false : true;
 }
 
+
 void Patch::set_co2File(std::string co2file){
 	climate_stream.co2File = co2file;
 	climate_stream.update_co2 = (co2file == "")? false : true;
+}
+
+std::vector<plant::PlantTraits> Patch::readTraitsFromFile(std::string fname){
+
+	std::ifstream fin(fname.c_str());
+	if (!fin){
+		throw std::runtime_error("Could not open file " + fname + "\n");
+	}
+	
+	std::vector<plant::PlantTraits> species;
+	
+	// read header
+	flare::CSVRow row;
+	fin >> row;
+	
+	plant::PlantTraits traits;
+	// read time column for all rows
+	while(fin >> row){
+		std::string cell;
+
+		cell = row[1];
+		traits.species_name = cell;	
+
+		cell = row[4];
+		if (cell != "" && cell != "NA")	traits.wood_density = std::stod(cell)*1000; // g/cc to kg/m3
+		else traits.wood_density = 686.638;
+
+		cell = row[5];
+		if (cell != "" && cell != "NA")	traits.hmat = std::stod(cell);
+		else traits.hmat = 23.99;
+
+		cell = row[6];
+		if (cell != "" && cell != "NA")	traits.lma = std::stod(cell)*1e-3;  // convert g/m2 to kg/m2
+		else traits.lma = 0.119378;
+
+		cell = row[7];
+		if (cell != "" && cell != "NA")	traits.p50_xylem = std::stod(cell); 
+		else traits.p50_xylem = -2.29;
+
+		// ignore further data (for now)	
+
+		species.push_back(traits);		
+	}
+
+	return species;
 }
 
 
@@ -120,20 +168,19 @@ void Patch::init(double tstart, double tend){
 	}
 	else {
 		// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
-		TraitsReader Tr;
-		Tr.readFromFile(config.traits_file);
-		Tr.print();
+		std::vector<plant::PlantTraits> file_species = readTraitsFromFile(config.traits_file);
+		for (auto& s : file_species){
+			std::cout << s.species_name << ":  " << s.lma << "\t" << s.wood_density << "\t" << s.hmat << "\t" << s.p50_xylem << "\n";
+		}
 
 		// ~~~ Create initial resident species pool from traits file ~~~~
-		//int nspp = I.get<double>("nSpecies");
-		// int res = I.get<double>("resolution");
 		for (int i=0; i<config.n_species; ++i){
 			plant::PlantTraits traits = traits0; 
-			traits.species_name = Tr.species[i].species_name;
-			traits.lma          = Tr.species[i].lma;
-			traits.wood_density = Tr.species[i].wood_density;
-			traits.hmat         = Tr.species[i].hmat;
-			traits.p50_xylem    = Tr.species[i].p50_xylem; // runif(-3.5,-0.5);
+			traits.species_name = file_species[i].species_name;
+			traits.lma          = file_species[i].lma;
+			traits.wood_density = file_species[i].wood_density;
+			traits.hmat         = file_species[i].hmat;
+			traits.p50_xylem    = file_species[i].p50_xylem; // runif(-3.5,-0.5);
 
 			addSpeciesAndProbes(config.y0, traits);
 		}
