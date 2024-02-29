@@ -79,7 +79,7 @@ PYBIND11_MODULE(plantFATE, m)
 
 	py::class_<env::ClimateInput>(m, "ClimateInput")
 		.def(py::init<>())
-		.def(py::init<env::Clim&, double, double>())
+		// .def(py::init<env::Clim&, double, double>())
 		.def("updateEnvironment", &env::ClimateInput::updateEnvironment)
 		.def("updateClim", &env::ClimateInput::updateClim)
 		.def("print_line", &env::ClimateInput::print_line)

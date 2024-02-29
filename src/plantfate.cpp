@@ -352,9 +352,7 @@ void Simulator::addSpeciesAndProbes(double t, string species_name, double lma, d
 
 
 void Simulator::simulate(){
-
 	simulate_to(yf);
-	
 }
 
 void Simulator::simulate_to(double tend){
@@ -372,7 +370,7 @@ void Simulator::simulate_to(double tend){
 		//           << E.clim.swp << "\n";
 	};
 
-	for (double t=tcurrent; t <= tend; t=t+delta_T) {
+	for (double t=tcurrent; t <= tend; t=t+timestep) {
 		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
@@ -460,7 +458,8 @@ void Simulator::simulate_to(double tend){
 }
 
 void Simulator::simulate_step(){
-	simulate_to(tcurrent + delta_T);
+	double next_step = tcurrent + timestep;
+	simulate_to(next_step);
 }
 
 
