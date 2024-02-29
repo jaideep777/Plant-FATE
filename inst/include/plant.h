@@ -1,7 +1,7 @@
 #ifndef PLANT_FATE_PLANT_PLANT_H_
 #define PLANT_FATE_PLANT_PLANT_H_
 #include <fstream>
-#include "plant_params.h"
+#include "traits_params.h"
 #include "plant_geometry.h"
 #include "assimilation.h"
 #include "utils/rk4.h"

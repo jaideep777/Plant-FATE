@@ -1,7 +1,7 @@
 #include <iomanip>
 #include <fstream>
 
-#include "plant_params.h"
+#include "traits_params.h"
 #include "plant_geometry.h"
 
 using namespace std;

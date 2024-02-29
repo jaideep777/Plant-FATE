@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "plant_params.h"
+#include "traits_params.h"
 
 namespace plant{
 

@@ -3,7 +3,7 @@
 
 #include <phydro.h>
 
-#include "plant_params.h"
+#include "traits_params.h"
 #include "plant_geometry.h"
 
 namespace plant{

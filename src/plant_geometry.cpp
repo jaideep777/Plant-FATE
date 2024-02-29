@@ -2,7 +2,7 @@
 
 #include "utils/rk4.h"
 #include "utils/incbeta.h"
-#include "plant_params.h"
+#include "traits_params.h"
 
 #include <cmath>
 

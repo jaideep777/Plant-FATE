@@ -8,7 +8,7 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "plant_params.h"
+#include "traits_params.h"
 
 class TraitsReader{
 	public:

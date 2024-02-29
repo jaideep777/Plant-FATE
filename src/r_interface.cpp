@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-#include "plant_params.h"
+#include "traits_params.h"
 
 RCPP_EXPOSED_CLASS(plant::PlantTraits)
 RCPP_EXPOSED_CLASS(plant::PlantParameters)

@@ -17,7 +17,7 @@
 #include "treelife.cpp" 
 #include "adaptive_species.h"
 #include "community_properties.cpp"
-#include "plant_params.h"
+#include "traits_params.h"
 
 namespace py = pybind11;
 
