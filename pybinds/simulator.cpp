@@ -15,7 +15,7 @@
 #include "state_restore.cpp"
 #include "trait_reader.h"
 #include "treelife.cpp" 
-#include "trait_evolution.h"
+#include "adaptive_species.h"
 #include "community_properties.cpp"
 #include "plant_params.h"
 

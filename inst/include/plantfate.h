@@ -12,7 +12,7 @@
 #include "pspm_interface.h"
 #include "trait_reader.h"
 #include "community_properties.h"
-#include "trait_evolution.h"
+#include "adaptive_species.h"
 #include "state_restore.h"
 #include "climate_stream.h"
 

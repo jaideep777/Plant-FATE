@@ -65,7 +65,7 @@ class AdaptiveSpecies : public Species<Model>{
 
 };
 
-#include "trait_evolution.tpp"
+#include "adaptive_species.tpp"
 
 #endif
 

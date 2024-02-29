@@ -2,7 +2,7 @@
 #define PLANT_FATE_COMMUNITY_PROPERTIES_H_
 
 #include "pspm_interface.h"
-#include "trait_evolution.h"
+#include "adaptive_species.h"
 #include "utils/sequence.h"
 
 #ifndef M_PI

@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "light_environment.h"
-#include "trait_evolution.h"
+#include "adaptive_species.h"
 #include "pspm_interface.h"
 
 namespace env{

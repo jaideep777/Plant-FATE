@@ -1,5 +1,5 @@
 #include "pspm_interface.h"
-#include "trait_evolution.h"
+#include "adaptive_species.h"
 #include <iomanip>
 using namespace std;
 
