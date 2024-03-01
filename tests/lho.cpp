@@ -60,6 +60,7 @@ int main(){
 	cout << "Fitness = " << fitness1 << '\n';
 	if (fabs(fitness1 - 0.0999331152132) > 1e-6) return 1;  // expected value updated after implementing inst phydro and setting kphio to 0.045
 
+	// FIXME. This reinit of LHO does not work. assim rate is NAN.
 	// lho.init();
 	// lho.C.Climate::print(0);
 	// total_prod = lho.P.get_biomass();
