@@ -69,7 +69,7 @@ OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 # pybind11_add_module(simulator simulator_pybind.cpp)
 
 
-all: dir $(TARGET)
+all: dir $(TARGET) apps
 
 # $(PYBINDFILES): build/%.o : src/%.cpp
 # 	g++ -c $(CPPFLAGS) $(PTH_PATH) $(INC_PATH) $< -o $@
@@ -86,7 +86,6 @@ hi:
 
 $(TARGET): $(OBJECTS)
 	$(AR) rcs lib/$(TARGET).a $(OBJECTS) $(LIBS)	
-	g++ $(LDFLAGS) $(CPPFLAGS) $(INC_PATH) $(LIB_PATH) -o bin/pfate $(OBJECTS) tests/pf.cpp $(LIBS) -lpfate 
 # g++ $(LDFLAGS) -o $(TARGET) $(LIB_PATH) $(OBJECTS) $(LIBS)
 
 $(OBJECTS): build/%.o : src/%.cpp $(HEADERS)
@@ -100,9 +99,24 @@ re: clean all
 clean: libclean testclean
 
 
+## EXECUTABLES (APPS) ##
+
+APP_FILES = $(wildcard apps/*.cpp)
+APP_OBJECTS = $(patsubst apps/%.cpp, build/%.o, $(APP_FILES))
+APP_TARGETS = $(patsubst apps/%.cpp, bin/%, $(APP_FILES))
+
+apps: dir $(TARGET) compile_apps
+	@echo $(APP_TARGETS)
+
+compile_apps: $(APP_TARGETS)
+
+$(APP_TARGETS): bin/% : apps/%.cpp $(HEADERS)
+	g++ $(LDFLAGS) $(CPPFLAGS) $(INC_PATH) $(LIB_PATH) -o $@ $(OBJECTS) $< $(LIBS) -lpfate 
+
+
 ## TESTING SUITE ##
 
-TEST_FILES = tests/pf_test.cpp #$(wildcard tests/*.cpp)
+TEST_FILES = tests/lho.cpp tests/pf_test.cpp #$(wildcard tests/*.cpp)
 TEST_OBJECTS = $(patsubst tests/%.cpp, tests/%.o, $(TEST_FILES))
 TEST_TARGETS = $(patsubst tests/%.cpp, tests/%.test, $(TEST_FILES))
 TEST_RUNS = $(patsubst tests/%.cpp, tests/%.run, $(TEST_FILES))
@@ -119,7 +133,7 @@ run_tests: $(TEST_RUNS)
 	
 $(TEST_RUNS): tests/%.run : tests/%.test
 	@echo "~~~~~~~~~~~~~~~ $< ~~~~~~~~~~~~~~~~" >> log.txt
-	@time ./$< && \
+	@time ./$<  >> log.txt && \
 		printf "%b" "\033[0;32m[PASS]\033[m" ": $* \n"  || \
 		printf "%b" "\033[1;31m[FAIL]\033[m" ": $* \n"
 

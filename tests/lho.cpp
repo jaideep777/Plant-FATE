@@ -2,7 +2,7 @@
 #include <fstream>
 #include <random>
 
-#include "treelife.h"
+#include "life_history.h"
 using namespace std;
 
 int main(){

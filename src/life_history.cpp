@@ -1,4 +1,4 @@
-#include "treelife.h"
+#include "life_history.h"
 #include <io_utils.h>
 using namespace std;
 

@@ -18,7 +18,7 @@ RCPP_EXPOSED_CLASS_NODECL(pfate::env::LightEnvironment);
 RCPP_EXPOSED_CLASS_NODECL(EnvironmentBase);
 RCPP_EXPOSED_CLASS_NODECL(pfate::PSPM_Environment);
 
-#include "treelife.h"
+#include "life_history.h"
 
 RCPP_EXPOSED_CLASS_NODECL(pfate::ErgodicEnvironment);
 
