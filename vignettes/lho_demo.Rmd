@@ -3,7 +3,6 @@ title: "TreeLife demo"
 author: "Jaideep Joshi"
 date: "2023-01-21"
 output:
-  pdf_document: default
   html_document: default
 ---
 
@@ -122,11 +121,15 @@ plot_plant_trajectory = function(dat){
 ## Simulate a plant and plot its growth trajectory
 
 ```{r}
-lho = new(LifeHistoryOptimizer)
-lho$params_file = "tests/params/p.ini"
-lho$set_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv")
+params_file = "tests/params/p_test_v2.ini"
+
+lho = new(LifeHistoryOptimizer, params_file)
+lho$set_i_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE_new.csv")
+lho$set_a_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE_new.csv")
 lho$set_co2File("")
-lho$env$clim$co2 = 368.9
+lho$init_co2(414)
+print(c(lho$env$clim_inst$co2,
+        lho$env$clim_acclim$co2))
 lho$init()
 lho$printMeta()
 
@@ -151,40 +154,38 @@ To calculate the fitness of a tree with given traits, follow these steps:
 5. Calculate fitness
 
 ```{r}
-lho = new(LifeHistoryOptimizer)
-lho$params_file = "tests/params/p.ini"
+lho = new(LifeHistoryOptimizer, params_file)
 lho$init()
 lho$printMeta()
 lho$calcFitness()
 ```
 
 ```{r}
-lho = new(LifeHistoryOptimizer)
-lho$params_file = "tests/params/p.ini"
+lho = new(LifeHistoryOptimizer, params_file)
+lho$traits0$wood_density = 750
 lho$init()
-lho$set_traits(c(0.08, 750))
 lho$printMeta()
 lho$calcFitness()
 ```
 
 
-## Calculate fitness as a function of LMA
+<!-- ## Calculate fitness as a function of LMA -->
 
-```{r}
-fitness_lma = function(lma){
-  lho = new(LifeHistoryOptimizer)
-  lho$params_file = "tests/params/p.ini"
-  lho$init()
-  lho$set_traits(c(lma, 750))
-  # lho$printPlant()
-  lho$calcFitness()
-}
+<!-- ```{r} -->
+<!-- fitness_lma = function(lma){ -->
+<!--   lho = new(LifeHistoryOptimizer) -->
+<!--   lho$params_file = "tests/params/p.ini" -->
+<!--   lho$init() -->
+<!--   lho$set_traits(c(lma, 750)) -->
+<!--   # lho$printPlant() -->
+<!--   lho$calcFitness() -->
+<!-- } -->
 
-lma = seq(0.05, 0.3, 0.01)
-dat = lma %>% purrr::map_dbl(fitness_lma)
+<!-- lma = seq(0.05, 0.3, 0.01) -->
+<!-- dat = lma %>% purrr::map_dbl(fitness_lma) -->
 
-plot(dat~lma)
-```
+<!-- plot(dat~lma) -->
+<!-- ``` -->
 
 ## Calculate fitness as a function of wood density
 
@@ -195,33 +196,33 @@ co_amb = c(1.0000000, 0.4712540, 0.2218492, 0.0711068)
 
 
 # eCO2 env
-zp_ele = c(20.695389, 18.106550, 14.087510, 2.206985, 0.000000) 
+zp_ele = c(20.695389, 18.106550, 14.087510, 2.206985, 0.000000)
 co_ele = c(1.000000, 4.712543e-01, 2.220795e-01, 1.032055e-01, 2.763073e-02)
 
 
-fitness_wd = function(wd, zp, co, co2, pfile="tests/params/p_ele_base.ini"){
-  lho = new(LifeHistoryOptimizer)
-  lho$params_file = pfile
-  lho$set_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv")
-  lho$env$clim$co2 = co2
+fitness_wd = function(wd, zp, co, co2, pfile="tests/params/p_test_v2.ini"){
+  lho = new(LifeHistoryOptimizer, pfile)
+  lho$set_i_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE_new.csv")
+  lho$set_a_metFile("tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE_new.csv")
+  lho$init_co2(co2)
   lho$env$z_star = zp
   lho$env$canopy_openness = co
+  lho$traits0$wood_density = wd
   lho$init()
-  lho$set_traits(c(0.12, wd))
   # lho$printPlant()
   lho$calcFitness()
 }
 
 wd = seq(350, 900, length.out=20)
 
-dat_amb = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=368)
+dat_amb = wd %>% purrr::map_dbl(.f = fitness_wd, zp=zp_amb, co=co_amb, co2=368)
 
 dat_ele_base = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=614)
 
 dat_ele = wd %>% purrr::map_dbl(fitness_wd, zp=zp_ele, co=co_ele, co2=614)
 
-dat_amb_nlimit = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=368, pfile="tests/params/p_ele_hi.ini")
+# dat_amb_nlimit = wd %>% purrr::map_dbl(fitness_wd, zp=zp_amb, co=co_amb, co2=368, pfile="tests/params/p_ele_hi.ini")
 
-matplot(y=cbind(dat_amb/max(dat_amb), dat_ele_base/max(dat_ele_base), dat_ele/max(dat_ele), dat_amb_nlimit/max(dat_amb_nlimit)), x = wd, type="l", lty=1, col=c("black", "grey", "yellow3", "brown"), ylab="Fitness", xlab="Wood density", cex.lab=1.3, lwd=2)
+matplot(y=cbind(dat_amb/max(dat_amb), dat_ele_base/max(dat_ele_base), dat_ele/max(dat_ele)), x = wd, type="l", lty=1, col=c("black", "grey", "yellow3", "brown"), ylab="Fitness", xlab="Wood density", cex.lab=1.3, lwd=2)
 
 ```

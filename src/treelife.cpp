@@ -49,6 +49,9 @@ void LifeHistoryOptimizer::set_co2File(std::string co2file){
 	c_stream.update_co2 = (co2file == "")? false : true;
 }
 
+void LifeHistoryOptimizer::init_co2(double _co2){
+	C.init_co2(_co2);
+}
 
 void LifeHistoryOptimizer::init(){
 	rep = 0;
@@ -58,6 +61,8 @@ void LifeHistoryOptimizer::init(){
 
 	C.n_layers = C.z_star.size()-1;
 	
+	C.set_elevation(0);
+	C.set_acclim_timescale(7); 
 	c_stream.init();
 
 	// We are tracking the life-cycle of a seed: how many seeds does a single seed produce (having gone through dispersal, germination, and plant life stages)
@@ -210,6 +215,7 @@ void LifeHistoryOptimizer::grow_for_dt(double t, double dt){
 	auto derivs = [this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 		//if (fabs(t - 2050) < 1e-5) 
 		update_climate(flare::yearsCE_to_julian(t));
+		// C.Climate::print(t);
 		set_state(S.begin());
 		P.calc_demographic_rates(C, t);
 		

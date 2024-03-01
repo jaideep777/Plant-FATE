@@ -78,6 +78,8 @@ class Climate{
 	double t_last = -1e20;       ///< Time of last updated clim_acclim [julian day] 
 
 	public:
+	virtual ~Climate(){};  // need virtual destructor since print() is virtual
+
 	Clim clim_inst;    ///< Mean climate over the timestep
 	Clim clim_acclim;  ///< Daily climate measured as mean over 3 hrs around max radiation
 

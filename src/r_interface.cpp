@@ -3,28 +3,26 @@ using namespace Rcpp;
 
 #include "traits_params.h"
 
-RCPP_EXPOSED_CLASS(plant::PlantTraits)
-RCPP_EXPOSED_CLASS(plant::PlantParameters)
+RCPP_EXPOSED_CLASS_NODECL(plant::PlantTraits)
+RCPP_EXPOSED_CLASS_NODECL(plant::PlantParameters)
 
 #include "climate.h"
 #include "light_environment.h"
 
-RCPP_EXPOSED_CLASS(env::Clim);
-RCPP_EXPOSED_CLASS(env::Climate);
-RCPP_EXPOSED_CLASS(env::LightEnvironment);
+RCPP_EXPOSED_CLASS_NODECL(pfate::env::Clim);
+RCPP_EXPOSED_CLASS_NODECL(pfate::env::Climate);
+RCPP_EXPOSED_CLASS_NODECL(pfate::env::LightEnvironment);
 
 #include "pspm_interface.h"
 
-RCPP_EXPOSED_CLASS(EnvironmentBase);
+RCPP_EXPOSED_CLASS_NODECL(EnvironmentBase);
+RCPP_EXPOSED_CLASS_NODECL(pfate::PSPM_Environment);
 
 #include "treelife.h"
 
-RCPP_EXPOSED_CLASS(ErgodicEnvironment);
+RCPP_EXPOSED_CLASS_NODECL(pfate::ErgodicEnvironment);
 
 #include "plantfate_patch.h"
-
-RCPP_EXPOSED_CLASS(PSPM_Dynamic_Environment);
-
 
 RCPP_MODULE(plantfate_module){
 	class_ <plant::PlantTraits>("PlantTraits")
@@ -65,110 +63,122 @@ RCPP_MODULE(plantfate_module){
 		.method("print", &plant::PlantParameters::print)	
 	;
 
-	class_ <env::LightEnvironment>("LightEnvironment")
+	class_ <pfate::env::LightEnvironment>("LightEnvironment")
 		.constructor()
-		.field("z_star", &env::LightEnvironment::z_star)
-		.field("canopy_openness", &env::LightEnvironment::canopy_openness)
-		.method("print", &env::LightEnvironment::print)
+		.field("z_star", &pfate::env::LightEnvironment::z_star)
+		.field("canopy_openness", &pfate::env::LightEnvironment::canopy_openness)
+		.method("print", &pfate::env::LightEnvironment::print)
 	;
 
-	class_ <env::Clim>("Clim")
+	class_ <pfate::env::Clim>("Clim")
 		.default_constructor()
 		
-		.field("tc", &env::Clim::tc)
-		.field("ppfd_max", &env::Clim::ppfd_max)
-		.field("ppfd", &env::Clim::ppfd)
-		.field("vpd", &env::Clim::vpd)
-		.field("co2", &env::Clim::co2)
-		.field("elv", &env::Clim::elv)
-		.field("swp", &env::Clim::swp)
+		.field("tc",    &pfate::env::Clim::tc)
+		.field("ppfd",  &pfate::env::Clim::ppfd)
+		.field("vpd",   &pfate::env::Clim::vpd)
+		.field("co2",   &pfate::env::Clim::co2)
+		.field("elv",   &pfate::env::Clim::elv)
+		.field("swp",   &pfate::env::Clim::swp)
+		.field("rn",    &pfate::env::Clim::rn)
+		.field("vwind", &pfate::env::Clim::vwind)
 	;
 
-	class_ <env::Climate>("Climate")
+	class_ <pfate::env::Climate>("Climate")
 		.default_constructor()
 
-		.field("clim", &env::Climate::clim)
+		.field("clim_inst", &pfate::env::Climate::clim_inst)
+		.field("clim_acclim", &pfate::env::Climate::clim_acclim)
 
 		// Dont expose these, because get/set functions in TreeLife and PlantFATE set both filename and update-flag
-		// .field("metFile", &env::Climate::metFile)
-		// .field("co2File", &env::Climate::co2File)
-		// .field("update_met", &env::Climate::update_met)
-		// .field("update_co2", &env::Climate::update_co2)
+		// .field("metFile", &pfate::env::Climate::metFile)
+		// .field("co2File", &pfate::env::Climate::co2File)
+		// .field("update_met", &pfate::env::Climate::update_met)
+		// .field("update_co2", &pfate::env::Climate::update_co2)
 
-		.method("set", &env::Climate::set)
-		.method("print", &env::Climate::print)
+		// FIXME: These setters DO NOT WORK on the env object within LifeHstoryOptimizer, e.g., lho$env$init_co2()
+		//        Hence commenting out. Use the overloads in LHO instead.
+		// .method("init_co2", &pfate::env::Climate::init_co2)
+		// .method("set_forcing_acclim", &pfate::env::Climate::set_forcing_acclim)
+
+		.method("print", &pfate::env::Climate::print)
 	;
 
-	class_ <ErgodicEnvironment>("ErgodicEnvironment")
+	class_ <pfate::ErgodicEnvironment>("ErgodicEnvironment")
 		.constructor()
 
-		.derives<env::LightEnvironment>("LightEnvironment")
-		.derives<env::Climate>("Climate")
+		.derives<pfate::env::LightEnvironment>("LightEnvironment")
+		.derives<pfate::env::Climate>("Climate")
 
-		.method("print", &ErgodicEnvironment::print)
+		.method("print", &pfate::ErgodicEnvironment::print)
 	;
 
 	class_ <EnvironmentBase>("EnvironmentBase")
 		// We do not want to export constructor to environment base because we dont want users to instantiate this
 	;
 
-	class_ <PSPM_Dynamic_Environment>("PSPM_Dynamic_Environment")
+	class_ <pfate::PSPM_Environment>("PSPM_Environment")
 		// .derives<EnvironmentBase>("EnvironmentBase")
-		.derives<env::LightEnvironment>("LightEnvironment")
-		.derives<env::Climate>("Climate")
+		.derives<pfate::env::LightEnvironment>("LightEnvironment")
+		.derives<pfate::env::Climate>("Climate")
 
 		.default_constructor()
 	;
 
 
-	class_ <LifeHistoryOptimizer>("LifeHistoryOptimizer")
-		//.field("params_file", &LifeHistoryOptimizer::params_file)
-		.field("env", &LifeHistoryOptimizer::C)
-		.field("traits0", &LifeHistoryOptimizer::traits0)
-		.field("par0", &LifeHistoryOptimizer::par0)
+	class_ <pfate::LifeHistoryOptimizer>("LifeHistoryOptimizer")
+		//.field("params_file", &pfate::LifeHistoryOptimizer::params_file)
+		.field("env", &pfate::LifeHistoryOptimizer::C)
+		.field("traits0", &pfate::LifeHistoryOptimizer::traits0)
+		.field("par0", &pfate::LifeHistoryOptimizer::par0)
 		
 		.constructor<std::string>()
-		.method("set_metFile", &LifeHistoryOptimizer::set_metFile)
-		.method("set_co2File", &LifeHistoryOptimizer::set_co2File)
+		.method("set_i_metFile", &pfate::LifeHistoryOptimizer::set_i_metFile)
+		.method("set_a_metFile", &pfate::LifeHistoryOptimizer::set_a_metFile)
+		.method("set_co2File", &pfate::LifeHistoryOptimizer::set_co2File)
+		.method("init_co2", &pfate::LifeHistoryOptimizer::init_co2)
 
-		.method("get_header", &LifeHistoryOptimizer::get_header)
-		.method("get_state", &LifeHistoryOptimizer::get_state)
+		.method("get_header", &pfate::LifeHistoryOptimizer::get_header)
+		.method("get_state", &pfate::LifeHistoryOptimizer::get_state)
 
-		.method("set_traits", &LifeHistoryOptimizer::set_traits)
-		.method("get_traits", &LifeHistoryOptimizer::get_traits)
-		.method("init", &LifeHistoryOptimizer::init)
-		.method("printMeta", &LifeHistoryOptimizer::printMeta)
-		.method("calcFitness", &LifeHistoryOptimizer::calcFitness)
+		// .method("set_traits", &pfate::LifeHistoryOptimizer::set_traits)
+		// .method("get_traits", &pfate::LifeHistoryOptimizer::get_traits)
+		.method("init", &pfate::LifeHistoryOptimizer::init)
+		.method("printMeta", &pfate::LifeHistoryOptimizer::printMeta)
+		.method("calcFitness", &pfate::LifeHistoryOptimizer::calcFitness)
 
-		.method("grow_for_dt", &LifeHistoryOptimizer::grow_for_dt)
+		.method("grow_for_dt", &pfate::LifeHistoryOptimizer::grow_for_dt)
 	;
 
-	class_ <Patch>("Patch")
+	class_ <pfate::Patch>("Patch")
 		.constructor<std::string>()
-		.method("set_metFile", &Patch::set_metFile)
-		.method("set_co2File", &Patch::set_co2File)
-		.method("init", &Patch::init)
-		.method("simulate", &Patch::simulate)
-		.method("close", &Patch::close)
+		.method("set_i_metFile", &pfate::Patch::set_i_metFile)
+		.method("set_a_metFile", &pfate::Patch::set_a_metFile)
+		.method("set_co2File", &pfate::Patch::set_co2File)
+		.method("init", &pfate::Patch::init)
+		.method("simulate", &pfate::Patch::simulate)
+		.method("close", &pfate::Patch::close)
 
-		.field("E", &Patch::E)
+		.field("E", &pfate::Patch::E)
 
-		.field("paramsFile", &Patch::paramsFile)
-		.field("parent_dir", &Patch::parent_dir)
-		.field("expt_dir",   &Patch::expt_dir)
-		.field("save_state", &Patch::save_state)
-		.field("state_outfile", &Patch::state_outfile)
-		.field("config_outfile", &Patch::config_outfile)
-		.field("continueFrom_stateFile", &Patch::continueFrom_stateFile)
-		.field("continueFrom_configFile", &Patch::continueFrom_configFile)
-		.field("continuePrevious", &Patch::continuePrevious)
-		.field("evolve_traits", &Patch::evolve_traits)
-		.field("y0", &Patch::y0)
-		.field("yf", &Patch::yf)
-		.field("ye", &Patch::ye)
-
-		.field("traits0", &Patch::traits0)
-		.field("par0", &Patch::par0)
+		.field("traits0", &pfate::Patch::traits0)
+		.field("par0", &pfate::Patch::par0)
 	;
+
+	class_ <pfate::PlantFateConfig>("pfate::PlantFateConfig")
+		.field("paramsFile", &pfate::PlantFateConfig::paramsFile)
+		.field("parent_dir", &pfate::PlantFateConfig::parent_dir)
+		.field("expt_dir",   &pfate::PlantFateConfig::expt_dir)
+		.field("save_state", &pfate::PlantFateConfig::save_state)
+		.field("state_outfile", &pfate::PlantFateConfig::state_outfile)
+		.field("config_outfile", &pfate::PlantFateConfig::config_outfile)
+		.field("continueFrom_stateFile", &pfate::PlantFateConfig::continueFrom_stateFile)
+		.field("continueFrom_configFile", &pfate::PlantFateConfig::continueFrom_configFile)
+		.field("continuePrevious", &pfate::PlantFateConfig::continuePrevious)
+		.field("evolve_traits", &pfate::PlantFateConfig::evolve_traits)
+		.field("y0", &pfate::PlantFateConfig::y0)
+		.field("yf", &pfate::PlantFateConfig::yf)
+		.field("ye", &pfate::PlantFateConfig::ye)
+	;
+
 }
 
