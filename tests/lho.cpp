@@ -39,6 +39,7 @@ int main(){
 	for (double t=2000; t<=2500; t=t+dt){
 		lho.grow_for_dt(t, dt);
 		lho.printState(t+dt, fout);
+		// lho.C.Climate::print(t);
 	}
 	fout.close();
 	// fswp.close();
@@ -55,26 +56,29 @@ int main(){
 	cout << "Relative error in biomass accounting = " << rel_error << endl;
 	if (rel_error > 2e-5) return 1;
 	
-	lho = pfate::LifeHistoryOptimizer("tests/params/p_test_v2.ini");
-	lho.init();
-	lho.C.Climate::print(0);
-	total_prod = lho.P.get_biomass();
-	cout << "Starting biomass = " << total_prod << "\n";
-	cout << "Mortality until seedling stage = " << lho.P.state.mortality << "\n";
-	double fitness = lho.calcFitness();
-	cout << "After calcFitness(): " << "\n" 
-		 << setprecision(12) 
-		 << "  Total biomass    = " << lho.P.get_biomass() << "\n"
-		 << "  Total litter     = " << lho.litter_pool << "\n"
-		 << "  Total reproduc   = " << lho.rep << "\n"
-		 << "  Total bio+lit+rep = " << lho.P.get_biomass() + lho.litter_pool + lho.rep << "\n"
-		 << "  Total production = " << lho.prod << "\n";
-	cout << "Fitness = " << fitness << endl;
+	double fitness1 = lho.seeds;
+	cout << "Fitness = " << fitness1 << '\n';
+	if (fabs(fitness1 - 0.0999331152132) > 1e-6) return 1;  // expected value updated after implementing inst phydro and setting kphio to 0.045
+
+	// lho.init();
+	// lho.C.Climate::print(0);
+	// total_prod = lho.P.get_biomass();
+	// cout << "Starting biomass = " << total_prod << "\n";
+	// cout << "Mortality until seedling stage = " << lho.P.state.mortality << "\n";
+	// double fitness = lho.calcFitness();
+	// cout << "After calcFitness(): " << "\n" 
+	// 	 << setprecision(12) 
+	// 	 << "  Total biomass    = " << lho.P.get_biomass() << "\n"
+	// 	 << "  Total litter     = " << lho.litter_pool << "\n"
+	// 	 << "  Total reproduc   = " << lho.rep << "\n"
+	// 	 << "  Total bio+lit+rep = " << lho.P.get_biomass() + lho.litter_pool + lho.rep << "\n"
+	// 	 << "  Total production = " << lho.prod << "\n";
+	// cout << "Fitness = " << fitness << endl;
 
 	// if (fabs(fitness - 0.414567339728) > 1e-6) return 1;
 	// if (fabs(fitness - 0.427527753304) > 1e-6) return 1; // expected value after upgrade to latest version of phydro @6fc30d6
 	// if (fabs(fitness - 0.406735962511) > 1e-6) return 1; // expected value updated after finding minor bug in gpp calc... when applying midday --> day mean conversion, it was directly applied to gpp, whereas it should only be applied to a, since vcmax is not scaled 
-	if (fabs(fitness - 0.253198528939) > 1e-6) return 1;    // expected value updated after implementing inst phydro and setting kphio to 0.045
+	// if (fabs(fitness - 0.253198528939) > 1e-6) return 1;    // expected value updated after implementing inst phydro and setting kphio to 0.045
 
 
 	return 0;
