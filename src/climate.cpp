@@ -103,6 +103,9 @@ void Climate::print(double t){
 	cout << "   co2     = " << clim_inst.co2      << " / " << clim_acclim.co2      << '\n';
 	cout << "   elv     = " << clim_inst.elv      << " / " << clim_acclim.elv      << '\n';
 	cout << "   swp     = " << clim_inst.swp      << " / " << clim_acclim.swp      << '\n';
+	cout << "   pa      = " << clim_inst.pa       << " / " << clim_acclim.pa       << '\n';
+	cout << "   rn      = " << clim_inst.rn       << " / " << clim_acclim.rn       << '\n';
+	cout << "   vwind   = " << clim_inst.vwind    << " / " << clim_acclim.vwind    << '\n';
 }
 
 void Climate::print_line(double t){

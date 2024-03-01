@@ -25,13 +25,13 @@ int main(){
 	
 	cout << setprecision(12);
 	
-	LifeHistoryOptimizer lho("tests/params/p_test_v2.ini");
+	pfate::LifeHistoryOptimizer lho("tests/params/p_test_v2.ini");
+	// lho.C.init_co2(414);
 	lho.init();
+	lho.C.Climate::print(0);
 	double total_prod = lho.P.get_biomass();
 	cout << "Starting biomass = " << total_prod << "\n";
 	cout << "Mortality until seedling stage = " << lho.P.state.mortality << "\n";
-
-	lho.C.print(0);
 
 	ofstream fout("assim1.txt");
 	double dt = 0.1;
@@ -55,7 +55,9 @@ int main(){
 	cout << "Relative error in biomass accounting = " << rel_error << endl;
 	if (rel_error > 2e-5) return 1;
 	
+	lho = pfate::LifeHistoryOptimizer("tests/params/p_test_v2.ini");
 	lho.init();
+	lho.C.Climate::print(0);
 	total_prod = lho.P.get_biomass();
 	cout << "Starting biomass = " << total_prod << "\n";
 	cout << "Mortality until seedling stage = " << lho.P.state.mortality << "\n";

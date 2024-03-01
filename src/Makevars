@@ -2,16 +2,17 @@ CXX_STD = CXX17
 
 PHYDRO_PATH = ../../phydro
 LIBPSPM_PATH = ../../libpspm
+FLARE_PATH = ../../Flare.v2
 
 # include and lib dirs (esp for cuda)
-INC_PATH :=  -I../inst/include -I../src -I"$(PHYDRO_PATH)"/inst/include -I"$(LIBPSPM_PATH)"/include #-isystem "$(PHYDRO_PATH)"/inst/LBFGSpp/include
+INC_PATH :=  -I../inst/include -I../src -I"$(PHYDRO_PATH)"/inst/include -I"$(LIBPSPM_PATH)"/include -I"$(FLARE_PATH)"/include #-isystem "$(PHYDRO_PATH)"/inst/LBFGSpp/include
 
 # flags
 PKG_CXXFLAGS = -O3 -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY 
 
 PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-but-set-variable -Wno-float-conversion \
--Wno-unused-parameter
+-Wno-unused-parameter -Wno-cast-function-type
 
 PKG_CPPFLAGS = $(INC_PATH)
 
@@ -20,16 +21,18 @@ PKG_LIBS = -L"$(LIBPSPM_PATH)"/lib -lpspm -lstdc++fs
 
 # SOURCES = $(wildcard src/*.cpp)
 
-SOURCES = plant_geometry.cpp \
+SOURCES = traits_params.cpp \
+          plant_architecture.cpp \
           assimilation.cpp \
           plant.cpp \
           light_environment.cpp \
           climate.cpp \
+          climate_stream.cpp \
           pspm_interface.cpp \
           community_properties.cpp \
           state_restore.cpp \
           treelife.cpp \
-          plantfate.cpp \
+          plantfate_patch.cpp \
           r_interface.cpp
 
 # Obtain the object files
