@@ -31,7 +31,7 @@ SOURCES = traits_params.cpp \
           pspm_interface.cpp \
           community_properties.cpp \
           state_restore.cpp \
-          treelife.cpp \
+          life_history.cpp \
           plantfate_patch.cpp \
           r_interface.cpp
 

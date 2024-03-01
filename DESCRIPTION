@@ -1,5 +1,5 @@
 Package: PlantFATE
-Title: Plant Functional Trait Evolution
+Title: Plant Functional Acclimation and Trait Evolution
 Version: 1.0
 Date: 2021-09-30
 Authors@R: c(
@@ -9,7 +9,7 @@ Authors@R: c(
 Maintainer: Jaideep Joshi <joshi@iiasa.ac.at>
 Description: Plant-FATE Eco-evolutionary Vegetation Model and TreeLife Life-history optimization model 
 URL: https://jaideep777.github.io/Plant-FATE
-License: GPL 3.0
+License: BSD-3-clause License
 Encoding: UTF-8
 RoxygenNote: 7.1.2
 Imports: Rcpp (>= 1.0.8)
