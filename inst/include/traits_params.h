@@ -58,19 +58,15 @@ class PlantTraits{
 /// \ingroup physiology
 class PlantParameters{
 	public:
-	// **
-	// ** Photosynthesis paramaters  
-	// **
+	// Photosynthesis paramaters  
 	double kphio;           ///< Quantum use efficiency
 	double alpha;           ///< Cost of maintaining photosynthetic capacity
 	double gamma;           ///< Cost of hydraulic risks
 
-	// **
-	// ** Allocation and geometric paramaters  
-	// **
+	// Allocation and geometric paramaters  
 	double fg;		        ///< upper canopy gap fraction
 
-	// ** LAI optimization
+	// LAI optimization
 	double Cc;                  ///< leaf construction costs
 	double Chyd;                ///< hydraulic costs
 	double response_intensity;	///< speed of response to environment
@@ -79,7 +75,7 @@ class PlantParameters{
 	double lai0;                ///< initial lai
 	bool   optimize_lai;
 
-	// ** Leaf Economics
+	// Leaf Economics
 	double les_u;           ///< LES u [dimensionless]
 	double les_cc;          ///< Cost of leaf construction and maintenance  [dimensionless]
 	double les_k1;          ///< Conversion factor: g biomass / mol CO2 (see cbio below)
@@ -88,57 +84,32 @@ class PlantParameters{
 	double les_hT_c;        ///<   # - 
 	double les_molar_R;     ///< Universal gas constant [J mol-1 K-1]
 
-	// **
-	// ** Respiration and turnover 
-	// **
+	// Respiration and turnover 
 	double rd;              ///< leaf dark respiration rate per unit photosynthetic capacity (r_leaf = rl*vcmax*leaf_area) [kg yr-1]
 	double rr;              ///< fine-root respiration rate [kg yr-1]
 	double rs;              ///< sapwood respiration rate [kg yr-1]
-
-	//double lr;              ///< fine root lifespan [yr]
 
 	double cbio;            ///< Biomass expansion factor: kg biomass per mol CO2 
 	double y;               ///< Growth respiration factor [-]
 
 	double k_light;		    ///< light extincttion coefficient
 
-	// ** 
-	// ** Demographics
-	// **
+	// Demographics
 	double a_f1;            ///< max fractional allocation to reproduction
 	double a_f2;            ///< rate of increase in reproductive investment
 	
 	double ll_seed;         ///< longevity of seeds in the seed pool
 	
-	// **
-	// ** Dispersal and germination
-	// **
+	// Dispersal and germination
 	double Sd;              ///< probability of survival during dispersal
 	double npp_Sghalf;      ///< required productivity for 0.5 probability of survival during germination
 	
-	// **
-	// ** Mortality
-	// **
-	// double mI; // baseline mortality rate
-	// double mD, mD_e; // intrinsic diameter-dependent mortality 
-	// double mS, mS0; // mortality due to carbon starvation
-	
-	// double c0, clnD, cD;  // diameter related mortality params
-	// double cL, cG;        // light and growth related mortality
-	 
-	// double cWD, cWD0;     // wood density related mortality params
-	// double cS, cS0;       // light related mortality params
-	
+	// Mortality	
 	double cD0, cD1, eD0;
 	double m_alpha, m_beta, m_gamma;
 	double eWD_alpha, eWD_gamma;
 	double cWD0, eWD;
 
-	// **
-	// ** Patch structure and successsion
-	// **
-	// double T_seed_rain_avg;
-	
 	
 	public:
 	void init(io::Initializer &I);
