@@ -1,0 +1,13 @@
+Package: tensorlib
+Type: Package
+Title: Tensorlib
+Version: 1.0
+Date: 2021-09-30
+Author: Jaideep Joshi
+Maintainer: Jaideep Joshi <joshi@iiasa.ac.at>
+Description: Tensor operators  
+License: GPL 3.0
+Imports: 
+LinkingTo: 
+RoxygenNote: 7.1.1
+

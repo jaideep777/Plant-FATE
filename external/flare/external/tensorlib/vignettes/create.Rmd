@@ -1,0 +1,8 @@
+# Create a tensor
+
+To create a K-dimensional tensor with dimensions [Nk, Nk-1, ... , N1, N0], use
+
+```{C++}
+Tensor<double> T({Nk, Nk-1, ... , N1, N0N});
+```
+
