@@ -8,11 +8,13 @@ Plant-FATE, which stands for Plant Functional Acclimation and Trait Evolution, i
 
 1. **Simulation Configuration**: The simulation configuration should be specified in `.ini` format. You can find a template in `tests/params/p_test_v2.ini`. This file contains parameters that control various aspects of the simulation such as plant traits, environmental conditions, and simulation duration. Modify these parameters as necessary according to your simulation requirements.
 
-2. **Input Data**: Paste your data files in the `tests/data` folder. The format for input data can be understood from the comments within the template `.ini` file. Ensure that your data files are formatted correctly and contain the necessary information required for the simulation.
+2. **Input Data**: Specify the paths to your data files in your configuration file. The format for input data can be understood from the comments within the template configuration file. 
 
 ## Installation
 
 ### Native C++ Installation
+
+Native C++ installation is currently supported only on Linux machines.
 
 #### Compilation
 
@@ -29,7 +31,7 @@ To compile PlantFATE from source code, follow these steps:
 
 #### Model Run
 
-1. The main executables to run PlantFATE and TreeLife are located in `Plant-FATE/bin`. You may want to add this path to your `~/.bashrc` file for convenience. To do so, add the following line to your bashrc:
+1. The main executables to run PlantFATE and TreeLife are located in the `bin` directory. You may want to add this path to your `~/.bashrc` file for convenience. To do so, add the following line to your bashrc:
    ```bash
    export PATH=$PATH:<path/to/Plant-FATE>/bin
    ```
@@ -45,13 +47,13 @@ To compile PlantFATE from source code, follow these steps:
    ```bash
    treelife <path/to/p.ini> n_years
    ```
-   Replace `<path/to/p.ini>` with the path to your simulation configuration file (e.g., `p_test_v2.ini`), and `n_years` with the number of years you want to simulate.
+   Replace `<path/to/p.ini>` with the path to your simulation configuration file (e.g., `p_test_v2.ini`), and `n_years` with the number of years over which lifetime fitness is calculated. The argument `n_years` is optional and defaults to 500 years.
 
 ### R Installation
 
 #### Prerequisites
 
-1. **C++ Compiler**: If you're using R on Windows, you need to install a C++ compiler for R and the Rcpp package. Follow these guidelines to install both: [Rcpp Installation Guide](https://teuder.github.io/rcpp4everyone_en/020_install.html).
+1. **C++ Compiler**: If you're using R on Windows, you need to install a C++17-compatible compiler for R and the Rcpp package. Follow these guidelines to install both: [Rcpp Installation Guide](https://teuder.github.io/rcpp4everyone_en/020_install.html).
 
 2. **Devtools Package**: Install the devtools package using the following command in R:
    ```R
