@@ -12,6 +12,7 @@ URL: https://jaideep777.github.io/Plant-FATE
 License: BSD-3-clause License
 Encoding: UTF-8
 RoxygenNote: 7.1.2
+Depends: R (>= 3.5.0)
 Imports: Rcpp (>= 1.0.8)
 LinkingTo: Rcpp
 

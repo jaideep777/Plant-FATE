@@ -1,11 +1,12 @@
 CXX_STD = CXX17
 
-PHYDRO_PATH = ../../phydro
-LIBPSPM_PATH = ../../libpspm
-FLARE_PATH = ../../Flare.v2
+ROOT_DIR = ../..
+PHYDRO_PATH = $(ROOT_DIR)/phydro
+LIBPSPM_PATH = $(ROOT_DIR)/libpspm
+FLARE_PATH = $(ROOT_DIR)/Flare.v2
 
 # include and lib dirs (esp for cuda)
-INC_PATH :=  -I../inst/include -I../src -I"$(PHYDRO_PATH)"/inst/include -I"$(LIBPSPM_PATH)"/include -I"$(FLARE_PATH)"/include #-isystem "$(PHYDRO_PATH)"/inst/LBFGSpp/include
+INC_PATH :=  -I../inst/include -I../src -I$(PHYDRO_PATH)/inst/include -I$(LIBPSPM_PATH)/include -I$(FLARE_PATH)/include #-isystem "$(PHYDRO_PATH)"/inst/LBFGSpp/include
 
 # flags
 PKG_CXXFLAGS = -O3 -fPIC -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY 
