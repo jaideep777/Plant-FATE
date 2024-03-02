@@ -1,15 +1,14 @@
 # PlantFATE Eco-evolutionary vegetation model
 
-Plant-FATE, standing for Plant Functional Acclimation and Trait Evolution, is an eco-evolutionary vegetation model that predicts the multi-timescale adaptations of individual plants, plant species, and mixed-species communities to changing environments.
+Plant-FATE, which stands for Plant Functional Acclimation and Trait Evolution, is an eco-evolutionary vegetation model designed to predict the multi-timescale adaptations of individual plants, plant species, and mixed-species communities to changing environmental conditions.
 
 ## Prerequisites
 
-### Prepare input data and simulation configuration
+### Prepare Input Data and Simulation Configuration
 
-1. Simulation configuration should be specified in `.ini` format. A template can be found in `tests/params/p_test_v2.ini`. Change these parameters as necessary. 
+1. **Simulation Configuration**: The simulation configuration should be specified in `.ini` format. You can find a template in `tests/params/p_test_v2.ini`. This file contains parameters that control various aspects of the simulation such as plant traits, environmental conditions, and simulation duration. Modify these parameters as necessary according to your simulation requirements.
 
-2. Paste data files in folder tests/data. The format for input data can be found in the comments in the template ini file.
-
+2. **Input Data**: Paste your data files in the `tests/data` folder. The format for input data can be understood from the comments within the template `.ini` file. Ensure that your data files are formatted correctly and contain the necessary information required for the simulation.
 
 ## Installation
 
@@ -17,75 +16,79 @@ Plant-FATE, standing for Plant Functional Acclimation and Trait Evolution, is an
 
 #### Compilation
 
-To compile PlantFATE, navigate to the downloaded directory and issue the following commands in a linux terminal: 
+To compile PlantFATE from source code, follow these steps:
 
-```
-make
-make check
-```
+1. Navigate to the downloaded directory containing the PlantFATE source code.
+2. Open a terminal in Linux.
+3. Run the following commands:
+   ```bash
+   make
+   make check
+   ```
+   These commands will compile the PlantFATE source code and run tests to ensure that the compilation was successful.
 
-#### Model run
+#### Model Run
 
-The main executables to run PlantFATE and TreeLife are in `Plant-FATE/bin`. It may be convenient to add this path to your `~/.bashrc` file. To do so, add the following line to your bashrc:
-```
-export PATH=$PATH:<path/to/Plant-FATE>/bin
-```
+1. The main executables to run PlantFATE and TreeLife are located in `Plant-FATE/bin`. You may want to add this path to your `~/.bashrc` file for convenience. To do so, add the following line to your bashrc:
+   ```bash
+   export PATH=$PATH:<path/to/Plant-FATE>/bin
+   ```
+   Replace `<path/to/Plant-FATE>` with the actual path to the `Plant-FATE` directory on your system.
 
-To run Plant-FATE, use the following syntax:
-```
-plantfate <path/to/p.ini> start_year end_year
-```
+2. To run PlantFATE, use the following syntax:
+   ```bash
+   plantfate <path/to/p.ini> start_year end_year
+   ```
+   Replace `<path/to/p.ini>` with the path to your simulation configuration file (e.g., `p_test_v2.ini`), `start_year` with the starting year of the simulation, and `end_year` with the ending year.
 
-To run TreeLife, use the following syntax:
-```
-treelife <path/to/p.ini> n_years
-```
-
+3. To run TreeLife, use the following syntax:
+   ```bash
+   treelife <path/to/p.ini> n_years
+   ```
+   Replace `<path/to/p.ini>` with the path to your simulation configuration file (e.g., `p_test_v2.ini`), and `n_years` with the number of years you want to simulate.
 
 ### R Installation
 
-#### Prerequisites 
+#### Prerequisites
 
-If you are using R in Windows, you also need to install a C++ compiler for R and the Rcpp package. Please follow these guidelines to install both: https://teuder.github.io/rcpp4everyone_en/020_install.html  
+1. **C++ Compiler**: If you're using R on Windows, you need to install a C++ compiler for R and the Rcpp package. Follow these guidelines to install both: [Rcpp Installation Guide](https://teuder.github.io/rcpp4everyone_en/020_install.html).
 
-You also need to install the devtools package to install Plant-FATE directly from Github. This can be installed using the following command:
-```
-install.packages("devtools")
-```
+2. **Devtools Package**: Install the devtools package using the following command in R:
+   ```R
+   install.packages("devtools")
+   ```
 
-#### Installing the PlantFATE R package
+#### Installing the PlantFATE R Package
 
-You can install Plant-FATE directly from github with the following command:
-
-```
+You can install Plant-FATE directly from GitHub using the devtools package in R. Run the following command:
+```R
 devtools::install_github("jaideep777/Plant-FATE", ref="develop", force = T)
 ```
 
 Please see the vignettes folder for demos on how to use the PlantFATE and TreeLife models in R.
 
+### Python Installation
 
-### Python installation
+Python3 and pip3 are required to install PlantFATE as a Python library. Follow these steps:
 
-Python3 and pip3 is required to install PlantFATE as a python library. Run: 
+1. Open a terminal.
+2. Run the following command:
+   ```bash
+   make python
+   ```
+   This command will install PlantFATE as a Python library.
 
-```
-make python
-```
+## Analyze Results
 
+You can analyze the results using the `tests/Rscripts/pf_test_analysis.R` script. Ensure to change the path to the working directory as necessary.
 
-## Analyse results
+## Lead Author Contact
 
-Analyse results with `tests/Rscripts/pf_test_analysis.R` 
+For inquiries, you can contact the lead author, Jaideep Joshi, at jaideep777@gmail.com.
 
-Dont forget to change path to Working dir
+For a full list of contributors, please refer to `AUTHORS.md`.
 
-## Lead author Contact
+## Acknowledgments
 
-Jaideep Joshi (jaideep777@gmail.com)
-
-For all contributors, see `AUTHORS.md`
-
-## Acknowledgements
-
-This project has received funding from the European Union’s Horizon 2020 research and innovation programme under the Marie Skłodowska-Curie Actions fellowship (grant agreement No 841283).
+This project has received funding from the European Union’s Horizon 2020 research and innovation program under the Marie Skłodowska-Curie Actions fellowship (grant agreement No. `841283`) and from the Strategic Initiatives Program of IIASA (project `RESIST`).
 
