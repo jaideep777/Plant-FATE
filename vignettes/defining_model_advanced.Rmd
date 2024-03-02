@@ -1,0 +1,189 @@
+---
+title: "Defining a PSPM - additional features"
+author: "Jaideep Joshi"
+date: "11 March 2022"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Advanced features
+
+So far, we have used only the most basic features of libpspm, where we specified the three demographic rates, the environment conmputation, and the initial condition. In this tutorial, we will see how additional features can be specified in the model definition. 
+
+### Defining a custom establishment probability function
+
+The PSPM Solver calls the Individual's `establishmentProbability` function to convert offspring (e.g., eggs, seeds, and newborns) to juvenile individuals which survive the infant phase and establish as recruits in the population. Recruits are assumed to enter the population at i-state $x_b$. For example, in a forest census, we wish to monitor trees above 1 cm diameter, so $x_b=1$. However, when seeds germinate, the seedlings can be as small as 1 mm in diameter and far more numerous in size. Furthermore, not all seeds germinate successfully. Thus, the survival of seeds (prior to germination) and the survival of seedlings up to the recruitment size of 1 cm can be specified by the `establishmentProbability` function. This survival probability can also depend on the Environment. To do so, define the function in the individual class as follows:
+
+```c++
+double establishmentProbability(double t, void * env){
+	return 0.1; // say, the establishment probability is 10%
+}
+```
+
+### Customizing setSize() to set multiple size-dependent variables
+
+When the state of an individual changes, many other physiological variables may undergo a determinate scaling. For example, when a tree grows and its diamater increases, its height and crown area also increase. It may be convenient to keep track of these changes through internal variables, rather than computing them on the fly every time they are needed. To update such variables every time when the i-state is updated, override the `setSize` function from `IndividualBase`. This function should take the (updated) i-state $x$ as input, and set all necessary internal variables accordingly, as follows:
+
+```c++
+void set_size(double _x){
+  diameter = x;  // suppose i-state is diamater, which is an internal variable
+  crown_area = a*pow(diameter, b);  // update crown area based on diameter
+}
+```
+
+### Using precomputations for calculating demographic rates
+
+Often, the computation of the demographic rates depends on a common variable which is expensive to compute. For example, the growth, mortality, and fecundity rates of trees may all depend on the their carbon uptake rate, which may be expensive to calculate. It would be expensive and redundant to do such a computation on the fly in each rate function. Instead, you can override the `precompute` function from `IndividualBase` to do such computations and store the result in a member variable. The rate functions can then make use of the stored variables. This way, the expensive computation is done only once, rather than 3 times.
+
+```c++
+class MyIndividual : public IndividualBase{
+  public:
+  
+  double result;
+  
+  void preCompute(double x, double t, void * env){
+    result = expensive_function(x,t,env);
+  }
+  
+  double growthRate(double x, double t, void * env){
+  	return cheap_function_1(result);	
+  }
+  
+  double mortalityRate(double x, double t, void * env){
+  	return cheap_function_2(result);
+  }
+  
+  double birthRate(double x, double t, void * env){
+  	return cheap_function_3(result);
+  }
+
+  // other functions.... 
+  
+};
+```
+
+
+### Customizing printing of i-state
+
+The default behaviour when a cohort is printed is to only print the birth time, i-state and density. Often, it is convenient to view these properties in the context of other properties of the individual, such as individual-specific traits. To do so, you can override the `print()` function:
+
+```c++
+class MyIndividual : public IndividualBase{
+  void print(std::ostream &out){
+  	out << "|" << lma << "\t" << crown_area;
+  }
+  
+  // other functions...
+};
+```
+
+This will output the `lma` and `crown_area` of the `MyIndividual` after the default cohort properties, like so:
+
+      1.0    20    0.1  |  0.19    26 
+
+
+
+### Defining s-state variables
+
+System state variables which are simulated by ODEs can be defined. For example, if you want to simulate a renewable resource $R$ which follows logistic growth dynamics with a harvesting rate $h$ that is dependent on the population structure and the environment,
+
+$$
+dR/dt = rR(1-R/K) - h(X,t,E).
+$$
+
+Such a variable can be simulated by adding a system state variable (s-state variable) to the Solver. 
+
+To add a system variable, use the function
+
+```c++
+// Assuming a solver object 'S' has been created
+int n = 1;                // the number of system variables to add
+S.addSystemVariables(n);  // this can be done either before or after addSpecies()
+```
+
+System variables are always inserted at the beginning of the state vector. Thus, if $n$ s-state variables have been created, they can be accessed by `state[0]` to `state[n-1]`.
+
+The `computeEnv` function obtains the current `state` and `rates` vectors from the `Solver`. The rate computation for s-state variables should be done in `computeEnv`, as follows.
+
+```c++
+class MyEnvironment : public EnvironmentBase{
+  public:
+  vector<double> state; // a vector for storing the latest s-state variables
+  
+	void computeEnv(double t, Solver * sol, vector<double>::iterator _S, vector<double>::iterator _dSdt){
+		for (int i=0; i<n; ++i) state[i] = *_S++;  // get the s-state from the full state vector
+		
+		vector<double> rates = ... // compute the rates corresponding to each s-state variable
+
+    // copy the computed rates to the full rates vector  
+		for (auto r : rates) *_dSdt++ = r;
+	}
+}
+```
+
+
+
+
+
+### Defining extra i-state variables - use with caution
+
+Sometimes, one may want to simulate state-variables which are dependent on the i-state and the demographic history of the individual, but need to be computed using ODEs together with the core state variables. For example, the cumulative mortality of the individual is the integral of the mortality rate over time, but this is not computed by default. To enable the computation of such extra state variables, you must do two steps. First, you must override the following four functions in `IndividualBase`:
+
+```c++
+class MyIndividual : public IndividualBase{
+  
+  // main overrides...
+  
+  // here, we will define two extra state variables
+
+	void init_state(double t, void * env){
+	  // this function should set the initial condition for the extra state variables from time and environment
+	}
+	
+	vector<double>::iterator set_state(vector<double>::iterator &it){
+	  // this function should update the extra state variables in the Individual from values starting at iterator it
+	  // This must return the final (incremented) iterator, which will be cross checked to ensure that it was incremented as mny times as the number of extra state variables
+	  extra_state1 = *it++;
+	  extra_state2 = *it++;
+		return it;
+	}
+	vector<double>::iterator get_state(vector<double>::iterator &it){
+	  // this function should copy extra state variables from the Individual to the memory starting at iterator it
+	  // This must return the final (incremented) iterator, which will be cross checked to ensure that it was incremented as mny times as the number of extra state variables
+	  *it++ = extra_state1;
+	  *it++ = extra_state2;
+		return it;
+	}
+	vector<double>::iterator get_rates(vector<double>::iterator &it){
+		// this function must compute the rates from the extra state variables that will be passed to the ODE solver
+		// These rates must be copied to the memory pouinted by `it`
+	  *it++ = extra_rate1;
+	  *it++ = extra_rate2;
+		return it;
+	}
+};
+```
+
+Second, to signal to the solver that the species should use extra state variables, you should pass the number of extra state variables as an argument to `addSpecies`, as follows:
+
+```c++
+S.addSpecies(25,     //  the (initial) number of cohorts to simulate
+             1,      //  the i-state at birth
+             1e4,    //  the maximum i-state value
+             false,  //  whether the i-state axis should be on log scale
+             &spp,   //  a pointer to the species object 
+             2,      //  *number of extra x-linked i-state variables*
+             1       //  the input flux of newborns
+)
+```
+
+::: {style="color: red;"}
+**CAUTION**: Note that this extra-state feature should NOT be used to define i-state variables that are independent of the main i-state variable. For example, if your individual is an animal who has a 2 dimensional i-state defined by, say, size and colour, then the two i-state variables are independent of each other. In such a case these functions should not be used to define colour as an extra state variable. Multidimensional i-states are **NOT** currently supported by libpspm.
+:::
+
+
+
+

@@ -1,0 +1,98 @@
+---
+title: "Demo: Simulating the RED model"
+author: "Jaideep Joshi"
+date: "11 March 2022"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### RED Model
+
+RED is a simple model of vegetation demographics. The state variable is biomass, and the demographic rates are described as follows:
+
+$$
+g(x,t,E) = g_0 x^{\phi_g},\\
+\mu(x,t,E) = \mu_0,\\
+\beta(x,t,E) = \beta_0 g(x,t,E)\cdot E.
+$$
+
+The light environment depends on the total crown area of all individuals in the forest, whereas individual crown area depends on biomass, 
+$$
+A(x) = a_0 x^{\phi_a}\\
+E = 1-E_0 \int_{x_b}^{x_m} A(x)u(x)dx
+$$
+For details, see [what is a PSPM?](what_is_pspm.html)
+
+Let's also define the initial condition to be
+$$
+u_0(x) = 100/x^4
+$$
+
+#### The Individual class
+
+Let's call the class that represents individuals as RED_Plant. We can define it as follows, with member variables to store the model parameters:
+
+```c++
+
+class RED_Plant : public IndividualBase{
+  public:
+  
+  double g0 = 0.0838;
+  double phiG = 0.7134;
+  double mu0 = 0.035;
+  double beta0 = 0.111;
+  
+  double init_density(double x, void * env, double input_seed_rain){
+  	return 100/pow(x,4);
+  }
+  
+  double growthRate(double x, double t, void * env){
+  	return g0*pow(x,phiG);	
+  }
+  
+  double mortalityRate(double x, double t, void * env){
+  	return mu0;
+  }
+  
+  double birthRate(double x, double t, void * env){
+  	LightEnvironment* env1 = (LightEnvironment*)env;
+  	return beta0 * g0*pow(x,phiG) * env1->E;
+  }
+
+};
+
+
+```
+
+Next, we can define the environment as follows, where we use the Solver's `integrate_x()` function to compute the state integral.
+
+#### The Environment class
+
+```c++
+class LightEnvironment : public EnvironmentBase{
+	public:
+
+	double a0 = 0.396;
+	double phiA = 0.749;
+	double E0 = 1e-4;
+	double E = 0;
+
+	void computeEnv(double t, Solver * S, std::vector<double>::iterator s, std::vector<double>::iterator dsdt){
+		//             _xm 
+		// Calculate _/ w(z,t)u(z,t)dz
+		//         xb
+		auto w = [S, this](int i, double t) -> double {
+			double z = S->species_vec[0]->getX(i);
+			return a0*pow(z, phiA);
+		};
+		E = 1 - E0*S->integrate_x(w, t, 0);
+	}
+
+};
+```
+
+#### Creating the solver
+

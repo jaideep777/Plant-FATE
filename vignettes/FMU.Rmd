@@ -1,0 +1,164 @@
+---
+title: "The fixed-mesh upwind scheme"
+author: "Jaideep Joshi"
+date: "19 March 2022"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Discretizing the PDE
+
+The fixed mesh solver relies on to discretizing the McKendrick von-Foerster PDE
+$$                                                              \frac{\partial u(x,t)}{\partial t} = - \frac{\partial}{\partial x}(g(x,t,E)u(x,t)) - \mu(x,t,E) u(x,t)
+$$
+
+A fixed grid (mesh) with $J$ cells is used to discretize the physiological variable $x$. The edges of the gridcells are at $x_j, j \in [0,J]$, and centres are at $X_j = (x_j+x_{j+1})/2, j\in [0,J-1]$. The mesh is created during initialization. Note that $x_0 = x_b, x_J = x_m$. The FMU method solves for the solution $u(x)$ at the cell centres $X_j$.
+
+Integrating the PDE over a grid cell $j$, we get
+
+$$
+\frac{\partial}{\partial t} \int_{x_{j}}^{x_{j+1}} u(x,t)dx = -[g(x,t,E)u(x,t)]_{x_{j}}^{x_{j+1}} -  \int_{x_{j}}^{x_{j+1}} \mu(x,t,E)u(x,t)dx
+$$
+
+Lets us define the average value of $u(x)$ over the cell $j$ as $U_j$. Therefore, 
+$$
+h_j U_j = \int_{x_{j}}^{x_{j+1}} u(x,t)dx
+$$
+where $h_j$ is the width of the cell, $h_j=x_{j+1}-x_{j}$.
+
+We also approximate the integral on the RHS and the boundary coundition using midpoint quadrature rule:
+$$
+\int_{x_{j}}^{x_{j+1}} \mu(x,t,E)u(x,t)dx = h_j \mu(X_j) U_j
+$$
+
+$$
+\int_{x_{b}}^{x_{m}} \beta(x,t,E)u(x)dx = \int_{x_{0}}^{x_{J}} \beta(x,t,E)u(x,t)dx = \sum_{j=0}^{J-1} h_j \beta(X_j) U_j
+$$
+
+Therefore, we can write,
+$$
+\frac{\partial}{\partial t} U_j = -\frac{\left[g(x,t,E)u(x,t)\right]_{x_{j}}^{x_{j+1}}}{h_j} - \mu(X_j) U_j
+$$
+
+which gives us the equation for calculating the required derivatives. 
+However, we still need a way to calculate the density function at the cell edges, i.e., $u_j$.
+
+## Calculating the density at cell edges
+
+![](upwind.png){width=10cm}
+
+
+
+One possible way to do so is to simply interpolate it from the values of $U$ from the neigbouring cells. For example, to get $u_3$, one could use
+$$
+u_3 = U_2 + \frac{(U_3-U_2)}{(X_3-X_2)}(x_3-X_2)
+$$
+
+However, this solution is **unstable**.
+
+### The upwind scheme 
+
+The most stable way to get the density at the cell edges is to use the upwind differencing scheme. In the first order upwind scheme, the value of $u$ is assumed to be constant throughout the grid cell, thus giving
+$$
+u^{o1}_3 = U_2.
+$$
+
+While this method is stable, it has very low accuracy. 
+
+The second order upwind scheme assumes linear variation in $u$ within a grid cell. Thus, we can again find $u_3$ by linear interpolation, but this time, extrapolating it from the upwind values of $U$,
+
+$$
+u^{o2}_3 = U_2 + \Delta U (x_3-X_2)
+$$
+where 
+$$
+\Delta U = \frac{(U_2-U_1)}{(X_2-X_1)}
+$$
+
+This method is accurate, but again, can become unstable if the slope $\Delta U$ is too high. 
+
+To obtain the best of both worlds, i.e., the stability of the first order method and the accuracy of the second order method, we can combine the two solutions as follows,
+
+$$
+u_3 = u^{o1}_3 + \phi \cdot (u^{o2}_3-u^{o1}_3)
+$$
+
+where $\phi$ is a scalar between 0 and 1. When $\phi=0$, $u_3$ is obtained from the first order scheme, and when $\phi=1$, from the second order scheme. 
+
+### Flux limiter
+
+The value of $\phi$ can be obtained as a function of the ratio $r$ of successive slopes of the density function:
+$$
+r = \Delta U_\text{downwind} / \Delta U_\text{upwind}
+$$
+
+where, e.g., 
+$$
+\Delta U_\text{3,downwind} = \frac{U_3-U_2}{X_3-X_2}
+$$
+and
+
+$$
+\Delta U_\text{3,upwind} = \frac{U_2-U_1}{X_2-X_1}
+$$
+
+When the upwind slope is too high compared to the downwind slope ($r \to 0$), the second order scheme will give a very high (undesirable) value of $u_3$. In such a case, we want the first order scheme, and thus $\phi \approx 0$.
+
+When the upwind slope is too small compared to the downwind slope, the second order approximation of $u_3$ will be too close to the first order approximation, and we can improve accuracy by pusing it up even more ($\phi > 1$). 
+
+All these features are achieved by the Superbee flux limiter,
+$$
+\phi(r) =  \max(\max(0.0,\min(2r,1)),\min(r,2))
+$$
+
+```{r}
+x = seq(0,4,length.out = 1000)
+y = sapply(X = x, FUN = function(r){max(max(0.0,min(2*r,1.0)),min(r,2.0))} )
+plot(y~x, type="l", xlab="r", ylab = "phi(r)")
+```
+
+**Note: In all textbooks I have seen, r is defined as $\Delta U_{up}/\Delta U_{down}$. That doesnt make sense, and also doesnt work numerically. Maybe I'm misunderstanding something?**
+
+Thus, the final scheme is:
+
+$$
+u_i = U_{i-1} + \phi(r)\frac{(U_{i-1}-U_{i-2})}{(X_{i-1}-X_{i-2})}(x_i-X_{i-1}),
+$$
+$$
+r = \Delta U_\text{downwind} / \Delta U_\text{upwind}
+$$ 
+$$
+\Delta U_\text{downwind} = \frac{U_i-U_{i-1}}{X_{i}-X_{i-1}}
+$$ 
+$$
+\Delta U_\text{upwind} = \frac{U_{i-1}-U_{i-2}}{X_{i-1}-X_{i-2}}
+$$
+
+<!-- Further, since $X_i=(x_i+x_{i+1})/2$, $x_i-X_{i-1}=(x_i-x_{i-1})/2$, and $X_i-X_{i-1}=(x_{i+1}-x_{i-1})/2$, giving -->
+
+<!-- $$ -->
+<!-- u_i = U_{i-1} + \phi(r)\frac{(U_{i-1}-U_{i-2})}{(x_{i}-x_{i-2})}(x_i-x_{i-1}),\\ -->
+<!-- r = \Delta U_\text{downwind} / \Delta U_\text{upwind} \\  -->
+<!-- \Delta U_\text{downwind} = \frac{U_i-U_{i-1}}{x_{i+1}-x_{i-1}} \\ -->
+<!-- \Delta U_\text{upwind} = \frac{U_{i-1}-U_{i-2}}{x_{i}-x_{i-2}} \\ -->
+<!-- $$ -->
+
+### $u_1, u_{J-1}, u_{J}$
+
+Finally, the we also need to find the values of $u_1$, $u_{J-1}$, and $u_{J}$, which cannot be found by the above formula due to out-of-bounds subscripts. We simply use the first order scheme to get these:
+$$
+u_i = U_{i-1}
+$$
+
+### Boundary condition
+
+$u_0$ is obtained from the boundary condition:
+
+$$
+u_0 = \frac{s_\text{e}}{g(x_0)} \int_{x_{0}}^{x_{J}} \beta(x)u(x)dx = \frac{s_\text{e}}{g(x_0)} \sum_{j=0}^{J-1} h_j \beta(X_j) U_j
+$$

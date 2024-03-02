@@ -1,0 +1,27 @@
+%%MatrixMarket matrix coordinate real general
+%-------------------------------------------------------------------------------
+% UF Sparse Matrix Collection, Tim Davis
+% https://sparse.tamu.edu/HB/fs_760_2
+% http://www.cise.ufl.edu/research/sparse/matrices/HB/fs_760_2
+% name: HB/fs_760_2
+% [UNSYMMETRIC FACSIMILE CONVERGENCE MATRIX]
+% id: 153
+% date: 1983
+% author: A. Curtis
+% ed: I. Duff, R. Grimes, J. Lewis
+% fields: title A Zeros name id kind notes date author ed
+% kind: subsequent 2D/3D problem
+%-------------------------------------------------------------------------------
+% notes:
+% next: HB/fs_760_3 first: HB/fs_760_1
+%-------------------------------------------------------------------------------
+4 4 8
+1 2 12
+1 3 13
+2 1 21
+2 4 24
+3 1 31
+3 4 34
+4 2 42
+4 3 43
+

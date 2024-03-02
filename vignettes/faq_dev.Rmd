@@ -1,0 +1,31 @@
+---
+title: "FAQs for developers"
+author: "Jaideep Joshi"
+date: "11 March 2022"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Why is the species templated, instead of using `IndividualBase`?
+
+So that a vector of `Cohort`s can be created, rather than a vector of base pointer `CohortBase*`. This allows cache locality and has better performance.
+
+### Where should precompute be triggered?
+
+Upon every state update (in `setSize()`) and every environment update (in `updateEnv()`).
+
+
+### In the earlier implementation in which precompute was not auto-triggered, where was it called?
+
+The Solver called `precompute` in the following situations:
+  
+  - before every call to `calcRates`
+  - before computation of `newborns_out` 
+  - for all offset cohorts in `growthRateXXX` and `mortalityRateXXX` functions before call to `growthRate` or `mortalityRate`.
+  - `preCompute` was NOT called in `afterStep.` <span style="color: red;">This may not have been okay.</span>
+
+
