@@ -1,0 +1,84 @@
+---
+title: "What is a PSPM"
+author: "Jaideep Joshi"
+date: "11 March 2022"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+A physiologically structured population model describes how the physiological structure of a population of individuals evolves through time. At its core is the mcKendrick-von Foerster Partial Differential Equation (PDE),
+
+$$
+\frac{\partial u(x,t)}{\partial t} = \frac{\partial }{\partial x}\left(g(x,t,E)u(x,t)\right) - \mu u(x,t,E),
+$$
+with the boundary condition
+$$
+g(x_\text{b})u(x_\text{b}) = s_\text{e} \int_{x_b}^{x_m} \beta(x,t,E)u(x,t)dt,
+$$
+and a specified initial distribution
+$$
+u(x,0) = u_0(x),
+$$
+
+where $x$ is the physiological state variable, such as size, $u(x)$ is the density of individuals of size $x$ (such that the number of individuals within a small size range $[x, x+dx]$ is $u(x)dx$), $g$, $\mu$, and $\beta$ are the demographic rates of individuals (growth rate $g$, mortality rate $\mu$, and fecundity rate $\beta$) as functions of their size $x$, the environment $E$, and time $t$, $x_\text{b}$ is the size of offspring at birth, $x_m$ is the maximum size of individuals, and $s_\text{e}$ is the establishment probability of offspring. 
+
+The PDE states that within a given size interval, the density of individuals increases because of smaller individuals entering the focal size-range via growth, and decreases by individuals growing out of the size range and by individuals dying. The boundary condition states that the density of individuals at the smallest size $x_b$ is determined by the total number number of offspring that are produced by all individuals in the population, and the proportion of those that establish successfully.
+
+
+### A simple example of a PSPM
+
+As a simple example, consider a population of trees in a 1 ha plot. The environment is the average light availability $E$ within the canopy, which depends on the total crown area of trees in the plot. The physiological variable $x$ represents the biomass of individual trees. 
+
+We assume that the growth rate of a tree is allometrically related to its biomass, so that
+
+$$
+g(x,t,E) = g_0 x^{\phi_g}.
+$$
+
+We assume that the mortality rate of all individuals is constant and independent of biomass and the environment,
+
+$$
+\mu(x,t,E) = \mu_0.
+$$
+Next, we assume that the seed production rate of trees is proportional to their growth rate $g$ and light availability $L$,
+
+$$
+\beta(x,t,E) = \beta_0 g(x,t,E)\cdot E.
+$$
+
+Further, let's assume that the crown area $A$ of a tree scales with its biomass as 
+$$
+A(x) = a_0 x^{\phi_a}
+$$
+
+Thus light availability, which decreases with increasing total crown area, can be described by
+
+$$
+E = 1-E_0 \int_{x_b}^{x_m} A(x)u(x)dx
+$$
+
+### Some terminology used in libpspm
+
+#### i-state
+
+The variable $x$ describes the individual physiological state, and is thus called "i-state". libpspm currently supports only one state variable, but in principle, the i-state can be a vector of multiple "i-state variables". 
+
+#### Cohort
+
+All methods to solve the PDE described above rely on discretizing the i-state variable $x$ into $J$ classes. Let the i-states of individuals in the $J$ classes be $x_0, x_1, x_2,...,x_J$ and the densities of individuals in these classes be $u_0, u_1, u_2,...,u_J$. 
+
+The set of all individuals with the same i-state is called a cohort. Thus, each cohort $j$ is defined by its i-state $x_j$ and density $u_j$.
+
+#### s-state
+
+The system can have components other than physiologically-structured species which are described by ODEs, such as unstructured species or the environment. The state variables of that describe such components are called "s-state variables".
+
+
+
+
+

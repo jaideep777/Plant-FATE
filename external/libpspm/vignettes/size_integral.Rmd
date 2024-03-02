@@ -1,0 +1,65 @@
+---
+title: "Computing state integrals"
+author: "Jaideep Joshi"
+date: "11 March 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Theory
+
+In strucured population models, it is often desirable to compute integrals over the physiological state variable $x$, of the form
+
+$$
+I = \int_a^b w(x)u(x)dx 
+$$
+
+where $w(x)$ is a weight function and $u(x)$ is the density function. 
+
+For example, if $x$ is body size and we want to calculate the biomass of all indiviuals of a species, we can compute the above integral with $w(x)$ defined as the function that scales individual biomass with size, such as an allometric equation of the form $w(x)=\alpha x^\beta$.
+
+### Usage
+
+libpspm provides two functions to easily calculate physiological integrals with a specified weights function. The weights function must take the cohort id and current time as inputs. 
+
+#### Computing $w(x)$ on the fly
+
+Suppose a `Solver` object called `S` has been created, and we want to compute the state integral for species `k`. We first access the species as `S.species_vec[k]`, and then get the state of cohort `i` as `S.species_vec[k]->getX(i)`.
+
+A convenient way to define the weights function is to use a lambda, which can capture the `Solver` object, the species index `k`, and any other parameters that may be required by the weights function: 
+```c++
+// assuming a Solver object 'S' and specied id 'k' are already defined 
+auto w = [&S, k, a, b](int i, double t){
+  double x = S.species_vec[k]->getX(i); // get size of 'i'th cohort
+  return a*pow(x,b);                    // calculate biomass of 'i'th cohort
+};
+```
+We can then calculate the intgral as 
+```c++
+integrate_x(w, t, k); // where t = time, k = species index
+```
+
+
+#### Getting $w(x)$ from precomputed cohort properties 
+
+Often, it is desirable for the the weights function to access properties of the cohort other than size. For example, instead of computing the weight from size on the fly, we may want to use a variable which was precomputed from size and stored in the cohort. In such a case, you may use the species' `getCohort()` function to access the entire cohort. But to do so, you first need to cast the species pointer to the correct type, because the species pointer in `species_vec` are of the type `SpeciesBase*`. Suppose your Individual class is called `myIndividual`, then your weights function can look like this:
+
+```c++
+// assuming a Solver object 'S' and specied id 'k' are already defined 
+auto w = [&S, k](int i, double t){
+  auto spp = static_cast<Species<myIndividual>*>(S.species_vec[k]);
+  auto cohort = spp->getCohort(i);    // get size of 'i'th cohort
+  return cohort.w_precomputed;        // calculate biomass of 'i'th cohort
+};
+```
+
+#### Computing partial state integrals
+
+Often, one needs to calculate the integral above a certain  threshold value of the state variable. For example, say a forest census includes only trees above 10 cm diameter, and we want to predict the biomass only in the recorded size classes. Then we want the lower limit of the integral to be $x_{low}=10$ cm, rather than the size at birth. To do so, we can use the function
+
+```c++
+integrate_wudx_above(w, t, xlow, id); // where t = time, id = species id
+```

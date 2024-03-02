@@ -1,0 +1,15 @@
+---
+title: "Logic flowchart"
+author: "Jaideep Joshi"
+date: "11 March 2022"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+The ode stepper and cohort-insertion logic is as follows.
+
+![](ode_flow.png)

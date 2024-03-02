@@ -1,0 +1,151 @@
+---
+title: "Setting up your own PSPM"
+author: "Jaideep Joshi"
+date: "11 March 2022"
+output: html_document
+---
+
+
+The first step in simulating a PSPM with libpspm is to define the behaviour of individuals and the environment. At a minimum, setting up your model requires defining three things:
+  
+1. How the environment should be computed from the size distribution of individuals $u(x)$ and time $t$: $E(u(x),t)$.
+
+2. The three demographic rates of individuals (growth rate $g$, mortality rate $\mu$, and fecundity rate $\beta$) as functions of their physiological state $x$, time $t$, and the environment $E$. 
+
+3. A function to specify the initial condition.
+
+### Defining the environment
+
+libpspm provides a base class for the environment called `EnvironmentBase`. You must inherit it to define your own environment class, and override the `computeEnv` function. For examle, let us call it `MyEnvironment`, and define it as follows. 
+
+```c++
+class MyEnvironment : public EnvironmentBase{
+  public:
+    void computeEnv(double t, Solver * S, std::vector<double>::iterator s, std::vector<double>::iterator dsdt){
+      // compute the environment from cohorts here
+    }
+    
+};
+
+```
+Note that `computeEnv` overrides the function by the same name in  `EnvironmentBase` and thus must have exactly the same arguments and return type as defined here. 
+
+
+### Defining individuals
+
+libpspm provides a base class for individuals called `IndividualBase`. You can inherit it to define your own individual class, and override the functions to calculate the demographic rates, as follows. Note that these functions have an argument of type `void*`, which is used by the `Solver` to pass a pointer to the Environment object. Before accessing it, it needs to be cast to your own environment type, as shown in the functions below.
+
+```c++
+class MyIndividual : public IndividualBase{
+  public:
+    double growthRate(double x, double t, void * _env){
+      MyEnvironment * env = static_cast<MyEnvironment*>(_env);
+      // return the growth rate as a function of 
+      // the physiological variable x, time t, and environment _env
+    }
+  
+  double mortalityRate(double x, double t, void * _env){
+    MyEnvironment * env = static_cast<MyEnvironment*>(_env);
+    // return the mortality rate as a function of 
+    // the physiological variable x, time t, and environment _env
+  }
+  
+  double birthRate(double x, double t, void * _env){
+    MyEnvironment * env = static_cast<MyEnvironment*>(_env);
+    // return the fecundity (birth rate) as a function of 
+    // the physiological variable x, time t, and environment _env
+  }
+  
+};
+```
+
+Note that these functions override the functions by the same names in  `IndividualBase` and thus must have exactly the same arguments and return types as specified here. It is possible to define your Individual class without inheriting from `IndividualBase`: see [advanced usage](defining_model_advanced.html).
+
+
+### Defining the initial condition
+
+During initialization, the `Solver` calls the `init_density()` function for each cohort. This function must be defined in your individual class, like so: 
+  
+```c++
+class MyIndividual : public IndividualBase{
+  public:
+    double init_density(double x, void * _env, double bf){
+      MyEnvironment * env = static_cast<MyEnvironment*>(_env);
+      // return the initial density (initial condition) as a function of 
+      // the physiological variable x, environment _env, and input flux of newborns bf
+    }
+  
+  // other functions
+  // ...
+}
+```
+
+### Creating a species of individuals
+
+Once you have defined the individual class, the next step is to create a species of individuals that can be simulated by the Solver. libpspm provides a templated Species class for this purpose, which can be used to create a species as follows:
+
+```c++
+Species<MyIndividual> spp;
+```
+
+
+### Creating an Environment object
+
+You also need to instantiate an environment object which the PSPM Solver can use, as follows
+
+```c++
+MyEnvironment E;
+```
+
+### Creating a PSPM solver
+
+The core task of simulating your model is performed by a PSPM `Solver` provided by libpspm. A solver can be created by specifying the PSPM method and the ODE solver method. For example, if we want to use the EBT method with an LSODA ODE solver, we can write
+
+```c++
+Solver S(SOLVER_EBT, "lsoda")
+```
+
+The PSPM method can be one of the following: `SOLVER_FMU`, `SOLVER_IFMU`, `SOVLER_EBT`, or `SOLVER_CM`. 
+
+The ODE stepper can be either `"rk45ck"` or `"lsoda"`.
+
+### Adding the species and the environment to the solver
+
+We then add our species and the environment object to the solver, so that they can be simulated. While adding a species to the solver, a number of details regarding the i-state must be specified, as described below.
+
+```c++
+S.setEnv(E);
+S.addSpecies(25,     //  the (initial) number of cohorts to simulate
+             1,      //  the i-state at birth
+             1e4,    //  the maximum i-state value
+             false,  //  whether the i-state axis should be on log scale
+             &spp,   //  a pointer to the species object 
+             0,      //  number of extra x-linked i-state variables
+             1       //  the input flux of newborns
+)
+
+S.resetState(0);     //  argument is the start time
+S.initialize();      //  compute the initial condition
+```
+
+With this, we are set to run the simulation.
+
+### Simulating the PSPM
+
+To simulate the PSPM, the solver provides a `step_to()` function. For example, to simulate 100 time units, do
+
+```c++
+S.step_to(100);
+```
+
+
+### Getting system properties from the solver
+
+After simulating the PSPM, we are interested in computing emergent system properties. The solver provides two functions to get the state density distribution and the output flux of newborns:
+
+```c++
+S.newborns_out(100);
+S.getDensitySpecies_EBT(breaks);
+```
+Other emergent properties can be calculated using the state integral function as described in the next tutorial.
+

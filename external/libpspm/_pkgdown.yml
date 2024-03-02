@@ -1,0 +1,68 @@
+url: https://jaideep777.github.io/libpspm
+
+template:
+  bootstrap: 5
+  bootswatch: united # sandstone #
+#  theme: arrow-dark 
+  bslib:
+    pkgdown-nav-height: 100px
+  
+authors:
+  Jaideep Joshi:
+    href: https://jaideep777.github.io
+
+navbar:
+  structure:
+    left:
+    - home
+    - tutorials 
+    - developer
+    - api
+    right:
+    - news
+    - github
+  components:
+    home:
+      text: Home
+      icon: fa-home fa-lg
+      href: index.html
+    tutorials:
+      text: Tutorials
+      icon: fa-book fa-lg
+      menu:
+        - text: What is a PSPM?
+          href: articles/what_is_pspm.html
+        - text: Setting up your PSPM
+          href: articles/defining_model_basic.html
+        - text: Computing state integrals
+          href: articles/size_integral.html
+        - text: "Demo: RED model"
+          href: articles/demo_red.html
+        - text: "Advanced usage"
+          href: articles/defining_model_advanced.html
+        - text: "Demo: Daphnia model"
+          href: articles/demo_daphnia.html
+    developer:
+      text: Developer
+      icon: fa-user-secret
+      menu:
+        - text: Size integrals
+          href: articles/size_integral_dev.html
+        - text: Logic flowchart
+          href: articles/ode_flow_dev.html
+        - text: FAQs for developers
+          href: articles/faq_dev.html
+    api:
+      text: API
+      icon: fa-code fa-lg
+      href: html/index.html
+    news:
+      text: 'News'
+      icon: fa-newspaper fa-lg
+      href: articles/news.html
+    github:
+      text: GitHub
+      icon: fa-github fa-lg
+      href: https://github.com/jaideep777/libpspm
+      
+

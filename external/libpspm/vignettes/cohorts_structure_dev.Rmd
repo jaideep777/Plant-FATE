@@ -1,0 +1,34 @@
+---
+title: "Cohorts structure"
+author: "Jaideep Joshi"
+date: "11 March 2022"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Here, we will discuss how the cohorts are managed in the state vector in different methods.
+
+### "Boundary cohort"
+
+In the current implementation, there is a cohort called "boundary cohort" as a member variable of `Species`. This is not a boundary cohort in the sense of the EBT $\pi_0$ cohort, but rather, a prototype cohort with $x = x_b$. This cohort is used to copy-construct all cohorts that are part of the state. **Copy-construction is essential**, because cohorts can have several other member variables that have been initialized (after construction) by the user, and such user-defined properties will be lost if the default constructor is called.   
+
+### EBT
+
+In EBT, there are a total of $J$ cohorts sorted descending (oldest cohort at index $0$), of which the cohorts from $0$-$J-2$ are internal cohorts and $J-1$ is the boundary ($\pi_0$) cohort.
+
+
+### FMU
+
+Cohorts are arranged in a grid, sorted ascending (smallest i-state cohort at index $0$). The i-state $x$ represents the centres of the grids, whereas the boundary cohort holds $x_b$. Therefore, the boundary cohort is used to compute $u_0$ from the boundary condition.
+
+### CM
+
+Cohorts are sorted descending (oldest cohort at index $0$). CM is always simulated with a fixed input newborns flux. Therefore, the boundary cohort has i-state $x = x_b$ and input birth flux $B$, which is used to compute $u_0$.
+
+### Boundary condition
+
+To compute $u_0$, it is essential to calculate the `growthRate` of the boundary cohort. Therefore, this cohort is also included in precomputations. 
