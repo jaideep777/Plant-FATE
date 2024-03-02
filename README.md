@@ -1,6 +1,6 @@
 # PlantFATE Eco-evolutionary vegetation model
 
-Plant-FATE, standing for Plant FunctionAl Trait Evolution, is an eco-evolutionary vegetation model that accounts for multi-timescale adaptations of invdividual plants and plant species to the environment.
+Plant-FATE, standing for Plant Functional Acclimation and Trait Evolution, is an eco-evolutionary vegetation model that predicts the multi-timescale adaptations of individual plants, plant species, and mixed-species communities to changing environments.
 
 ## Prerequisites
 
