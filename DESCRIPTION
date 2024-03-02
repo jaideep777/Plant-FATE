@@ -1,0 +1,12 @@
+Package: rphydro
+Type: Package
+Title: R interface for the Phydro model
+Version: 1.0
+Date: 2022-06-23
+Author: Your Name
+Maintainer: Jaideep Joshi <joshi@iiasa.ac.at>
+Description: One paragraph description of what the package does as one or more full sentences.
+License: GPL (>= 2)
+Imports: Rcpp (>= 1.0.7), RcppEigen
+LinkingTo: Rcpp, RcppEigen
+RoxygenNote: 7.2.3

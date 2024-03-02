@@ -1,0 +1,5 @@
+PKG_CPPFLAGS = -I../inst/include -isystem ../inst/LBFGSpp/include 
+PKG_CXXFLAGS = -DUSINGRCPP -Wno-ignored-attributes -Wno-unused-variable
+PKG_LIBS = 
+CXX_STD = CXX11
+

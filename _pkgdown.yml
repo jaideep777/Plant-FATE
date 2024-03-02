@@ -1,0 +1,50 @@
+url: https://jaideep777.github.io/phydro_cpp
+
+template:
+  bootstrap: 5
+  bootswatch: simplex # sandstone #
+#  theme: arrow-dark 
+  bslib:
+    pkgdown-nav-height: 100px
+  
+authors:
+  Jaideep Joshi:
+    href: https://jaideep777.github.io
+
+navbar:
+  structure:
+    left:
+    - home
+    - theory
+    - tutorials
+    - api
+    right:
+    - news
+    - github
+  components:
+    home:
+      text: Home
+      icon: fa-home fa-lg
+      href: index.html
+    theory:
+      text: Theory
+      icon: fa-pencil fa-lg
+      menu:
+    tutorials:
+      text: Tutorials
+      icon: fa-book fa-lg
+      menu:
+    api:
+      text: API
+      icon: fa-code fa-lg
+      href: html/index.html
+    news:
+      text: 'News'
+      icon: fa-newspaper fa-lg
+      href: articles/news.html
+    github:
+      text: GitHub
+      icon: fa-github fa-lg
+      href: https://github.com/jaideep777/phydro_cpp
+      
+

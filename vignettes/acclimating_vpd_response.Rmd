@@ -1,0 +1,259 @@
+---
+title: "Acclimating response to VPD"
+author: "Beni Stocker and Jaideep Joshi"
+date: "2023-09-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rphydro)
+library(tidyverse)
+library(reshape2)
+library(cowplot)
+```
+
+## Model setup
+
+The P-hydro model ([Joshi et al., 2022](https://www.nature.com/articles/s41477-022-01244-5)) is used here to illustrate the effect of acclimating P50 (leaf water potential at 50% loss of conductivity) and K (whole plant conductivity) on the response of stomatal conductance and transpiration to VPD and soil moisture.
+
+```{r}
+# other environmental factors held constant
+kphio = 0.087;       # quantum yield efficiency
+ppfd = 300;          # umol/m2/s
+vpd  = 1000;         # Pa
+co2  = 400;          # ppm
+elv  = 0;            # m.a.s.l.
+fapar = 0.7;         # fraction
+rdark = 0.015;
+tc = 25;
+vwind = 3;
+netrad = ppfd/2
+pa = calc_patm(elv)
+
+# cost parameters for the optimality model (not directly observable)
+par_cost = list(alpha = 0.1, gamma = 1)
+
+# model options
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_DIFFUSION",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15",
+               scale_alpha = FALSE
+               )
+
+# long-term average VPD to which Vcmax25 and Jmax25 are acclimated
+vpd_acc = 100
+```
+
+## Reference simulation
+
+With P50 and K at reference values, calculate stomatal conductance and transpiration in response to VPD at two different soil moisture levels (-0.1 MPa and -3 MPa).
+
+```{r}
+par_plant_no_acclim = list(conductivity = 3e-17, 
+                           psi50 = -0.5, 
+                           b = 2)
+
+acc2 = rphydro_analytical(tc, 
+                          tc, 
+                          ppfd, 
+                          netrad, 
+                          vpd_acc, 
+                          co2, 
+                          pa, 
+                          fapar, 
+                          kphio, 
+                          0, 
+                          rdark, 
+                          vwind, 
+                          par_plant_no_acclim, 
+                          par_cost, 
+                          options)
+
+dat2 = list(vpd = exp(seq(log(100), log(5000), length.out = 100 )),
+            psi_soil = c(-0.1, -1)) %>%
+  expand.grid() %>% 
+  mutate(dat = purrr::map2(.x = psi_soil, 
+                           .y = vpd, 
+                           .f = ~rphydro_instantaneous_analytical(acc2$vcmax25, 
+                                                                  acc2$jmax25, 
+                                                                  tc, 
+                                                                  tc, 
+                                                                  ppfd, 
+                                                                  netrad, 
+                                                                  .y, 
+                                                                  co2, 
+                                                                  pa, 
+                                                                  fapar, 
+                                                                  kphio, 
+                                                                  .x, 
+                                                                  rdark, 
+                                                                  vwind, 
+                                                                  par_plant_no_acclim, 
+                                                                  par_cost, 
+                                                                  options))) %>% 
+  unnest_wider(dat)
+```
+
+
+## Acclimated hydraulic traits
+
+Assume that the acclimation of hydraulic traits to sustained hydraulic stress leads to a more negative P50 and a lower conductivity. 
+
+```{r}
+par_plant_acclim = list(conductivity = 1e-17, 
+                        psi50 = -2, 
+                        b = 2)
+
+acc1 = rphydro_analytical(tc, 
+                          tc, 
+                          ppfd, 
+                          netrad, 
+                          vpd_acc, 
+                          co2, 
+                          pa, 
+                          fapar, 
+                          kphio, 
+                          0, 
+                          rdark, 
+                          vwind, 
+                          par_plant_acclim, 
+                          par_cost, 
+                          options
+                          )
+
+dat1 = list(vpd = exp(seq(log(100), log(5000), length.out = 100)),
+            psi_soil = c(-0.1, -1)) %>%
+  expand.grid() %>% 
+  mutate(dat = purrr::map2(.x = psi_soil, 
+                           .y = vpd, 
+                           .f = ~rphydro_instantaneous_analytical(acc2$vcmax25, 
+                                                                  acc2$jmax25, 
+                                                                  tc, 
+                                                                  tc, 
+                                                                  ppfd, 
+                                                                  netrad, 
+                                                                  .y, 
+                                                                  co2, 
+                                                                  pa, 
+                                                                  fapar, 
+                                                                  kphio, 
+                                                                  .x, 
+                                                                  rdark, 
+                                                                  vwind, 
+                                                                  par_plant_acclim, 
+                                                                  par_cost, 
+                                                                  options))) %>% 
+  unnest_wider(dat)
+```
+
+## Plot
+
+```{r}
+tmp <- dat1 %>% 
+  select(vpd, psi_soil, gs, e, a, chi, dpsi) %>% 
+  mutate(type = "With acclimation") %>% 
+  rbind(dat2 %>% 
+          select(vpd, psi_soil, gs, e, a, chi, dpsi) %>% 
+          mutate(type = "No acclimation")) %>% 
+  melt(c("vpd", "psi_soil", "type"))
+
+gg1 <- tmp %>%
+  filter(variable == "gs") %>% 
+  ggplot(aes(x = vpd, y = value, col = factor(psi_soil), group = factor(psi_soil))) + 
+  facet_wrap(facets = c("type"), scales = "fixed", nrow = 1) +
+  geom_line(size = 1) +
+  labs(x = "VPD", y = "Stomatal conductance") +
+  scale_color_manual(labels = c("Dry soil", "Moist soil"), 
+                     values = c('#E69F00','#56B4E9'), name = "") +
+  ylim(0, NA) +
+  theme_cowplot() +
+  theme(
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        legend.position = c(0.75, 0.6))
+
+gg2 <- tmp %>%
+  filter(variable == "e") %>% 
+  ggplot(aes(x = vpd, y = value, col = factor(psi_soil), group = factor(psi_soil))) + 
+  facet_wrap(facets = c("type"), scales = "fixed", nrow = 1) +
+  geom_line(size = 1) +
+  labs(x = "VPD", y = "Transpiration") +
+  scale_color_manual(labels = c("Dry soil", "Moist soil"), 
+                     values = c('#E69F00','#56B4E9'), name = "") +
+  ylim(0, NA) +
+  theme_cowplot() +
+  theme(
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.line.y = element_line(),
+        legend.position = "none")
+
+gg3 <- tmp %>%
+  filter(variable == "a") %>% 
+  ggplot(aes(x = vpd, y = value, col = factor(psi_soil), group = factor(psi_soil))) + 
+  facet_wrap(facets = c("type"), scales = "fixed", nrow = 1) +
+  geom_line(size = 1) +
+  labs(x = "VPD", y = "Assimilation") +
+  scale_color_manual(labels = c("Dry soil", "Moist soil"), 
+                     values = c('#E69F00','#56B4E9'), name = "") +
+  ylim(0, NA) +
+  theme_cowplot() +
+  theme(
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.line.y = element_line(),
+        legend.position = "none")
+
+gg4 <- tmp %>%
+  filter(variable == "chi") %>% 
+  ggplot(aes(x = vpd, y = value, col = factor(psi_soil), group = factor(psi_soil))) + 
+  facet_wrap(facets = c("type"), scales = "fixed", nrow = 1) +
+  geom_line(size = 1) +
+  labs(x = "VPD", y = "ci:ca") +
+  scale_color_manual(labels = c("Dry soil", "Moist soil"), 
+                     values = c('#E69F00','#56B4E9'), name = "") +
+  ylim(0, NA) +
+  theme_cowplot() +
+  theme(
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.line.y = element_line(),
+        legend.position = "none")
+
+gg5 <- tmp %>%
+  filter(variable == "dpsi") %>% 
+  ggplot(aes(x = vpd, y = value, col = factor(psi_soil), group = factor(psi_soil))) + 
+  facet_wrap(facets = c("type"), scales = "fixed", nrow = 1) +
+  geom_line(size = 1) +
+  labs(x = "VPD", y = "D psi") +
+  scale_color_manual(labels = c("Dry soil", "Moist soil"), 
+                     values = c('#E69F00','#56B4E9'), name = "") +
+  ylim(0, NA) +
+  theme_cowplot() +
+  theme(
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.line.y = element_line(),
+        legend.position = "none")
+
+cowplot::plot_grid(gg1, gg2, nrow = 2)
+# ggsave("../fig/acclimating_vpd_response.png", width = 6, height = 5)
+```
+
+```{r fig.height=9}
+cowplot::plot_grid(gg1, gg2, gg3, gg4, gg5, nrow = 5)
+# ggsave("../fig/acclimating_vpd_response_with_assim.png", width = 6, height = 7)
+```

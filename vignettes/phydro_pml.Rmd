@@ -1,0 +1,241 @@
+---
+title: "Phydro testing PML functions"
+author: "Jaideep Joshi"
+date: "2023-05-27"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(rphydro)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+```
+
+```{r}
+kphio = 0.087;        # quantum yield efficiency
+ppfd = 1000;          # umol/m2/s
+vpd  = 1000;         # Pa
+co2  = 400;          # ppm
+elv  = 0;            # m.a.s.l.
+fapar = 0.7;         # fraction
+rdark = 0.015;
+psi_soil = 0;
+
+par_cost = list(alpha=0.1, gamma=1);
+par_plant = list(conductivity=3e-17, psi50=-2, b=2);
+
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_DIFFUSION",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15")
+
+```
+
+## Test meterological functions
+
+### Latent heat of vaporization of water
+
+```{r}
+tibble(tc = -5:55) %>% mutate(dat = purrr::map_dbl(.x=tc, .f = ~calc_enthalpy_vap(.x))) %>% ggplot(aes(x=tc, y=dat/1e6)) + geom_line() + labs(y="lv [MJ kg-1]", x="T [degC]")
+```
+
+
+
+### Saturation vapour pressure
+
+```{r}
+tibble(tc = -5:100) %>% mutate(dat = purrr::map_dbl(.x=tc, .f = ~calc_esat(.x, 1.01325e5))) %>% ggplot(aes(x=tc, y=dat/1e3)) + geom_line() + labs(y="Esat [kPa]", x="T [degC]")
+```
+
+
+
+### Density of dry and moist air
+
+```{r}
+tibble(tc = -5:55) %>% 
+  mutate(dat1 = purrr::map_dbl(.x=tc, .f = ~calc_density_air(.x, 1.01325e5, 5e3, T))) %>% 
+  mutate(dat2 = purrr::map_dbl(.x=tc, .f = ~calc_density_air(.x, 1.01325e5, 0, T))) %>% 
+  mutate(dat3 = purrr::map_dbl(.x=tc, .f = ~calc_density_air(.x, 1.01325e5, Inf, F))) %>% 
+  ggplot(aes(x=tc)) + 
+    geom_line(aes(y=dat1), col="brown") + 
+    geom_line(aes(y=dat2), col="blue") + 
+    geom_line(aes(y=dat3), col="yellow3") + 
+    labs(y="Density [kg m-3]", x="T [degC]")
+```
+
+### Specific heat capacity of moist air
+
+```{r}
+tibble(tc = -5:100) %>% 
+  mutate(dat1 = purrr::map_dbl(.x=tc, .f = ~calc_cp_moist_air(.x))) %>%
+  ggplot(aes(x=tc)) + 
+    geom_line(aes(y=dat1*1e-3), col="black") + 
+    labs(y="Sp. heat cap [kJ kg-1 K-1]", x="T [degC]")
+```
+
+
+### Slope of saturation pressure vs temp curve
+
+```{r}
+tibble(tc = -5:55) %>% 
+  mutate(dat1 = purrr::map_dbl(.x=tc, .f = ~calc_sat_slope(.x))) %>%
+  ggplot(aes(x=tc)) + 
+    geom_line(aes(y=dat1*1e-3), col="black") + 
+    labs(y="s [kPa K-1]", x="T [degC]")
+```
+
+
+
+### Slope of saturation pressure vs temp curve
+
+```{r}
+tibble(tc = -5:55) %>% 
+  mutate(dat1 = purrr::map_dbl(.x=tc, .f = ~calc_sat_slope(.x))) %>%
+  ggplot(aes(x=tc)) + 
+    geom_line(aes(y=dat1*1e-3), col="black") + 
+    labs(y="s [kPa K-1]", x="T [degC]")
+```
+
+
+### Psychrometric constant
+
+```{r}
+tibble(tc = -5:55) %>% 
+  mutate(dat1 = purrr::map_dbl(.x=tc, .f = ~calc_psychro(.x, 1.01325e5))) %>%
+  ggplot(aes(x=tc)) + 
+    geom_line(aes(y=dat1), col="black") + 
+    labs(y="s [Pa K-1]", x="T [degC]")
+```
+
+
+### Aerodynamic conductance
+
+```{r}
+list(h_canopy = seq(1,50,length.out=10), v_wind = 0:10) %>% cross_df() %>% 
+  mutate(dat1 = purrr::map2_dbl(.x=h_canopy, .y=v_wind, .f = ~calc_g_aero(.x, .y, .x+10))) %>%
+  ggplot(aes(x=v_wind, y=dat1*1.01e5/8.3/300, group=h_canopy, col=h_canopy)) + 
+    geom_line() + 
+    labs(y="g_aero [mol m-2 s-1]", x="Wind speed [m s-1]")
+```
+
+```{r}
+par_env_25 = new(ParEnv, 25, calc_patm(elv), vpd, ppfd/2)
+```
+
+### PML Transpiration from gs
+
+```{r}
+list(ga = exp(seq(log(0.01), log(12), length.out=20)), gs=exp(seq(log(0.01), log(0.4), length.out=20))) %>% cross_df() %>% 
+  mutate(dat1 = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_transpiration_pm(.y, .x, par_env_25))) %>%
+  ggplot(aes(x=gs, y=dat1, group=ga, col=ga)) + 
+    geom_line() + 
+    geom_line(aes(y=1.6*gs*vpd/1.01e5), col="red") + 
+    scale_colour_gradient(trans = "log") + 
+    labs(y="T [mol m-2 s-1]")
+```
+
+
+
+### PML Transpiration from gs when vpd = 0
+
+```{r}
+par_env_25_vpd0 = new(ParEnv, 25, calc_patm(elv), 0, ppfd/2)
+
+list(ga = exp(seq(log(0.01), log(12), length.out=20)), gs=exp(seq(log(0.01), log(0.4), length.out=20))) %>% cross_df() %>% 
+  mutate(dat1 = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_transpiration_pm(.y, .x, par_env_25_vpd0))) %>%
+  ggplot(aes(x=gs, y=dat1, group=ga, col=ga)) + 
+    geom_line() + 
+    geom_line(aes(y=1.6*gs*0/1.01e5), col="red") + 
+    scale_colour_gradient(trans = "log") + 
+    labs(y="T [mol m-2 s-1]")
+```
+
+
+
+### PML Transpiration from gs when ppfd = 0
+
+```{r}
+par_env_25_ppfd0 = new(ParEnv, 25, calc_patm(elv), vpd, 0/2)
+
+list(ga = exp(seq(log(0.01), log(12), length.out=20)), gs=exp(seq(log(0.01), log(0.4), length.out=20))) %>% cross_df() %>% 
+  mutate(dat1 = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_transpiration_pm(.y, .x, par_env_25_ppfd0))) %>%
+  ggplot(aes(x=gs, y=dat1, group=ga, col=ga)) + 
+    geom_line() + 
+    geom_line(aes(y=1.6*gs*vpd/1.01e5), col="red") + 
+    scale_colour_gradient(trans = "log") + 
+    labs(y="T [mol m-2 s-1]")
+```
+
+
+
+
+### Validate gs --> Trans --> gs
+
+All points should lie on 1:1 line
+
+```{r}
+list(ga = exp(seq(log(0.01), log(12), length.out=20)), gs=exp(seq(log(0.01), log(0.4), length.out=20))) %>% cross_df() %>% 
+  mutate(trans = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_transpiration_pm(.y, .x, par_env_25))) %>%
+  mutate(gs1 = purrr::map2_dbl(.x=ga, .y=trans, .f = ~calc_gs_pm(.y, .x, par_env_25))) %>%
+  ggplot(aes(x=gs, y=gs1)) + 
+    geom_abline(slope = 1, intercept = 0, col="grey")+
+    geom_point() 
+```
+
+
+### Validate dE_gs 
+
+All points should lie on 1:1 line
+
+```{r}
+list(ga = exp(seq(log(0.01), log(12), length.out=20)), gs=exp(seq(log(0.01), log(0.4), length.out=20))) %>% cross_df() %>% 
+  mutate(dedgs = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_dE_dgs_pm(.y, .x, par_env_25))) %>%
+  mutate(dedgs_num = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_dE_dgs_pm_num(.y, .x, par_env_25))) %>%
+  ggplot(aes(x=dedgs, y=dedgs_num)) + 
+    geom_abline(slope = 1, intercept = 0, col="grey")+
+    geom_point() 
+```
+
+### Numerical issues in PML gs calculation
+
+Notice below that in the domain of -ve gs values, E can span the entire y axis. This means for any given E, one can in princple find a gs, but this will be -ve for very high E values. 
+
+```{r}
+list(ga = exp(seq(log(0.01), log(12), length.out=20)), gs=atanh(seq(tanh(-0.1), tanh(0.4), length.out=1000))) %>% cross_df() %>% 
+  mutate(dat1 = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_transpiration_pm(.y, .x, par_env_25))) %>%
+  ggplot(aes(x=gs, y=dat1, group=ga, col=ga)) + 
+    geom_line() + 
+    geom_line(aes(y=1.6*gs*vpd/1.01e5), col="red") + 
+    scale_colour_gradient(trans = "log") + 
+    labs(y="T [mol m-2 s-1]")
+```
+
+This means that E must always be bounded by an upper limit. This upper limit can be found for any given ga by setting gs to infinity:
+
+
+```{r}
+list(ga = seq(0, 1, length.out=20), gs=1e20) %>% cross_df() %>% 
+  mutate(dat1 = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_transpiration_pm(.y, .x, par_env_25)),
+         dat2 = purrr::map2_dbl(.x=ga, .y=gs, .f = ~calc_max_transpiration_pm(.x, par_env_25))) %>%
+
+  ggplot(aes(x=ga)) + 
+    geom_line(aes(y=dat1), col="black") + 
+    geom_line(aes(y=dat2), col="red") + 
+    scale_colour_gradient(trans = "log") + 
+    labs(y="T [mol m-2 s-1]") +
+    expand_limits(y=0)
+
+```
+
+
+
+

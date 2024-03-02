@@ -1,0 +1,60 @@
+---
+title: "Phydro temperature dependencies visualized"
+author: "Jaideep Joshi"
+date: "2023-05-27"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(rphydro)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+```
+
+## Vcmax response
+
+```{r}
+df = list(tc = seq(-10, 40, length.out=50), 
+     tg = seq(-10, 40, length.out=50)) %>% cross_df() %>% 
+        mutate(f = purrr::pmap_dbl(.l=., .f = rr_calc_ftemp_inst_vcmax,
+                        tref = 25, 
+                        method = "FV_kumarathunge19"))
+
+df %>% ggplot(aes(x=tc, y=f)) +
+  geom_line(aes(col=tg, group=tg)) + 
+  geom_line(data = df %>% filter(tc == tg), col="red")
+
+df %>% ggplot(aes(x=tc, y=tg, z=f)) +
+  geom_contour_filled()+
+  geom_contour(breaks = 1, col="red")
+```
+
+## Jmax response
+
+```{r}
+
+dfj = list(tc = seq(-10, 40, length.out = 50), 
+          tg = seq(-10, 40, length.out = 50),
+          th = seq(-10, 40, length.out = 5)) %>% cross_df() %>% 
+        mutate(f = purrr::pmap_dbl(.l=., .f = rr_calc_ftemp_inst_jmax,
+                          tref = 25, 
+                          method = "FV_kumarathunge19"))
+
+dfj %>% ggplot(aes(x=tc, y=f)) +
+  geom_line(aes(col=tg, group=tg)) + 
+  geom_line(data = dfj %>% filter(tc == tg), col="red") + 
+  facet_wrap("th", ncol=5)+
+  ylim(c(0,2))
+
+```
+
+
+

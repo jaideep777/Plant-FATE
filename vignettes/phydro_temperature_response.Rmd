@@ -1,0 +1,242 @@
+---
+title: "Phydro temperature response"
+author: "Jaideep Joshi"
+date: "2023-05-27"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(rphydro)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+```
+
+```{r}
+kphio = 0.087;        # quantum yield efficiency
+ppfd = 300;          # umol/m2/s
+vpd  = 1000;         # Pa
+co2  = 400;          # ppm
+elv  = 0;            # m.a.s.l.
+fapar = 0.7;         # fraction
+rdark = 0.015;
+psi_soil = 0;
+vwind = 2
+netrad = ppfd/2
+pa = calc_patm(elv)
+
+par_cost = list(alpha=0.1, gamma=1);
+par_plant = list(conductivity=3e-17, psi50=-2, b=2);
+
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_DIFFUSION",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15",
+               scale_alpha = T)
+
+```
+
+## Acclimating response
+
+```{r}
+dat = tibble(tc = -5:55) %>% mutate(dat = purrr::map(.x=tc, .f = ~rphydro_analytical(.x, .x, ppfd, netrad, vpd, co2, pa, fapar, kphio, psi_soil, rdark, vwind, par_plant, par_cost, options))) %>% unnest_wider(dat)
+```
+
+```{r}
+df.m <- dat %>% melt("tc")
+
+ggplot(df.m, aes(y=value, x=tc)) + 
+  geom_line(col="aquamarine4") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+## Instantaneous response
+
+```{r}
+acc = dat %>% filter(tc == 25)
+
+dat_inst = tibble(tc = -5:55) %>% mutate(dat = purrr::map(.x=tc, .f = ~rphydro_instantaneous_analytical(acc$vcmax25, acc$jmax25, .x, .x, ppfd, netrad, vpd, co2, pa, fapar, kphio, psi_soil, rdark, vwind, par_plant, par_cost, options))) %>% unnest_wider(dat)
+
+df.m1 <- dat_inst %>% melt("tc")
+
+ggplot(df.m1, aes(y=value, x=tc)) + 
+  geom_line(col="aquamarine4") + 
+  geom_vline(xintercept = 25, col="pink") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+
+### Compare ac, aj, in inst responses
+
+```{r}
+dat_inst %>% select(ac, aj, isVcmaxLimited) %>% mutate(isVcmaxLimited = isVcmaxLimited*5) %>%  matplot(x=dat_inst$tc, type="l", lty=1, col=c("green4", "yellow3", "black"))
+abline(v=25, col="pink")
+```
+
+## Try different temperature response function
+
+
+```{r}
+dat_kattge = tibble(tc = -5:55) %>% mutate(dat = purrr::map(.x=tc, .f = ~rphydro_analytical(.x, .x, ppfd, netrad, vpd, co2, pa, fapar, kphio, psi_soil, rdark, vwind, par_plant, par_cost, list_modify(options, ftemp_vj_method = "FV_kattge07") ))) %>% unnest_wider(dat)
+```
+
+```{r}
+df.m2 <- dat %>% melt("tc")
+
+ggplot(df.m2, aes(y=value, x=tc)) + 
+  geom_line(col="aquamarine4") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+### Compare Kumarathunge and Kattge
+
+
+```{r}
+cbind(dat$a, dat_kattge$a) %>% matplot(x=dat$tc, type="l", col=c("black", "cyan3"), lty=1, lwd=c(2,1))
+```
+
+
+
+
+### Compare Kumarathunge and Leuning
+
+
+```{r}
+dat_leuning = tibble(tc = -5:55) %>% mutate(dat = purrr::map(.x=tc, .f = ~rphydro_analytical(.x, .x, ppfd, netrad, vpd, co2, pa, fapar, kphio, psi_soil, rdark, vwind, par_plant, par_cost, list_modify(options, ftemp_vj_method = "FV_leuning02") ))) %>% unnest_wider(dat)
+```
+
+
+```{r}
+cbind(dat$a, dat_leuning$a) %>% matplot(x=dat$tc, type="l", col=c("black", "cyan3"), lty=1, lwd=c(2,1))
+```
+
+
+## Acclimating response using Penmann-Monteith transpiration
+
+
+```{r}
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_PM",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15",
+               scale_alpha = T)
+
+dat_pml = tibble(tc = -5:55) %>% mutate(dat = purrr::map(.x=tc, .f = ~rphydro_analytical(.x, .x, ppfd, netrad, vpd, co2, pa, fapar, kphio, psi_soil, rdark, vwind, par_plant, par_cost, list_modify(options, ftemp_vj_method = "FV_kattge07") ))) %>% unnest_wider(dat)
+```
+
+```{r}
+df.pml <- dat_pml %>% melt("tc")
+
+ggplot(df.pml, aes(y=value, x=tc)) + 
+  geom_line(col="aquamarine4") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+### Compare PM vs Diffusive 
+
+```{r}
+par(mfrow=c(2,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
+cbind(dat_pml$e, dat$e) %>% matplot(x=dat$tc, type="l", lty=1, col=c("green4", "cyan3"), ylab="e", xlab="T")
+
+cbind(dat_pml$dpsi, dat$dpsi) %>% matplot(x=dat$tc, type="l", lty=1, col=c("green4", "cyan3"), ylab="dpsi", xlab="T")
+
+cbind(dat_pml$a, dat$a) %>% matplot(x=dat$tc, type="l", lty=1, col=c("green4", "cyan3"), ylab="a", xlab="T")
+
+cbind(dat_pml$gs, dat$gs) %>% matplot(x=dat$tc, type="l", lty=1, col=c("green4", "cyan3"), ylab="gs", xlab="T")
+
+```
+
+
+
+## Acclimating response when alpha is not scaled
+
+
+```{r}
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_DIFFUSION",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15",
+               scale_alpha = F)
+
+dat_alpha = tibble(tc = -5:55) %>% mutate(dat = purrr::map(.x=tc, .f = ~rphydro_analytical(.x, .x, ppfd, netrad, vpd, co2, pa, fapar, kphio, psi_soil, rdark, vwind, par_plant, par_cost, options ))) %>% unnest_wider(dat)
+
+df.alpha <- dat_alpha %>% melt("tc")
+
+ggplot(df.alpha, aes(y=value, x=tc)) + 
+  geom_line(col="aquamarine4") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+```
+
+## Instantaneous response when alpha is not scaled
+
+```{r}
+acc_alpha = dat_alpha %>% filter(tc == 25)
+
+dat_inst_alpha = tibble(tc = -5:55) %>% mutate(dat = purrr::map(.x=tc, .f = ~rphydro_instantaneous_analytical(acc_alpha$vcmax25, acc_alpha$jmax25, .x, .x, ppfd, netrad, vpd, co2, pa, fapar, kphio, psi_soil, rdark, vwind, par_plant, par_cost, options))) %>% unnest_wider(dat)
+
+df.m1_alpha <- dat_inst_alpha %>% melt("tc")
+
+ggplot(df.m1_alpha, aes(y=value, x=tc)) + 
+  geom_line(col="aquamarine4") + 
+  geom_vline(xintercept = 25, col="pink") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+## Instantaneous response when alpha IS scaled
+
+```{r}
+acc_alpha = dat_alpha %>% filter(tc == 25)
+
+dat_inst_alpha = tibble(tc = -5:55) %>% mutate(dat = purrr::map(.x=tc, .f = ~rphydro_instantaneous_analytical(acc_alpha$vcmax25, acc_alpha$jmax25, .x, .x, ppfd, netrad, vpd, co2, pa, fapar, kphio, psi_soil, rdark, vwind, par_plant, par_cost, options %>% list_modify(scale_alpha=T)))) %>% unnest_wider(dat)
+
+df.m1_alpha <- dat_inst_alpha %>% melt("tc")
+
+ggplot(df.m1_alpha, aes(y=value, x=tc)) + 
+  geom_line(col="aquamarine4") + 
+  geom_vline(xintercept = 25, col="pink") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+### Compare alpha vs alpha25 
+
+```{r}
+par(mfrow=c(2,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
+cbind(dat$e, dat_alpha$e) %>% matplot(x=dat$tc, type="l", lty=1, col=c("green4", "cyan3"), ylab="e", xlab="T")
+
+cbind(dat$dpsi, dat_alpha$dpsi) %>% matplot(x=dat$tc, type="l", lty=1, col=c("green4", "cyan3"), ylab="dpsi", xlab="T")
+
+cbind(dat$a, dat_alpha$a) %>% matplot(x=dat$tc, type="l", lty=1, col=c("green4", "cyan3"), ylab="a", xlab="T")
+
+cbind(dat$gs, dat_alpha$gs) %>% matplot(x=dat$tc, type="l", lty=1, col=c("green4", "cyan3"), ylab="gs", xlab="T")
+
+```
