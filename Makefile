@@ -13,15 +13,18 @@ HEADERS := $(wildcard src/*.tpp) $(wildcard include/*.h) $(wildcard tests/*.h)
 
 #ROOT_DIR := /home/jjoshi/codes
 
-ROOT_DIR := ${shell dirname ${shell pwd}}
+# ROOT_DIR := ${shell dirname ${shell pwd}}
+EXTERNAL_DIR := external
 # ^ Do NOT put trailing whitespaces or comments after the above line
 
 # include and lib dirs (esp for cuda)
 INC_PATH :=  -I./inst/include #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
-INC_PATH += -I$(ROOT_DIR)/phydro/inst/include -I$(ROOT_DIR)/libpspm/include -I$(ROOT_DIR)/Flare.v2/include 
+INC_PATH += -I$(EXTERNAL_DIR)/phydro/inst/include \
+            -I$(EXTERNAL_DIR)/libpspm/include \
+			-I$(EXTERNAL_DIR)/flare/include 
+LIB_PATH := -L$(EXTERNAL_DIR)/libpspm/lib -L./lib
 PTH_PATH := $(shell python3 -m pybind11 --includes)
-LIB_PATH := -L$(ROOT_DIR)/libpspm/lib -L./lib
 
 # flags
 PROFILING_FLAGS = -g -pg
@@ -75,10 +78,13 @@ OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))
 # pybind11_add_module(simulator simulator_pybind.cpp)
 
 
-all: dir $(TARGET) apps
+all: dir external_libs $(TARGET) apps
 
 # $(PYBINDFILES): build/%.o : src/%.cpp
 # 	g++ -c $(CPPFLAGS) $(PTH_PATH) $(INC_PATH) $< -o $@
+
+external_libs:
+	(cd $(EXTERNAL_DIR)/libpspm && $(MAKE))
 
 
 python: dir $(TARGET) # $(PYBINDFILES)

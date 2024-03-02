@@ -18,7 +18,14 @@ library(tidyverse)
 print(getwd())
 ```
 
-Just some plotting utility:
+## Introduction
+
+This vignette demonstrates the functionalities of the `PlantFATE` package for simulating plant growth and calculating fitness based on specified traits. We will walk through the code, explaining each step and providing visualizations of the simulated plant's growth trajectory.
+
+
+## A plotting utility
+
+The plot_plant_trajectory function is defined to visualize various aspects of plant growth over time. It generates multiple plots showing different parameters such as height, diameter, biomass pools, fitness, GPP (Gross Primary Productivity), NPP (Net Primary Productivity), respiration, turnover, transpiration, water potential, Vcmax (maximum carboxylation velocity), LAI (Leaf Area Index), mortality rates, sapwood/heartwood fractions, leaf/fine root lifespans, etc.
 
 ```{r echo=F}
 plot_plant_trajectory = function(dat){
@@ -118,7 +125,14 @@ plot_plant_trajectory = function(dat){
 }
 
 ```
+
 ## Simulate a plant and plot its growth trajectory
+
+The code first initializes parameters and environmental conditions for simulating plant growth using the LifeHistoryOptimizer class from the PlantFATE package.
+
+- It reads in environmental data and initializes CO2 levels.
+- Then, it iterates over time steps, simulating plant growth and storing the state of the plant at each time step.
+- Finally, it plots the trajectory of the simulated plant's growth using the previously defined plot_plant_trajectory function.
 
 ```{r}
 params_file = "tests/params/p_test_v2.ini"
@@ -144,6 +158,8 @@ plot_plant_trajectory(df)
 ```
 
 ## Calculate fitness of specified traits
+
+Two sections are dedicated to calculating the fitness of a tree with specified traits. The first section calculates fitness without modifying any traits, while the second section overrides the wood density trait to a specified value and recalculates fitness. The process involves initializing the optimizer, setting traits, and then calculating fitness based on those traits.
 
 To calculate the fitness of a tree with given traits, follow these steps:
 
@@ -189,6 +205,11 @@ lho$calcFitness()
 
 ## Calculate fitness as a function of wood density
 
+This section calculates fitness as a function of wood density under different environmental conditions.
+- It defines a function fitness_wd to calculate fitness based on wood density, environmental parameters, and CO2 levels.
+- It iterates over a range of wood densities and calculates fitness for each density under ambient and elevated CO2 conditions.
+- Finally, it plots the results, showing how fitness varies with wood density under different environmental scenarios.
+    
 ```{r}
 # Ambient Env
 zp_amb = c(19.22669, 15.71661, 3.15710, 0.00000)
