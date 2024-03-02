@@ -28,29 +28,35 @@ PROFILING_FLAGS = -g -pg
 CPPFLAGS = -O3 -std=c++17 -Wall -Wextra -DPHYDRO_ANALYTICAL_ONLY $(PROFILING_FLAGS)
 LDFLAGS =  $(PROFILING_FLAGS)
 
-## -Weffc++
-#CPPFLAGS +=    \
-#-pedantic-errors  -Wcast-align \
-#-Wcast-qual -Wconversion \
-#-Wdisabled-optimization \
-#-Wformat=2 \
-#-Wformat-nonliteral -Wformat-security  \
-#-Wformat-y2k \
-#-Wimport  -Winit-self   \
-#-Winvalid-pch   \
-#-Wlong-long \
-#-Wmissing-field-initializers -Wmissing-format-attribute   \
-#-Wmissing-include-dirs -Wmissing-noreturn \
-#-Wpacked   -Wpointer-arith \
-#-Wredundant-decls \
-#-Wshadow -Wstack-protector \
-#-Wstrict-aliasing=2 -Wswitch-default \
-#-Wswitch-enum \
-#-Wunreachable-code -Wunused \
-#-Wunused-parameter \
-#-Wvariadic-macros \
-#-Wwrite-strings \
-##-Waggregate-return -Wpadded -Wfloat-equal -Winline
+CPPFLAGS +=    \
+-pedantic-errors  -Wcast-align \
+-Wcast-qual \
+-Wdisabled-optimization \
+-Wformat=2 \
+-Wformat-nonliteral -Wformat-security  \
+-Wformat-y2k \
+-Wimport  -Winit-self   \
+-Winvalid-pch   \
+-Wmissing-field-initializers -Wmissing-format-attribute   \
+-Wmissing-include-dirs -Wmissing-noreturn \
+-Wpacked   -Wpointer-arith \
+-Wredundant-decls \
+-Wstack-protector \
+-Wstrict-aliasing=2 \
+-Wswitch-enum \
+-Wunreachable-code \
+-Wvariadic-macros \
+-Wwrite-strings \
+# -Wswitch-default \
+# -Wunused \
+# -Wunused-parameter \
+# -Waggregate-return -Wpadded -Wfloat-equal \
+# -Wlong-long \
+# -Wshadow \
+# -Winline \
+# -Wconversion \
+# -Weffc++ \
+
 
 CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
 -Wno-unused-but-set-variable -Wno-float-conversion \
