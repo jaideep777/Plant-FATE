@@ -1,0 +1,80 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.cu_o 
+*/*.cu_o
+*.Plo
+*.test
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.Po
+
+# Data files / archives
+*.txt
+*.dat
+*.nc
+*.so.*
+1
+*~
+*.gz
+
+*.log
+*.trs
+*.status
+
+autom4te.cache
+build
+build-aux
+m4/*
+!m4/ax_*
+stamp-h1
+Makefile.in
+config*
+configure
+!configure.ac
+libtool
+aclocal.m4
+
+tests/bin
+bin
+
+#tests/Makefile
+#!tests/*.cpp
+#!tests/*.cu
+tests/*_test
+.libs
+tests/*.trs
+.Rhistory
+
+html
+xml
+latex
+
+src_cuda_x
+
+.vscode
+
+
