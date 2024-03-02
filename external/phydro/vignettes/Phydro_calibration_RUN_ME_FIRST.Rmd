@@ -1,0 +1,688 @@
+---
+title: "Testing the hydraulic-Pmodel with data"
+author: "Jaideep Joshi"
+date: "`r Sys.Date()`"
+output:
+  html_document: null
+  toc: yes
+  word_document: default
+toc_depth: 3
+toc_float: yes
+---
+
+```{r include=FALSE}
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(zoo)
+library(rphydro)
+```
+
+
+### Plotting utility including data
+
+```{r}
+
+dat = read.csv("data/drying_experiments_meta-analysis_Joshi_et_al_2022.csv")
+dat$obs_id = 1:nrow(dat)
+dat$Ciest = dat$ca..ppm. - dat$A..umol.m.2.s.1./dat$gC..mol.m.2.s.1.
+dat$a_pred = NA
+dat$g_pred = NA
+dat$c_pred = NA
+
+dpsi_df = read.csv("data/drying_experiments_dpsi_Joshi_et_al_2022.csv")
+  
+avec = numeric(0)
+bvec = numeric(0)
+spvec = character(0)
+
+cpar = read.csv("data/fitted_params_Joshi_et_al_2022.csv") 
+
+
+cnames = c("K", "P50", "b", "alpha", "gamma",  "PgS88",	"PgS50", "pg12",	"pgL88",	"pgL50",	"pgL12")
+traits_vec = matrix(nrow = 0, ncol=length(cnames))
+colnames(traits_vec) = cnames
+traits_vec = as.data.frame(traits_vec)
+```
+
+```{r echo=F}
+plot_all = function(df_w_vol, varname, species, b,a){
+  
+  gx = log(df_w_vol$gs)
+  gy = df_w_vol$var
+  # gx1 = seq(max(min(gx), -20), max(gx), length.out=100)
+  f = splinefun(x = gx, y=gy)
+  gs0 = df_w_vol$gs[which(df_w_vol$var==0)]
+  psi88S = f(log(gs0*0.12))
+  psi50S = f(log(gs0*0.50))
+  psi12S = f(log(gs0*0.88))
+  cat("psi88S = ", psi88S, "\n")
+  cat("psi50S = ", psi50S, "\n")
+  cat("psi12S = ", psi50S, "\n")
+
+  dpx = df_w_vol$var
+  dpy = df_w_vol$dpsi
+  f1 = splinefun(dpy~dpx)
+  dpx1 = seq(min(dpx), max(dpx), length.out=100)
+  dp88S = f1(psi88S)
+  dp50S = f1(psi50S)
+  dp12S = f1(psi12S)
+  cat("psiL88S = ", psi88S-dp88S, "\n")
+  cat("psiL50S = ", psi50S-dp50S, "\n")
+  cat("psiL12S = ", psi12S-dp12S, "\n")
+
+  cat(psi88S, "\t", psi50S, "\t", psi12S, "\t", psi88S-dp88S, "\t", psi50S-dp50S, psi12S-dp12S, "\n")
+  
+  subdata = dat %>% filter(Species == species) %>% filter(Predawn.LWP..MPa. > -6)
+  dpsi_data = dpsi_df %>% filter(Species == species) %>% filter(SWP > -6)
+  if (nrow(dpsi_data) == 0) dpsi_data = NULL
+
+  a_spl = splinefun(x = df_w_vol$var, y=df_w_vol$a)
+  g_spl = splinefun(x = df_w_vol$var, y=df_w_vol$gs)
+  c_spl = splinefun(x = df_w_vol$var, y=df_w_vol$chi)
+
+  subdata$a_pred = a_spl(subdata$Predawn.LWP..MPa.)
+  subdata$g_pred = g_spl(subdata$Predawn.LWP..MPa.)
+  subdata$c_pred = c_spl(subdata$Predawn.LWP..MPa.)
+
+  if (!is.null(dpsi_data)){
+    d_spl = splinefun(x = df_w_vol$var, y=df_w_vol$dpsi)
+    dpsi_data$d_pred = d_spl(dpsi_data$SWP)
+    dpsi_data$Species = species
+    dpsi_df <<- rbind(dpsi_df, dpsi_data)
+  }
+  
+  ids = subdata$obs_id
+  cat(ids, "\n")
+  dat$a_pred[ids] <<- subdata$a_pred 
+  dat$g_pred[ids] <<- subdata$g_pred 
+  dat$c_pred[ids] <<- subdata$c_pred 
+    
+  p1 <- df_w_vol %>% 
+  ggplot() +
+  geom_line(aes(x = var, y = vcmax), col="green3", size=1) +
+  geom_line(aes(x = var, y = out_analytical_vcmax ), col="grey", size=1) +
+  # geom_point(data=filter(dat, Species==species), aes(x=Predawn.LWP..MPa., y=Vcmax))+
+  # geom_vline(xintercept = par_plant_std$psi50, col="orange") +
+  expand_limits(y=0)+
+    xlab(varname)
+
+  # p50 = mean(cpar[which(cpar$Species == species),]$P50)
+  # x = df_w_vol$var[df_w_vol$var>p50]
+  # y = df_w_vol$dpsi[df_w_vol$var>p50]
+  # mod = lm(y~x)
+  # a = mod$coefficients[1]
+  # b = mod$coefficients[2]
+  # avec <<- c(avec, a)
+  # bvec <<- c(bvec, b)
+  # spvec <<- c(spvec, species)
+  
+  traits = matrix(nrow = 1, ncol=length(cnames), data=c(cpar[which(cpar$Species == species),2:6], psi88S, psi50S, psi12S, psi88S-dp88S, psi50S-dp50S, psi12S-dp12S))
+  colnames(traits) = cnames
+  traits_vec <<- rbind(traits_vec, traits)
+  
+p2 <- df_w_vol %>%
+  ggplot() +
+  geom_line(aes(x = var, y = dpsi), col="blue", size=1)+
+  geom_abline(slope = b, intercept = a, col="skyblue", size=0.5)+
+  geom_vline(xintercept = cpar[which(cpar$Species == species),]$P50, col="orange")+
+  expand_limits(y=0)+
+    xlab(varname)
+if (!is.null(dpsi_data)){
+  p2 <- p2 + 
+    geom_point(data=dpsi_data, aes(x=SWP, y=Dpsi))
+}
+
+p3 <- df_w_vol %>%
+  ggplot() +
+  geom_line(aes(x = var, y = gs), col="cyan2", size=1)+
+  geom_line(aes(x = var, y = out_analytical_gs), col="grey", size=1)+
+  geom_point(data = tibble(x=seq(-6,0,length.out=100), y=g_spl(seq(-6,0,length.out=100)) ), aes(x=x,y=y), size=0.5, col="cyan3")+
+  geom_point(data=subdata, aes(x=Predawn.LWP..MPa., y=gC..mol.m.2.s.1.))+
+  geom_vline(xintercept = psi88S, col="grey")+
+  expand_limits(y=0)+
+    xlab(varname)
+
+p4 <- df_w_vol %>%
+  mutate(chi = ci/out_analytical_ca) %>% 
+  ggplot() +
+  geom_line(aes(x = var, y = chi), col="magenta", size=1)+
+  geom_line(aes(x = var, y = out_analytical_chi), col="grey", size=1)+
+    geom_point(data = tibble(x=seq(-6,0,length.out=100), y=c_spl(seq(-6,0,length.out=100)) ), aes(x=x,y=y), size=0.5, col="magenta3")+
+  geom_point(data=subdata, aes(x=Predawn.LWP..MPa., y=Ciest/ca..ppm.))+
+  # geom_vline(xintercept = par_plant_std$psi50, col="orange")+
+  expand_limits(y=0)+
+    xlab(varname)
+
+p5 <- df_w_vol %>%
+  ggplot() +
+  geom_line(aes(x = var, y = jmax), col="goldenrod1", size=1) +
+  # geom_vline(xintercept = par_plant_std$psi50, col="orange")+
+  # geom_point(data=filter(dat, Species==species), aes(x=Predawn.LWP..MPa., y=Jmax))+
+  expand_limits(y=0)+
+    xlab(varname)
+
+p6 <- df_w_vol %>%
+  ggplot() +
+  geom_line(aes(x = var, y = a), col="green4", size=1) +
+  geom_line(aes(x = var, y = out_analytical_gpp), col="grey",size=1) +
+  geom_point(data = tibble(x=seq(-6,0,length.out=100), y=a_spl(seq(-6,0,length.out=100)) ), aes(x=x,y=y), size=0.5, col="darkgreen")+
+  geom_point(data=subdata, aes(x=Predawn.LWP..MPa., y=A..umol.m.2.s.1.))+
+  # geom_vline(xintercept = par_plant_std$psi50, col="orange")+
+  expand_limits(y=0)+
+    xlab(varname)
+
+grid.arrange(p3,p6,p1,p2,p5,p4, ncol=2)
+}
+
+```
+
+
+```{r}
+#### Wrapper for classic pmodel with modified units ####
+
+# P-model as per Wang et al 2017
+# This needs PPFD in mol/m2/day
+
+pmodel_wang17 = function(tc, ppfd, vpd, co2, elv, fapar, kphio, ...){
+  
+  out_analytical <- rpmodel::rpmodel(
+    tc             = tc,
+    vpd            = vpd,
+    co2            = co2,
+    elv            = elv,
+    kphio          = kphio,
+    beta           = 146,
+    fapar          = fapar,
+    ppfd           = ppfd*1e-6*86400, # p-model requires in mol/m2/day
+    ...
+  )
+  
+  # Convert some outputs to facilitate comparison
+  return(list_modify(out_analytical,
+                     gs = out_analytical$gs/86400*rphydro::calc_patm(elv), # mol/m2/day/Pa --> mol/m2/s
+                     gpp = out_analytical$gpp/1.03772448,  # gC/m2/day --> umol/m2/s
+                     vcmax = out_analytical$vcmax/0.0864   # mol/m2/day --> umol/m2/s
+  )
+  )
+}
+
+
+
+
+#### Convenience Functions ####
+
+get_std_photosythnesis_params = function(){ 
+  ## Set P-model parameters
+  kphio <- 0.05        # quantum yield efficiency
+  # c_molmass <- 12.0107 # molar mass, g / mol
+  
+  ## Define environmental conditions
+  tc <- 25             # temperature, deg C
+  ppfd <- 400          # umol/m2/s
+  # vpd  <- 1000         # Pa
+  co2  <- 400          # ppm
+  elv  <- 0            # m.a.s.l.
+  fapar <- 0.7         # fraction
+  
+  p = rphydro::calc_patm(elv)
+  return (list(
+    kmm = rphydro::calc_kmm(tc, p),  # Why does this use std. atm pressure, and not p(z)?
+    gammastar = rphydro::calc_gammastar(tc, p),
+    phi0 = kphio*rpmodel::ftemp_kphio(tc),
+    Iabs = ppfd*fapar,
+    ca = co2*p*1e-6,  # Convert to partial pressure
+    patm = p,
+    delta = 0.00
+  ))
+}
+
+
+# Combine Hydraulic and classic results
+
+pmodel_calibrate_analytical <- function(tc, ppfd, vpd, co2, elv, fapar, kphio, psi_soil, rdark = 0, par_plant, par_cost = NULL, opt_hypothesis = "PM"){
+  
+  if (is.null(par_cost)) par_cost = list(alpha=0.1, gamma=1)
+  
+  out_hydraulics = rphydro_analytical(tc, ppfd, vpd, co2, elv, fapar, kphio, psi_soil, rdark, par_plant, par_cost)
+  
+  out_analytical = pmodel_wang17(tc, ppfd, vpd, co2, elv, fapar, kphio)
+  
+  return(list(out_hydraulics = out_hydraulics,
+              out_analytical = out_analytical))
+}
+
+pmodel_calibrate_numerical <- function(tc, ppfd, vpd, co2, elv, fapar, kphio, psi_soil, rdark = 0, par_plant, par_cost = NULL, opt_hypothesis = "PM"){
+  
+  if (is.null(par_cost)) par_cost = list(alpha=0.1, gamma=1)
+
+  out_hydraulics = rphydro_numerical(tc, ppfd, vpd, co2, elv, fapar, kphio, psi_soil, rdark, par_plant, par_cost)
+  
+  out_analytical = pmodel_wang17(tc, ppfd, vpd, co2, elv, fapar, kphio)
+  
+  return(list(out_hydraulics = out_hydraulics,
+              out_analytical = out_analytical))
+}
+
+pmodel_calibrate_inst <- function(tc, ppfd, vpd, co2, elv, fapar, kphio, psi_soil, rdark = 0, par_plant, par_cost = NULL, jmax, vcmax, opt_hypothesis = "PM"){
+  if (is.null(par_cost)) par_cost = list(alpha=0.1, gamma=1)
+
+  out_hydraulics = rphydro_instantaneous_analytical(vcmax, jmax, tc, ppfd, vpd, co2, elv, fapar, kphio, psi_soil, rdark, par_plant, par_cost)
+  
+  out_analytical = pmodel_wang17(tc, ppfd, vpd, co2, elv, fapar, kphio)
+  
+  return(list(out_hydraulics = out_hydraulics,
+              out_analytical = out_analytical))
+}
+
+
+```
+
+
+
+
+```{r}
+
+pmodel_fit = function(species){
+  
+  data=dat %>% filter(Species==species)
+  x = as.numeric(cpar[which(cpar$Species == species), -1])
+   
+  par_plant_now = list(
+    # Ks0=1, 
+    # v_huber=1, 
+    conductivity= x[1]*1e-16, # in Joshi et al 2021, K is in  10^-16 m 
+    # height=1, 
+    psi50 = x[2],  
+    b=x[3] 
+  )
+  
+  par_cost_now = list(
+    alpha  = x[4],          # cost of Jmax
+    gamma = x[5]    # cost of hydraulic repair.  
+  )
+  
+  
+  if (cpar[which(cpar$Species == species), "inst"] == 0){
+    cat("Acclimated response: days = ", data$Drydown.days, "\n")
+    dat1 = tibble(var = seq(-6,0, length.out = 30)) %>% 
+    mutate(p = purrr::map(var, ~pmodel_calibrate_analytical(tc = mean(data$T..deg.C.), ppfd = mean(data$Iabs.growth.in.growth.chamber..umol.m.2.s.1.), vpd = mean(data$D..unitless...Pa...Pa.atm..*101325), co2 = mean(data$ca..ppm.), elv = 0, fapar = .99, kphio = 0.087, psi_soil = ., rdark = 0.02, par_plant = par_plant_now, par_cost = par_cost_now)) ) %>% unnest_wider(p) %>% unnest_wider(out_hydraulics) %>% unnest_wider(out_analytical, names_sep = "_") 
+    
+      p50 = mean(cpar[which(cpar$Species == species),]$P50)
+      x = dat1$var[dat1$var>p50]
+      y = dat1$dpsi[dat1$var>p50]
+      mod = lm(y~x)
+      a = mod$coefficients[1]
+      b = mod$coefficients[2]
+      avec <<- c(avec, a)
+      bvec <<- c(bvec, b)
+      spvec <<- c(spvec, species)
+
+  } else {
+    ndays = mean(data$Drydown.days)
+    psi_min = min(data$Predawn.LWP..MPa.)
+    psi_max = 0 #max(data$LWP)
+    # cat(ndays,"\n")
+    
+    # Assuming the rate of (linear) drydown, calc the days required to reach each lwp value in [-6,0]
+    lwp = seq(-6,0, length.out=30)
+    day = ndays * (lwp-psi_max)/(psi_min-psi_max)
+    
+    # Function (interpolate) to back-calculate lwp on any given day
+    # Thus lwp_day(day) = lwp
+    lwp_day = function(day_num){
+      psi_max + day_num/ndays * (psi_min-psi_max)
+    } 
+    
+    # Calculate week-average LWP corresponding to days from 0 to last day (corresponding to -6 MPa). Days before start (-ve days) are considered well-watered
+    k = 7
+    lwp_week = rollmean(x = lwp_day(c(max(day):0, rep(0,k-1))), k = k, align = "right")
+  
+    cat("Instantaneous response with slow acclimation: days = ", data$Drydown.days, ", k = ", k, "\n")
+    
+    # To back-calculate LWP-avg for the desired instantaneous LWP, we need to use an interpolator. 
+    # desired lwp --> decimal day assuming linear drydown ---> week_avg lwp for decimal day
+    spl = splinefun(x = max(day):0, y=lwp_week)
+    
+    dat_acc = tibble(var = spl(day)) %>% mutate(pmod = map(var, ~rphydro_analytical(tc = mean(data$T..deg.C.), ppfd = mean(data$Iabs.growth.in.growth.chamber..umol.m.2.s.1.), vpd = mean(data$D..unitless...Pa...Pa.atm..*101325), co2 = mean(data$ca..ppm.), elv = 0, fapar = .99, kphio = 0.087, psi_soil = ., rdark = 0.02, par_plant=par_plant_now, par_cost = par_cost_now))) %>% unnest_wider(pmod)
+    
+      # Calculate anisohydricity on the acclimating response (to be comparable across species)
+      p50 = mean(cpar[which(cpar$Species == species),]$P50)
+      x = dat_acc$var[dat_acc$var>p50]
+      y = dat_acc$dpsi[dat_acc$var>p50]
+      mod = lm(y~x)
+      a = mod$coefficients[1]
+      b = mod$coefficients[2]
+      avec <<- c(avec, a)
+      bvec <<- c(bvec, b)
+      spvec <<- c(spvec, species)
+    
+      # Calc instantaneous response
+    dat1 = tibble(var = lwp, jmax_a=dat_acc$jmax, vcmax_a=dat_acc$vcmax) %>%
+      mutate(p = purrr::pmap(list(var, jmax_a, vcmax_a), ~pmodel_calibrate_inst(vcmax = ..3, jmax = ..2, tc = mean(data$T..deg.C.), ppfd = mean(data$Iabs.in.measurement.chamber..liCor...umol.m.2.s.1.), vpd = mean(data$D..unitless...Pa...Pa.atm..*101325), co2 = mean(data$ca..ppm.), elv = 0, fapar = .99, kphio = 0.087, psi_soil = ..1, rdark = 0.02, par_plant=par_plant_now, par_cost = par_cost_now )) ) %>% unnest_wider(p) %>% unnest_wider(out_hydraulics) %>% unnest_wider(out_analytical, names_sep = "_")
+  
+    par(mfrow=c(3,2), mar=c(4,4,1,1))
+    matplot(x=c(max(day):0, -1:-(k-1)), y=cbind(c(lwp_week, rep(NA,6)), lwp_day(c(max(day):0, rep(0,k-1)))), lty=1, lwd=2:1, col=c("red3", "black"), type="l", xlab="day", ylab="SWP")
+    points(lwp~day)
+    points(spl(day)~day, col="red3")
+    dat_acc %>% with(plot(var~day, col="red", type="l"))
+    dat1 %>% with(points(var~day))
+    dat_acc %>% with(plot(jmax~var, col="red", type="l"))
+    dat_acc %>% with(plot(jmax~day, col="red", type="l"))
+    dat_acc %>% with(plot(dpsi~var, ylim=c(0,max(dat_acc$dpsi,dat1$dpsi)), col="red", type="l"))
+    abline(a = a,b=b, col="orange")
+    dat1 %>% with(points(dpsi~var))
+    dat_acc %>% with(plot(dpsi~day, ylim=c(0,max(dat_acc$dpsi,dat1$dpsi)), col="red", type="l"))
+    dat1 %>% with(points(dpsi~day))
+      
+    }
+  
+  dat1 %>% plot_all(varname = "psi_soil", species=species, b,a)
+
+  # dat2 = tibble(var = seq(-6,0, length.out = 30)) %>% 
+  #   mutate(p = purrr::map(var, ~pmodel_calibrate_numerical(tc = mean(data$T), ppfd = 1200, vpd = mean(data$D*101325), co2 = mean(data$ca), elv = 0, fapar = .99, kphio = 0.087, psi_soil = ., par_plant_now, par_cost = par_cost_now)) ) %>% unnest_wider(p) %>% unnest_wider(out_hydraulics) %>% unnest_wider(out_analytical, names_sep = "_") 
+
+  p88 = (log(0.12)/log(.5))^(1/par_plant_now$b)*par_plant_now$psi50
+  cat("Profit vector = ", dat1$profit[dat1$var > p88], "\n")
+  cat("Mean Profit (P88) = ", mean(dat1$profit[dat1$var > p88]), "\n")
+  cat("Mean Profit (P50) = ", mean(dat1$profit[dat1$var > par_plant_now$psi50]), "\n")
+  
+  # p88 = (log(0.12)/log(.5))^(1/par_plant_now$b)*par_plant_now$psi50
+  # profit = dat2$a - par_cost_now$c*dat2$jmax - par_cost_now$a1*(dat2$dpsi)^2/par_plant_now$psi50^2  
+  # cat("Profit @ 1200 PPFD = ", mean(profit[dat2$var > par_plant_now$psi50]) )
+}
+```
+
+
+In all plots below, coloured lines are the predictions of the hydraulic P-model, grey lines are the original P-model with Jmax limitation as per Wang et al. 2017.
+
+
+#### Allocasuarina luehmannii
+
+```{r}
+species = "Allocasuarina luehmannii"
+pmodel_fit(species)
+```
+
+#### Helianthus annuus
+
+```{r}
+species = "Helianthus annuus"
+pmodel_fit(species)
+```
+
+
+
+
+
+#### Cedrus atlantica
+
+```{r}
+species = "Cedrus atlantica"
+pmodel_fit(species)
+```
+
+#### Pseudotzuga menziesii
+
+
+```{r}
+species = "Pseudotzuga menziesii"
+pmodel_fit(species)
+```
+
+
+#### Glycine max
+
+```{r}
+species = "Glycine max"
+pmodel_fit(species)
+```
+
+
+#### Olea europaea var. Meski
+
+```{r}
+species = "Olea europaea var. Meski"
+pmodel_fit(species)
+```
+
+
+#### Olea europaea var. Chemlali
+
+```{r}
+species = "Olea europaea var. Chemlali"
+pmodel_fit(species)
+```
+
+#### Quercus coccifera
+
+```{r}
+species = "Quercus coccifera"
+pmodel_fit(species)
+```
+
+```{r}
+species = "Quercus suber"
+pmodel_fit(species)
+```
+
+#### Broussonetia papyrifera (Linnaeus) L_He ritier ex Ventenat
+
+```{r}
+species = "Broussonetia papyrifera (Linnaeus) L_He ritier ex Ventenat"
+pmodel_fit(species)
+```
+
+
+#### Eucalyptus pilularis
+
+```{r}
+species = "Eucalyptus pilularis"
+pmodel_fit(species)
+```
+
+
+#### Eucalyptus populnea
+
+
+```{r}
+species = "Eucalyptus populnea"
+pmodel_fit(species)
+```
+
+<!-- #### Eucalyptus pauciflora -->
+
+<!-- ```{r} -->
+<!-- species = "Eucalyptus pauciflora" -->
+<!-- pmodel_fit(species) -->
+<!-- ``` -->
+
+#### Ficus tikoua
+
+```{r}
+species = "Ficus tikoua"
+pmodel_fit(species)
+```
+
+#### Cinnamomum bodinieri H. Leveille
+
+```{r}
+species = "Cinnamomum bodinieri H. Leveille"
+pmodel_fit(species)
+```
+
+#### Platycarya longipes Wu
+
+```{r}
+species = "Platycarya longipes Wu"
+pmodel_fit(species)
+```
+
+
+#### Pteroceltis tatarinowii Maximowicz
+
+```{r}
+species = "Pteroceltis tatarinowii Maximowicz"
+pmodel_fit(species)
+```
+
+
+#### Rosa cymosa Trattinnick
+
+```{r}
+species = "Rosa cymosa Trattinnick"
+pmodel_fit(species)
+```
+
+
+#### Quercus ilex
+
+```{r}
+species = "Quercus ilex"
+pmodel_fit(species)
+```
+
+
+```{r}
+write.csv(x=dat, file="pred_obs_a_g_c.csv")
+# write.csv(x=dpsi_df, file = "dpsi_df.csv")
+
+dat = read.csv(file="pred_obs_a_g_c.csv")
+# dpsi_df = read.csv(file = "dpsi_df.csv")
+
+dat = left_join(x = dat, y= cpar, by="Species")
+dpsi_df = left_join(x = dpsi_df, y= cpar, by="Species")
+
+dat$chi = dat$Ciest/dat$ca
+
+dpsi_df = dpsi_df %>% mutate(source = factor(source, levels = c(0,1), labels = c("Experiment", "Literature") ))
+
+makeTransparent = function(col, alpha=0.7){
+  rgb(t(col2rgb(col)/255), alpha = alpha)
+}
+
+mytheme = function(){
+  theme_classic()+
+    theme(axis.text=element_text(size=12),
+          axis.title=element_text(size=14),
+          legend.text=element_text(size=11),
+          plot.tag.position = "topleft") 
+    
+}
+
+p1 =
+  dat %>% ggplot(mapping = aes(x=a_pred, y=A..umol.m.2.s.1.)) + 
+  mytheme()+
+  geom_point(aes(fill=-Predawn.LWP..MPa./pgL88), shape=21, color=makeTransparent("black",0)) + 
+  geom_smooth(method = "lm", se = F, col="black")+
+  geom_abline(slope = 1, intercept=0, color="grey") +
+  # scale_fill_gradient(oob=squish, limits = c(-4,0), low = makeTransparent("goldenrod1"), high = makeTransparent("blue"))+
+  scale_fill_viridis_c(oob=squish, limits = c(-1,0), direction = -1, begin=.25)+
+  labs(fill = expression(psi[s]*"/|"*psi[g88]*"|"))+
+  annotate(size=4, geom="text", label = paste("italic(R)^2 == ", sprintf("%.2f", cor(dat$A..umol.m.2.s.1., dat$a_pred, use = "pairwise.complete.obs")^2)), x=Inf, y=-Inf, hjust=1.2, vjust=-1.2, parse=T)+
+  xlab(expression(textstyle("Predicted A")))+
+  ylab(expression(textstyle("Observed A")))+
+  ggtitle(expression(atop("Assimilation rate,", italic(A)*" ("*mu*"mol m"^-2~"s"^-1*")")))
+
+# p1 
+
+
+p2 = dat %>% ggplot(mapping = aes(x=g_pred, y=gC..mol.m.2.s.1.)) +   
+  mytheme()+
+  geom_point(aes(fill=-Predawn.LWP..MPa./pgL88), shape=21, color=makeTransparent("black",0)) + 
+  geom_smooth(method = "lm", se = F, col="black")+
+  geom_abline(slope = 1, intercept=0, color="grey") +
+  # scale_fill_gradient(oob=squish, limits = c(-4,0), low = makeTransparent("goldenrod1"), high = makeTransparent("blue"))+
+  scale_fill_viridis_c(oob=squish, limits = c(-1,0), direction = -1, begin=.25)+
+  labs(fill = expression(psi[s]*"/|"*psi[g88]*"|"))+
+  annotate(size=4, geom="text", label = paste("italic(R)^2 == ", sprintf("%.2f", cor(dat$gC..mol.m.2.s.1., dat$g_pred, use = "p")^2)), x=Inf, y=-Inf, hjust=1.2, vjust=-1.2, parse=T)+
+  xlab(expression("Predicted g"[s]))+
+  ylab(expression("Observed g"[s]))+
+  ggtitle(expression(atop("Stomatal conductance,","g"[s]~"(mol m"^-2~"s"^-1*")")))
+  # ylim(0, 0.3)
+
+# scale_x_log10()+
+  # scale_y_log10()
+# p2 
+
+
+
+p3 = dat %>% ggplot(mapping = aes(x=c_pred, y=Ciest/ca..ppm.)) +   
+  mytheme()+
+  geom_point(aes(fill=-Predawn.LWP..MPa./pgL88), shape=21, color=makeTransparent("black",0)) + 
+  geom_smooth(data = dat[which(dat$Predawn.LWP..MPa./dat$pgL88 < 1),], method = "lm", se = F, col="black")+
+  geom_abline(slope = 1, intercept=0, color="grey") +
+  # scale_fill_gradient(oob=squish, limits = c(-4,0), low = makeTransparent("goldenrod1"), high = makeTransparent("blue"))+
+  scale_fill_viridis_c(oob=squish, limits = c(-1,0), direction = -1, begin=.25)+
+  annotate(size=4, geom="text", label = paste("italic(R)^2 == ", sprintf("%.2f", cor(dat$c_pred[-dat$Predawn.LWP..MPa./dat$pgL88>-1], (dat$Ciest/dat$ca..ppm.)[-dat$Predawn.LWP..MPa./dat$pgL88>-1], use = "pairwise.complete.obs")^2)), x=Inf, y=-Inf, hjust=1.2, vjust=-1.2, parse=T)+
+  labs(fill = expression(psi[s]*"/|"*psi[g88]*"|"))+
+  xlab(expression("Predicted"~chi))+
+  ylab(expression("Observed"~chi))+
+  ggtitle(expression(atop("Leaf internal-to-","ambient CO"[2]~"ratio,"~italic(chi))))
+
+# p3
+
+
+
+p4 = dpsi_df %>% ggplot() +   
+  mytheme()+
+  geom_point(mapping = aes(x=d_pred, y=Dpsi, color=-SWP/pgL88, shape=source, size = source)) + 
+  geom_smooth(mapping=aes(x=d_pred, y=Dpsi), method = "lm", se = F, col="black")+
+  geom_abline(slope = 1, intercept=0, color="grey") +
+  # scale_color_gradient(low = makeTransparent("goldenrod1"), high = makeTransparent("blue"))+
+  scale_color_viridis_c(oob=squish, limits = c(-1,0), direction = -1, begin=.25)+
+  scale_size_manual(values=c(1.5,1))+
+  annotate(size=4, geom="text", label = paste("italic(R)^2 == ", sprintf("%.2f", cor(dpsi_df$Dpsi, dpsi_df$d_pred, use = "pairwise.complete.obs")^2)), x=Inf, y=-Inf, hjust=1.2, vjust=-1.2, parse=T)+
+  xlab(expression("Predicted"~Delta*psi))+
+  ylab(expression("Observed"~Delta*psi)) + 
+  ggtitle(expression(atop("Soil-leaf water-potential","difference,"~italic(Delta*psi)~"(MPa)")))+
+  labs(color=expression(psi[s]*"/|"*psi[g88]*"|"), size="Source", shape="Source")+
+  ylim(c(0,NA))
+# p4
+
+# png(filename = "calibration_validation_viridis_wtrend_g88_2.png", width = 820*3, height = 650*3, res=300)
+cowplot::plot_grid(p1, p2, p3, p4, labels=LETTERS, label_size = 16, label_colour = "grey50", label_x = 0.05, align = "hv", rel_widths = 1, ncol=2)
+# dev.off()
+
+write.csv(data.frame(Species = spvec, dpsi_intercept=avec, dpsi_slope=bvec), file = "hydricity.csv")
+
+print(traits_vec)
+
+# write.csv(traits_vec, file = "traits.csv")
+
+```
+
+```{r}
+# datme = read.csv(file = "hydricity.csv")
+# 
+# ## Data from Martinez-Vilalta et al 2014 (https://nph.onlinelibrary.wiley.com/doi/abs/10.1111/nph.12912)
+# datmm = read.csv(file = "C:/Users/Jaideep/Documents/zotero_data/storage/NXGJVVYW/data.csv")
+# 
+# par(mfrow=c(2,2), mar=c(4,4,0,0))
+# 
+# my_theme = function(){
+#   theme_classic()+
+#     theme(axis.text=element_text(size=16),
+#           axis.title=element_text(size=18),
+#           legend.position="none",
+#           plot.tag.position = "topleft")
+# }
+# 
+# ggplot() + my_theme() + 
+#   geom_histogram(data=datmm, aes(x=s..MPa.MPa.1.), alpha=0.4, bins=10, fill="green3") + 
+#   geom_histogram(data=datme, aes(x=1-dpsi_slope), fill="grey50", col="black", bins=10, alpha=0.7)+
+#   ylab("Number of species")+
+#   xlab("Anisohydricity")
+# 
+# ggplot() + my_theme() + 
+#   geom_histogram(data=datmm, aes(x=L..MPa.), alpha=0.4, bins=10, fill="green3") + 
+#   geom_histogram(data=datme, aes(x=-dpsi_intercept), fill="grey50", col="black", bins=10, alpha=0.7)+
+#   ylab("Number of species")+
+#   xlab("Leaf water potential\nunder wet conditions")
+# 
+
+```
+

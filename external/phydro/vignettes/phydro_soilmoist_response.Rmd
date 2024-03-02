@@ -1,0 +1,246 @@
+---
+title: "Phydro soil moisture response"
+author: "Jaideep Joshi"
+date: "2023-05-27"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(rphydro)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+```
+
+```{r}
+kphio = 0.087;        # quantum yield efficiency
+ppfd = 300;          # umol/m2/s
+vpd  = 1000;         # Pa
+co2  = 400;          # ppm
+elv  = 0;            # m.a.s.l.
+fapar = 0.7;         # fraction
+rdark = 0.015;
+tc = 25;
+vwind = 3;
+netrad = ppfd/2
+pa  = calc_patm(elv);            # m.a.s.l.
+
+par_cost = list(alpha=0.1, gamma=1);
+par_plant = list(conductivity=3e-17, psi50=-2, b=2);
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_DIFFUSION",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15",
+               scale_alpha = F)
+```
+
+## Acclimating response
+
+```{r}
+dat = tibble(psi_soil = seq(-6,0,length.out=50)) %>% mutate(dat = purrr::map(.x=psi_soil, .f = ~rphydro_analytical(tc, tc, ppfd, netrad, vpd, co2, pa, fapar, kphio, .x, rdark, vwind, par_plant, par_cost, options))) %>% unnest_wider(dat)
+```
+
+```{r}
+df.m <- dat %>% melt("psi_soil")
+
+ggplot(df.m, aes(y=value, x=psi_soil)) + 
+  geom_line(col="aquamarine4") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+## Instantaneous response
+
+```{r}
+acc = dat %>% filter(psi_soil == 0)
+
+dat_inst = tibble(psi_soil = seq(-6,0,length.out=50)) %>% mutate(dat = purrr::map(.x=psi_soil, .f = ~rphydro_instantaneous_analytical(acc$vcmax25, acc$jmax25, tc, tc, ppfd, netrad, vpd, co2, pa, fapar, kphio, .x, rdark, vwind, par_plant, par_cost, options))) %>% unnest_wider(dat)
+
+df.m1 <- dat_inst %>% melt("psi_soil")
+
+ggplot(df.m1, aes(y=value, x=psi_soil)) + 
+  geom_line(col="aquamarine4") + 
+  geom_vline(xintercept = 0, col="pink") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+
+### Compare ac, aj, in inst responses
+
+```{r}
+dat_inst %>% select(ac, aj, isVcmaxLimited) %>% mutate(isVcmaxLimited = isVcmaxLimited*5) %>%  matplot(x=dat_inst$psi_soil, type="l", lty=1, col=c("green4", "yellow3", "black"))
+abline(v=0, col="pink")
+```
+
+## Use approx gs calculation
+
+```{r}
+dat_apx = tibble(psi_soil = seq(-6,0,length.out=50)) %>% mutate(dat = purrr::map(.x=psi_soil, .f = ~rphydro_analytical(tc, tc, ppfd, netrad, vpd, co2, pa, fapar, kphio, .x, rdark, vwind, par_plant, par_cost, list_modify(options, gs_method = "GS_APX2")))) %>% unnest_wider(dat)
+```
+
+```{r}
+df.m2 <- dat_apx %>% melt("psi_soil")
+
+ggplot(df.m2, aes(y=value, x=psi_soil)) + 
+  geom_line(col="aquamarine4") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+
+
+### Compare GS_IGF and GS_APX
+
+
+```{r}
+cbind(dat$dpsi, dat_apx$dpsi) %>% matplot(x=dat$psi_soil, type="l", col=c("black", "cyan2"), lty=1, lwd=c(2,1))
+```
+
+
+### Use a softmin
+
+```{r}
+
+softmin = function(a,b){
+  (a*exp(-a)+b*exp(-b))/(exp(-a)+exp(-b))
+}
+
+ca = 40
+g = calc_gammastar(25, 1.01e5)
+K = calc_kmm(25, 1.01e5)
+t = 1
+tibble(x = seq(0., 1, length.out = 100)) %>% 
+  mutate(Ac = 15*(x*ca-g)/(x*ca+K)) %>% 
+  mutate(Aj = 27*(x*ca-g)/(x*ca+2*g)) %>% 
+  mutate(A= purrr::map2_dbl(.x=Ac, .y=Aj, .f=softmin)) %>% 
+  ggplot(aes(x=x)) + 
+  geom_line(aes(y=Ac), col="green") + 
+  geom_line(aes(y=Aj), col="yellow3") +
+  geom_line(aes(y=pmin(Ac, Aj))) + 
+  geom_line(aes(y=pmin(Ac,Aj)-(t/6)*(pmax(t-abs(Ac-Aj),0)/t)^3), col="cyan3")
+
+```
+
+## Acclimating response using Penmann-Monteith transpiration
+
+
+```{r}
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_PM",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15",
+               scale_alpha = F)
+
+dat_pml = tibble(psi_soil = seq(-6,0,length.out=50)) %>% mutate(dat = purrr::map(.x=psi_soil, .f = ~rphydro_analytical(tc, tc, ppfd, netrad, vpd, co2, pa, fapar, kphio, .x, rdark, vwind, par_plant, par_cost, options))) %>% unnest_wider(dat)
+```
+
+```{r}
+df.pml <- dat_pml %>% melt("psi_soil")
+
+ggplot(df.pml, aes(y=value, x=psi_soil)) + 
+  geom_line(col="aquamarine4") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+```
+
+### Compare PM vs Diffusive 
+
+```{r}
+par(mfrow=c(2,2), mar=c(4,4,1,1), oma=c(1,1,1,1))
+cbind(dat_pml$e, dat$e) %>% matplot(x=dat$psi_soil, type="l", lty=1, col=c("green4", "cyan3"), ylab="e", xlab="psi_soil")
+
+cbind(dat_pml$dpsi, dat$dpsi) %>% matplot(x=dat$psi_soil, type="l", lty=1, col=c("green4", "cyan3"), ylab="dpsi", xlab="psi_soil")
+
+cbind(dat_pml$a, dat$a) %>% matplot(x=dat$psi_soil, type="l", lty=1, col=c("green4", "cyan3"), ylab="a", xlab="psi_soil")
+
+cbind(dat_pml$gs, dat$gs) %>% matplot(x=dat$psi_soil, type="l", lty=1, col=c("green4", "cyan3"), ylab="gs", xlab="psi_soil")
+
+```
+
+
+## Acclimating response using Penmann-Monteith transpiration for different wind speeds
+
+
+```{r}
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_PM",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15",
+               scale_alpha = F)
+
+dat_pml2 = list(psi_soil = seq(-6,0,length.out=50), vwind=exp(seq(log(0.01),log(10),length.out=10))) %>% cross_df() %>% mutate(dat = purrr::map2(.x=psi_soil, .y=vwind, .f = ~rphydro_analytical(tc, tc, ppfd, netrad, vpd, co2, pa, fapar, kphio, .x, rdark, .y, par_plant, par_cost, options))) %>% unnest_wider(dat)
+```
+
+```{r fig.width=9}
+dat_pml2 %>% melt(c("psi_soil", "vwind")) %>% 
+  ggplot(aes(y=value, x=psi_soil, col=vwind, group=vwind)) + 
+    scale_colour_gradient2(low = "red", high="blue", mid = "grey70", midpoint=0, trans="log") +
+    geom_line() + 
+    theme_classic() +
+    theme(strip.background = element_rect(color = "white", size = 1))+
+    facet_wrap(~variable, scales = "free")
+
+```
+
+### Instantaneous version with PML transpiration
+
+```{r fig.width=9}
+dat_pml2_inst = list(psi_soil = seq(-6,0,length.out=50), vwind=exp(seq(log(0.01),log(10),length.out=10))) %>% cross_df() %>% 
+  left_join(dat_pml2 %>% 
+              select(vcmax25, jmax25, psi_soil, vwind)) %>% mutate(dat = purrr::pmap(.l = list(vcmax25, jmax25, psi_soil, vwind), .f = ~rphydro_instantaneous_analytical(..1, ..2, tc, tc, ppfd, netrad, vpd, co2, pa, fapar, kphio, ..3, rdark, ..4, par_plant, par_cost, options))) %>% select(-vcmax25, -jmax25) %>% unnest_wider(dat)
+
+dat_pml2_inst %>% melt(c("psi_soil", "vwind")) %>% 
+  ggplot(aes(y=value, x=psi_soil, col=vwind, group=vwind)) + 
+    scale_colour_gradient2(low = "red", high="blue", mid = "grey70", midpoint=0, trans="log") +
+    geom_line() + 
+    theme_classic() +
+    theme(strip.background = element_rect(color = "white", size = 1))+
+    facet_wrap(~variable, scales = "free")
+```
+
+## Test effect of canopy and measurement heights
+
+```{r}
+dat_pml3 = list(psi_soil = seq(-6,0,length.out=50), h_canopy = seq(1,50,length.out=10)) %>% cross_df() %>% mutate(dat = purrr::map2(.x=psi_soil, .y=h_canopy, .f = ~rphydro_analytical(tc, tc, ppfd, netrad, vpd, co2, pa, fapar, kphio, .x, rdark, vwind, par_plant %>% list_modify(h_canopy = .y, h_wind_measurement = .y+10), par_cost, options))) %>% unnest_wider(dat)
+
+dat_pml3 %>% melt(c("psi_soil", "h_canopy")) %>% 
+  ggplot(aes(y=value, x=psi_soil, col=h_canopy, group=h_canopy)) + 
+    scale_colour_gradient2(low = "red", high="blue", mid = "grey70", midpoint=20) +
+    geom_line() + 
+    theme_classic() +
+    theme(strip.background = element_rect(color = "white", size = 1))+
+    facet_wrap(~variable, scales = "free")
+```
+
+## Test effect of canopy height with fixed measurement height
+
+```{r}
+dat_pml3 = list(psi_soil = seq(-6,0,length.out=50), h_canopy = seq(1,50,length.out=10)) %>% cross_df() %>% mutate(dat = purrr::map2(.x=psi_soil, .y=h_canopy, .f = ~rphydro_analytical(tc, tc, ppfd, netrad, vpd, co2, pa, fapar, kphio, .x, rdark, vwind, par_plant %>% list_modify(h_canopy = .y, h_wind_measurement = 60), par_cost, options))) %>% unnest_wider(dat)
+
+dat_pml3 %>% melt(c("psi_soil", "h_canopy")) %>% 
+  ggplot(aes(y=value, x=psi_soil, col=h_canopy, group=h_canopy)) + 
+    scale_colour_gradient2(low = "red", high="blue", mid = "grey70", midpoint=20) +
+    geom_line() + 
+    theme_classic() +
+    theme(strip.background = element_rect(color = "white", size = 1))+
+    facet_wrap(~variable, scales = "free")
+```

@@ -1,0 +1,553 @@
+---
+title: "Testing Phydro with daily/subdaily FluxNET data"
+author: "Jaideep Joshi"
+date: "2023-05-27"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+rm(list=ls())
+library(rphydro)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+# library(FluxDataKit)
+```
+
+FluxDataKit installation throws an error. Just run the R files manually for now.
+
+```{r, echo = F, results='hide', message=FALSE, warning=F}
+list = list.files("~/codes/FluxDataKit/R/")
+map(paste0("~/codes/FluxDataKit/R/", list), source)
+```
+
+## Read and convert data in the desired format
+
+Read NetCDF data in Fluxnet format
+
+```{r}
+df_flux = fdk_convert_lsm(
+  site="CH-Dav",
+  path="~/Downloads/flux_data_kit_beta/fluxes/",
+  fluxnet_format = T,
+)
+```
+
+Read same data in LSM format
+
+```{r}
+df_lsm = fdk_convert_lsm(
+  site="CH-Dav",
+  path="~/Downloads/flux_data_kit_beta/fluxes/",
+  fluxnet_format = F,
+)
+```
+
+
+Downsample to daily using routine provided in FluxDataKit
+
+```{r}
+df_flux_daily = fdk_downsample_fluxnet(
+  df_flux,
+  site = "CH-Dav")
+
+# # Hack because FDK downsample is not working
+# df_flux_daily = df_lsm %>% mutate(date = as.Date(time, tz="GMT")) %>% 
+#   group_by(date) %>% summarize_all(.funs = mean)
+
+```
+
+Downsample to daily by simple averaging over dates
+
+```{r, warning=F}
+df_flux_daily2 = df_lsm %>% mutate(date = as.Date(time, tz="GMT")) %>% 
+  group_by(date) %>% summarize_all(.funs = mean)
+```
+
+
+Compare Fluxnet and LSM formatted values
+
+```{r}
+df_lsm %>% filter(as.Date(time) >= as.Date("2020-06-01") &
+               as.Date(time) <= as.Date("2020-06-03") ) %>% 
+  with(plot(GPP~as.POSIXct(time), type="l"))
+df_flux %>% filter(as.Date(as.POSIXct(TIMESTAMP_START, tz = "GMT", format="%Y%m%d%H%M")) >= as.Date("2020-06-01") &
+                 as.Date(as.POSIXct(TIMESTAMP_START, tz = "GMT", format="%Y%m%d%H%M")) <= as.Date("2020-06-03") ) %>% 
+  with(points(GPP_NT_VUT_REF~as.POSIXct(TIMESTAMP_START, tz = "GMT", format="%Y%m%d%H%M"), type="l", col="cyan4"))
+```
+
+Compare the two daily versions
+
+```{r}
+df_flux_daily %>% 
+  with(plot(GPP_NT_VUT_REF~as.POSIXct(TIMESTAMP, tz = "GMT"), type="l", col="black"))
+df_flux_daily2 %>% 
+  with(points(GPP~as.POSIXct(date, tz= "GMT"), type="l", col="cyan4"))
+
+df_flux_daily2 %>% filter(as.POSIXct(date, tz= "GMT") > as.POSIXct("2010-01-01")) %>% filter(LAI<10) %>%  
+  with(plot(LAI~as.POSIXct(date, tz= "GMT"), type="l", col="cyan4"))
+
+
+df_flux_daily %>% 
+  with(plot(GPP_DT_VUT_REF~as.POSIXct(TIMESTAMP, tz = "GMT"), type="l", col="black"))
+
+```
+
+## Downsample data to daily for phydro 
+
+### First try this on a test dataset with 3 days worth of data
+
+This aggregating function averages all variables over an interval of three hours centred at the time of maximum PPFD
+
+```{r}
+aggregate_daily = function(df){
+  # df %>% with(plot(SWdown~as.POSIXct(time), type="l"))
+  maxppfd = df %>% filter(SWdown == max(SWdown))
+  max_t = as.POSIXct(maxppfd$time[1], tz="GMT")
+  df_aroundmax = df %>% filter(as.POSIXct(time, tz="GMT") < (max_t + 3*3600) & 
+                               as.POSIXct(time, tz="GMT") > (max_t - 3*3600) )
+  # df_aroundmax %>% with(points(SWdown~as.POSIXct(time)), col="blue")
+  df_mean = df_aroundmax %>% group_by(IGBP_veg_short) %>% summarize_all(.funs = mean) # the group_by in this line is just to preserve the non-numeric IGBP_veg_short field
+  df_mean
+}
+```
+
+
+```{r}
+test.3day = df_lsm %>% filter(as.Date(time) >= as.Date("2020-06-01") &
+                 as.Date(time) <= as.Date("2020-06-03") ) 
+
+test.1day = df_lsm %>% filter(as.Date(time) == as.Date("2020-06-01"))
+
+test.3day.daily.custom = test.3day %>% group_by(as.Date(time)) %>% do(aggregate_daily(.))
+
+test.3day %>% select(time, SWdown, Tair, VPD, LAI, FPAR, GPP) %>% 
+  melt("time") %>% 
+  mutate(type="hourly") %>% 
+  rbind(test.3day.daily.custom %>% ungroup() %>% 
+          select(time, SWdown, Tair, VPD, LAI, FPAR, GPP) %>% 
+          melt("time") %>% 
+          mutate(type="daily")
+  ) %>% 
+  ggplot(aes(y=value, x=as.POSIXct(time))) + 
+  geom_line(data = . %>% filter(type == "hourly"), col="aquamarine4") + 
+  geom_point(data = . %>% filter(type == "daily")) + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+```
+
+### Compute daily aggregate for all data
+
+Daily aggregation takes a good 10 mins. So here, the daily timeseries is saved in a CSV file upon computation and read in subsequent knits. A flag is used to specify whether the daily timeseries should be recomputed - this is necessary if the underlying half-hourly data changes OR if the aggregate_daily() function changes.
+
+```{r}
+recompute_daily_ts = F
+if (recompute_daily_ts){
+  df_daily = df_lsm %>% group_by(as.Date(time)) %>% do(aggregate_daily(.))
+  df_daily %>% write.csv(file="~/Downloads/flux_data_kit_beta/df_daily.csv", row.names = F)
+} else {
+  df_daily = read.csv(file="~/Downloads/flux_data_kit_beta/df_daily.csv")
+}
+
+df_daily = df_daily %>% ungroup()
+
+# Impute missing/unrealistic LAI and FAPAR values using linear interpolation
+df_daily$LAI[df_daily$LAI > 10] = NA
+df_daily$LAI[1] = first(na.omit(df_daily$LAI))
+df_daily$LAI[length(df_daily$LAI)] = last(na.omit(df_daily$LAI))
+df_daily$LAI = zoo::na.approx(df_daily$LAI)
+
+df_daily$FPAR[df_daily$FPAR > 1] = NA
+df_daily$FPAR[df_daily$FPAR < 0] = NA
+df_daily$FPAR[1] = first(na.omit(df_daily$FPAR))
+df_daily$FPAR[length(df_daily$FPAR)] = last(na.omit(df_daily$FPAR))
+df_daily$FPAR = zoo::na.approx(df_daily$FPAR)
+
+df_lsm %>% filter(as.Date(time) > as.Date("2010-01-01") & 
+                  as.Date(time) < as.Date("2021-01-01") ) %>% 
+  select(time, GPP, SWdown, Tair, VPD, LAI, FPAR) %>% 
+  melt("time") %>% 
+  ggplot(aes(y=value, x=as.POSIXct(time))) + 
+  geom_line(col="aquamarine3") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free") + 
+  ggtitle("Half hourly data")
+
+df_daily %>% filter(as.Date(time) > as.Date("2011-01-01") & 
+                    as.Date(time) < as.Date("2021-01-01") ) %>%
+  select(time, GPP, SWdown, Tair, VPD, LAI, FPAR) %>% 
+  melt("time") %>% 
+  ggplot(aes(y=value, x=as.POSIXct(time))) + 
+  geom_line(col="aquamarine4") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free") + 
+  ggtitle("Daily data")
+```
+
+### Compute running averaged daily timeseries
+
+The acclimation timescale for photosynthesis ~14 days, so we need to take the rolling mean of all daily climatic varibles on this timescale. For this, we use the exponentially weighted rolling average.
+
+
+```{r}
+df_daily_rollmean = df_daily %>% select(SWdown, Tair, VPD, CO2air, elevation, Wind, FPAR, LAI)
+dt = (df_daily$time %>% as.POSIXct() %>% as.numeric() %>% diff())/86400 # time differences in days
+for (i in 2:nrow(df_daily)){
+  alpha = 1 - exp(-dt[i]/14)
+  df_daily_rollmean[i, ] = alpha*df_daily_rollmean[i, ] + (1-alpha)*df_daily_rollmean[i-1,]
+}
+df_daily_rollmean$time = df_daily$time
+
+df_daily_rollmean %>% 
+  filter(as.Date(time) > as.Date("2011-01-01") & 
+         as.Date(time) < as.Date("2021-01-01")) %>% 
+  as_tibble() %>%
+  melt("time") %>%
+  mutate(type="rollavg") %>%
+  rbind(df_daily %>% 
+          select(time, SWdown, Tair, VPD, CO2air, FPAR, LAI) %>% 
+          filter(as.Date(time) > as.Date("2011-01-01") & 
+                 as.Date(time) < as.Date("2021-01-01")) %>% 
+          melt("time") %>% 
+          mutate(type="orig")) %>%
+  ggplot(aes(y=value, x=as.POSIXct(time))) +
+  geom_line(data = . %>% filter(type == "orig"), col="aquamarine4") +
+  geom_line(data = . %>% filter(type == "rollavg"), col="red") +
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")+
+  ggtitle("Daily data (green) with rolling mean (red)")
+```
+
+## Run the phydro model on the daily scale
+
+Make wrappers for phydro that will enable using `purrr::map` with dataframe
+
+```{r}
+library(rphydro)
+
+rphydro_analytical_r = function(tc, ppfd, vpd,
+                                co2, elv, fapar,
+                                kphio, psi_soil, rdark,
+                                vwind, par_plant_leaf, par_cost, 
+                                options, lai, ...){
+  par_plant_crown = par_plant_leaf %>% list_modify(conductivity = par_plant_leaf$conductivity * lai)
+  rphydro::rphydro_analytical(tc, ppfd, vpd,
+                              co2, elv, fapar,
+                              kphio, psi_soil, rdark,
+                              vwind, 
+                              par_plant_crown, 
+                              par_cost, 
+                              options)  
+}
+
+
+rphydro_instantaneous_analytical_r = function(vcmax25, jmax25,
+                                tc, ppfd, vpd,
+                                co2, elv, fapar,
+                                kphio, psi_soil, rdark,
+                                vwind, par_plant_leaf, par_cost, 
+                                options, lai, ...){
+  
+  par_plant_crown = par_plant_leaf %>% list_modify(conductivity = par_plant_leaf$conductivity * lai)
+  rphydro::rphydro_instantaneous_analytical(vcmax25, jmax25,
+                              tc, ppfd, vpd,
+                              co2, elv, fapar,
+                              kphio, psi_soil, rdark,
+                              vwind, 
+                              par_plant_crown, 
+                              par_cost, 
+                              options)  
+}
+
+```
+
+### Acclimating response
+
+Forced with rolling mean climate data, we calculate vcmax and jmax using the acclimating version of the phydro model. 
+
+Note that this daily data is approximately daily maximum - averaged over 3hr intervals around daily max ppfd, and this averaging includes all variables including GPP. Therefore, the GPP predicted from the acclimating model should at least approximately equal the observed GPP in this dataset.
+
+```{r}
+
+par_cost = list(alpha=0.1, gamma=1);
+
+# K_ground = K_leaf * LAI
+# K_leaf for conifers ~ 0.16
+par_plant_leaf = list(conductivity=0.2e-16, psi50=-1.2, b=1);
+
+options = list(gs_method = "GS_IGF", 
+               et_method = "ET_PM",
+               ftemp_vj_method = "FV_kumarathunge19",
+               ftemp_rd_method = "FR_heskel16",
+               ftemp_br_method = "FB_atkin15",
+               scale_alpha = F)
+
+
+daily_rollmean_phydro = df_daily_rollmean %>% 
+  filter(as.Date(time) > as.Date("2011-01-01") & 
+         as.Date(time) < as.Date("2021-01-01")) %>% 
+  group_by(time) %>% 
+  summarize(
+    tc = Tair-273.16, 
+    ppfd = SWdown*2.04, 
+    vpd = VPD*100, 
+    co2 = CO2air, 
+    elv = elevation, 
+    fapar = FPAR,
+    lai = LAI,
+    vwind = Wind,
+  )
+
+acc = daily_rollmean_phydro %>% 
+  purrr::pmap_dfr(.f = rphydro_analytical_r, 
+                   kphio = 0.087, 
+                   psi_soil = 0, 
+                   rdark = 0.015, 
+                   par_plant = par_plant_leaf, 
+                   par_cost = par_cost, 
+                   options = options) %>% 
+  mutate(time = daily_rollmean_phydro$time)
+
+acc  %>% 
+  melt("time") %>% 
+  ggplot(aes(y=value, x=as.POSIXct(time))) + 
+  geom_line(col="aquamarine4") + 
+  geom_vline(xintercept = 25, col="pink") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+df_daily %>% 
+  filter(as.Date(time) > as.Date("2011-01-01") & 
+         as.Date(time) < as.Date("2021-01-01")) %>% 
+  select(time, GPP) %>% 
+  left_join(acc) %>% 
+  ggplot() + 
+  geom_line(aes(x=as.POSIXct(time), y=GPP)) + 
+  geom_line(aes(x=as.POSIXct(time), y=a), col="red") + 
+  theme_classic()
+
+  
+
+```
+
+### Instantaneous response
+
+Now, we use vcmax and jmax obtained from the acclimating model to force the instantaneous model. 
+
+Also, we force the inst model with daily mean data (mean over the entire day).
+
+First, apply gapfilling correction for LAI and FPAR in daily data
+
+```{r}
+gapfill = function(v){
+  v[1] = first(na.omit(v))
+  v[length(v)] = last(na.omit(v))
+  zoo::na.approx(v)
+}
+
+df_flux_daily2$LAI[df_flux_daily2$LAI > 10] = NA
+df_flux_daily2$LAI = gapfill(df_flux_daily2$LAI)
+
+df_flux_daily2$FPAR[df_flux_daily2$FPAR > 1] = NA
+df_flux_daily2$FPAR[df_flux_daily2$FPAR < 0] = NA
+df_flux_daily2$FPAR = gapfill(df_flux_daily2$FPAR)
+
+df_flux_daily2 %>% select(time, LAI, FPAR) %>% 
+  melt("time") %>% 
+  ggplot(aes(y=value, x=as.POSIXct(time))) + 
+  geom_line(col="aquamarine4") + 
+  geom_vline(xintercept = 25, col="pink") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+```
+
+```{r}
+
+daily_fulldaymean_phydro = df_flux_daily2 %>% 
+  filter(as.Date(time) > as.Date("2011-01-01") & 
+         as.Date(time) < as.Date("2021-01-01")) %>% 
+  group_by(time) %>% 
+  summarize(
+    tc = Tair-273.16, 
+    ppfd = SWdown*2.04, 
+    vpd = VPD*100, 
+    co2 = CO2air, 
+    elv = elevation, 
+    fapar = FPAR,
+    lai = LAI,
+    vwind = Wind,
+  ) %>% 
+  mutate(time = as.Date(time)) 
+
+acc_physio = acc %>% 
+  select(time, vcmax25, jmax25) %>% 
+  mutate(time = as.Date(time))
+
+inst = daily_fulldaymean_phydro %>% left_join(acc_physio) %>% 
+  purrr::pmap_dfr(.f = rphydro_instantaneous_analytical_r, 
+                   kphio = 0.087, 
+                   psi_soil = 0, 
+                   rdark = 0.015, 
+                   par_plant = par_plant_leaf, 
+                   par_cost = par_cost, 
+                   options = options) %>% 
+  mutate(time = daily_fulldaymean_phydro$time)
+  
+
+inst  %>% 
+  melt("time") %>% 
+  ggplot(aes(y=value, x=as.POSIXct(time))) + 
+  geom_line(col="aquamarine4") + 
+  geom_vline(xintercept = 25, col="pink") + 
+  theme_classic() +
+  theme(strip.background = element_rect(color = "white", size = 1))+
+  facet_wrap(~variable, scales = "free")
+
+df_flux_daily2 %>% 
+  filter(as.Date(time) > as.Date("2011-01-01") & 
+         as.Date(time) < as.Date("2021-01-01")) %>% 
+  select(time, GPP) %>%
+  mutate(time = as.Date(time)) %>% 
+  left_join(inst) %>% 
+  # filter(a>0) %>% 
+  ggplot() + 
+  geom_line(aes(x=as.POSIXct(time), y=GPP)) + 
+  geom_line(aes(x=as.POSIXct(time), y=a), col="red", alpha=0.7) + 
+  theme_classic()
+
+```
+
+```{r}
+df_flux_daily2 %>% 
+  filter(as.Date(time) > as.Date("2011-01-01") & 
+         as.Date(time) < as.Date("2021-01-01")) %>% 
+  select(time, GPP) %>%
+  mutate(time = as.Date(time)) %>% 
+  left_join(inst) %>% 
+  # filter(a>0) %>% 
+  ggplot() + 
+  geom_point(aes(x=a, y=GPP)) +
+  geom_abline(slope=1, intercept = 0, col="red")+
+  theme_classic()
+
+df_flux_daily2 %>% 
+  filter(as.Date(time) > as.Date("2011-01-01") & 
+         as.Date(time) < as.Date("2021-01-01")) %>% 
+  select(time, GPP, SWdown) %>%
+  mutate(time = as.Date(time)) %>% 
+  left_join(inst) %>% 
+  # filter(a>0) %>% 
+  ggplot() + 
+  geom_point(aes(x=a/(SWdown*2.04), y=GPP/(SWdown*2.04))) +
+  geom_abline(slope=1, intercept = 0, col="red")+
+  theme_classic()+
+  ylim(c(-0.1, 0.1))
+
+```
+
+
+
+<!-- ```{r} -->
+<!-- library(rphydro) -->
+
+<!-- par_cost = list(alpha=0.1, gamma=1); -->
+
+<!-- # K_ground = K_leaf * LAI -->
+<!-- # K_leaf for conifers ~ 0.16 -->
+<!-- par_plant_leaf = list(conductivity=0.17e-16, psi50=-1.2, b=1); -->
+
+<!-- options = list(gs_method = "GS_IGF",  -->
+<!--                et_method = "ET_DIFFUSION", -->
+<!--                ftemp_vj_method = "FV_kumarathunge19", -->
+<!--                ftemp_rd_method = "FR_heskel16", -->
+<!--                ftemp_br_method = "FB_atkin15", -->
+<!--                scale_alpha = F) -->
+
+
+
+<!-- test.3day.daily.phydro = test.3day.daily.custom %>%  -->
+<!--   group_by(time) %>%  -->
+<!--   summarize( -->
+<!--     tc = Tair-273.16,  -->
+<!--     ppfd = SWdown*2.04,  -->
+<!--     vpd = VPD*100,  -->
+<!--     co2 = CO2air,  -->
+<!--     elv = elevation,  -->
+<!--     fapar = FPAR, -->
+<!--     lai = LAI, -->
+<!--     vwind = Wind, -->
+<!--   ) -->
+
+
+<!-- acc = test.3day.daily.phydro %>% slice(1) %>%  -->
+<!--         purrr::pmap_dfr(.f = rphydro_analytical_r,  -->
+<!--                          kphio = 0.087,  -->
+<!--                          psi_soil = 0,  -->
+<!--                          rdark = 0.015,  -->
+<!--                          par_plant = par_plant_leaf,  -->
+<!--                          par_cost = par_cost,  -->
+<!--                          options = options) -->
+
+
+<!-- test.3day.phydro = test.3day %>%  -->
+<!--   group_by(time) %>%  -->
+<!--   summarize( -->
+<!--     tc = Tair-273.16,  -->
+<!--     ppfd = SWdown*2.04,  -->
+<!--     vpd = VPD*100,  -->
+<!--     co2 = CO2air,  -->
+<!--     elv = elevation,  -->
+<!--     fapar = FPAR,  -->
+<!--     lai = LAI, -->
+<!--     vwind = Wind  -->
+<!--   ) -->
+
+
+<!-- inst = test.3day.phydro %>% -->
+<!--         purrr::pmap_dfr(.f = rphydro_instantaneous_analytical_r, -->
+<!--                         vcmax25 = acc$vcmax25, -->
+<!--                         jmax25 = acc$jmax25, -->
+<!--                         kphio = 0.087,  -->
+<!--                         psi_soil = 0,  -->
+<!--                         rdark = 0.015,  -->
+<!--                         par_plant = par_plant_leaf,  -->
+<!--                         par_cost = par_cost,  -->
+<!--                         options = options) -->
+
+<!-- test.3day %>% with(plot(GPP~as.POSIXct(time), type="l")) -->
+<!-- inst %>% with(points(a~as.POSIXct(test.3day$time), type="l", col="green4"), lwd=3)        -->
+<!-- # inst %>% with(points(I(vcmax*0.5)~as.POSIXct(test.3day$time), type="l", col="green3")) -->
+<!-- # inst %>% with(points(I(dpsi*10)~as.POSIXct(test.3day$time), type="l", col="cyan3")) -->
+
+<!-- test.3day.phydro %>% melt("time") %>%  -->
+<!--   ggplot(aes(y=value, x=as.POSIXct(time))) +  -->
+<!--   geom_line(col="aquamarine4") +  -->
+<!--   geom_vline(xintercept = 25, col="pink") +  -->
+<!--   theme_classic() + -->
+<!--   theme(strip.background = element_rect(color = "white", size = 1))+ -->
+<!--   facet_wrap(~variable, scales = "free") -->
+
+<!-- inst %>% mutate(time = test.3day$time) %>% melt("time") %>%  -->
+<!--   ggplot(aes(y=value, x=as.POSIXct(time))) +  -->
+<!--   geom_line(col="aquamarine4") +  -->
+<!--   geom_vline(xintercept = 25, col="pink") +  -->
+<!--   theme_classic() + -->
+<!--   theme(strip.background = element_rect(color = "white", size = 1))+ -->
+<!--   facet_wrap(~variable, scales = "free") -->
+
+<!-- ``` -->
+
+
