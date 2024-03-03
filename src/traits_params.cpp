@@ -14,11 +14,13 @@ void PlantTraits::init(io::Initializer &I){
 	K_leaf = I.get<double>("K_leaf");
 	K_xylem = I.get<double>("K_xylem");
 	b_leaf = I.get<double>("b_leaf");	
-	b_xylem = I.get<double>("b_xylem");	
+	b_xylem = I.get<double>("b_xylem");
+	sm_xylem = I.get<double>("sm_xylem");
 	m = I.get<double>("m");
 	n = I.get<double>("n");
 	a = I.get<double>("a");	
-	c = I.get<double>("c");	
+	c = I.get<double>("c");
+	// p50_leaf = // set by coordination
 }
 
 void PlantTraits::initFromFile(std::string fname){
@@ -42,6 +44,7 @@ bool PlantTraits::operator == (const PlantTraits& rhs) const {
 		this->K_xylem  == rhs.K_xylem &&
 		this->b_leaf	== rhs.b_leaf &&
 		this->b_xylem == rhs.b_xylem &&
+		this->sm_xylem == rhs.sm_xylem &&
 		this->m	== rhs.m &&
 		this->n	== rhs.n &&
 		this->a	== rhs.a &&
@@ -50,12 +53,13 @@ bool PlantTraits::operator == (const PlantTraits& rhs) const {
 
 
 // Changelog:
-// v2: m,n,a,c move to traits from parameters
+// v2: m,n,a,c moved to traits from parameters
+// v3: added p50leaf in save/restore
 void PlantTraits::save(std::ostream &fout){
-	fout << "Traits::v2 ";
+	fout << "Traits::v3 ";
 	fout << std::quoted(species_name) << ' ';
 	fout << std::make_tuple(
-					lma
+				  lma
 				, zeta        
 				, fcr         
 				, hmat        
@@ -67,10 +71,12 @@ void PlantTraits::save(std::ostream &fout){
 				, K_xylem     
 				, b_leaf      
 				, b_xylem
+				, sm_xylem
 				, m
 				, n
 				, a
-				, c    
+				, c
+				, p50_leaf  
 				);
 	fout << '\n';
 }
@@ -78,7 +84,7 @@ void PlantTraits::save(std::ostream &fout){
 
 void PlantTraits::restore(std::istream &fin){
 	std::string s; fin >> s; // discard version number
-	assert(s == "Traits::v2");
+	assert(s == "Traits::v3");
 
 	fin >> std::quoted(species_name);
 	fin >> lma
@@ -93,10 +99,12 @@ void PlantTraits::restore(std::istream &fin){
 		>> K_xylem     
 		>> b_leaf      
 		>> b_xylem
+		>> sm_xylem
 		>> m
 		>> n
 		>> a
-		>> c;
+		>> c
+		>> p50_leaf;
 }
 
 void PlantTraits::print(){
@@ -113,10 +121,12 @@ void PlantTraits::print(){
 	std::cout << "   K_xylem      = " << K_xylem      << '\n';
 	std::cout << "   b_leaf       = " << b_leaf       << '\n';
 	std::cout << "   b_xylem      = " << b_xylem      << '\n';
+	std::cout << "   sm_xylem     = " << sm_xylem     << '\n';
 	std::cout << "   m            = " << m            << '\n';
 	std::cout << "   n            = " << n            << '\n';
 	std::cout << "   a            = " << a            << '\n';
 	std::cout << "   c            = " << c            << '\n';
+	std::cout << "   p50_leaf     = " << p50_leaf     << '\n';
 }
 
 

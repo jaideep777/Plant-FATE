@@ -30,16 +30,15 @@ class PlantTraits{
 	double K_xylem;         ///< Leaf conductivity [m]
 	double b_leaf;          ///< Shape parameter of leaf vulnerabilty curve [-]
 	double b_xylem;         ///< Shape parameter of leaf vulnerabilty curve [-]
+	double sm_xylem;        ///< Xylem safety margin (P50x - Pg88) [MPa]
 	double m;               ///< Crown shape flatness at the top
 	double n;               ///< Crown top-heaviness 
+
+	// traits set by coordination
 	double a;               ///< Initial height to diameter ratio 
 	double c;               ///< Crown area to sapwood area ratio
+	double p50_leaf;        ///< Leaf or whole-plant hydraulic vulnerability [MPa] (calculated from Xylem P50 and Safety margin)
 	
-
-	// traits set via coordination
-	public:
-	// double ll;              ///< leaf-longevity (as a function of LMA and environment)
-	double p50_leaf;        ///< Leaf hydraulic vulnerability [MPa] (calculated from Xylem P50)
 
 	public:
 	void init(io::Initializer &I);

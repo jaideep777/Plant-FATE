@@ -47,7 +47,8 @@ int main(int argc, char ** argv){
 		// err = is_equal(ba, {1.723965758, 7.637388237, 26.86261917});  // this is the output  at BIWEEKLY step_to after imlepmenting instantaneous version of phydro @ea5b867. 
 		// err = is_equal(ba, {1.724216996, 7.638630557, 26.87059782});  // this is the output  at BIWEEKLY step_to after setting acclimation timescale to 7 days.
 		// err = is_equal(ba, {1.723887226, 7.637860375, 26.86129712});  // this is the output  at BIWEEKLY step_to after adding 1-e6 to t in climate reading, and setting acclim_tc as t_growth in inst model.
-		err = is_equal(ba, {1.723740236, 7.642284321, 26.8675819});  // this is the output  at BIWEEKLY step_to after moving calc_seed_rain_r0.out of afterStep() and after step_to(). Difference is because there are still some tiny steps. 
+		// err = is_equal(ba, {1.723740236, 7.642284321, 26.8675819});  // this is the output  at BIWEEKLY step_to after moving calc_seed_rain_r0.out of afterStep() and after step_to(). Difference is because there are still some tiny steps. 
+		err = is_equal(ba, {1.723090486, 7.639859488, 26.85158121});  // this is the output  at BIWEEKLY step_to after using actual p88/p50 ratio, instead of 3.01, in coordinateTraits()
 
 
 		sim.close();
