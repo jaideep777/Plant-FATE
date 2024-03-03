@@ -32,8 +32,10 @@ void Plant::coordinateTraits(){
 	double p88_by_p50 = pow(log(0.12)/log(0.5), 1/traits.b_leaf);
 	traits.p50_leaf = p88_leaf/p88_by_p50;        // P50 = Pg88/3 = P50X/3
 	
-//	traits.K_leaf = exp(1.71-8.628*traits.lma)*1e-16;
-	
+	// traits.K_leaf = traits.K_leaf*(traits.zeta/0.2); // exp(1.71-8.628*traits.lma)*1e-16;
+
+	// traits.alpha = traits.alpha*(0.2/traits.zeta);
+
 	traits.c = exp(8.968 - 2.6397*traits.hmat/50.876);
 	traits.a = exp(5.886 - 1.4952*traits.hmat/50.876);
 
