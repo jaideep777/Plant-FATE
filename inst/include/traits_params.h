@@ -108,7 +108,7 @@ class PlantParameters{
 	double m_alpha, m_beta, m_gamma;
 	double eWD_alpha, eWD_gamma;
 	double cWD0, eWD;
-
+	double m_hydraulic;
 	
 	public:
 	void init(io::Initializer &I);

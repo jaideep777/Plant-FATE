@@ -36,7 +36,15 @@ class Plant{
 		// double dseeds_dt_pool;
 		// double dseeds_dt_germ;
 	} rates;	
-		
+
+	/// @brief Mortality components
+	struct{
+		double mu_0;       ///< baseline constant mortality rate
+		double mu_hyd;     ///< Mortality rate due to xylem cavitation
+		double mu_d;       ///< Diameter dependent mortality rate
+		double mu_growth;  ///< growth dependent mortality rate
+	} mort;	
+
 	/// @brief Derivatives used for biomass partitioning
 	struct {
 		double dmass_dt_lai;

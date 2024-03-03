@@ -1,4 +1,5 @@
 # R script to test:
+library(tidyverse)
 
 plot_plant_trajectory = function(dat){
   dat$leaf_area = dat$crown_area * dat$lai
@@ -80,7 +81,10 @@ plot_plant_trajectory = function(dat){
   
   plot(I(dat$mortality)~dat$i, ylab="Cumulative\nMortality", xlab="Year", type="l")
   
-  plot(I(dat$mortality_inst[dat$diameter<0.5])~dat$diameter[dat$diameter<0.5], ylab="Instantaneous\nmortality rate", xlab="Diameter", type="l")
+  # Instantaneous mortality
+  dat %>% filter(diameter<0.5) %>% 
+    select(i, mortrate_0, mortrate_growth, mortrate_d, mortrate_hyd, mortality_inst) %>% 
+    with(matplot(y=.[,-1], x=.[,1], ylab="Instantaneous\nmortality rate", xlab="Diameter", type="l", lty=1, col=c("yellow3", "green3", "brown", "blue", "black")))
   
   matplot(y=cbind(dat$sapwood_fraction, 
                 dat$heartwood_fraction),

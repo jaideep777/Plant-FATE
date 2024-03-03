@@ -76,7 +76,7 @@ double Plant::mortality_rate(Env &env, double t){
 // //	double wd = (traits.wood_density/1000);
 // //	double mu_d   = exp(par.c0 + par.clnD*log(D) + par.cD*D + par.cWD*(wd*wd-par.cWD0*par.cWD0) + par.cS0*exp(-par.cS*bp.dmass_dt_tot));
 // //	return mu_d;
-	double mu = 0;
+	// double mu = 0;
 	
 // 	double r = par.c0 + 
 // 	            par.cL*log(res.c_open_avg*100) + 
@@ -96,10 +96,21 @@ double Plant::mortality_rate(Env &env, double t){
 // 	mu += 1/(1+exp(-(r)));
 // 	//fmuh << mu << "\n";
 
-	mu = par.m_gamma*pow(traits.wood_density/par.cWD0, par.eWD_gamma) +  //*pow(traits.wood_density/600, -1.8392) + 
-	     par.m_alpha*pow(traits.wood_density/par.cWD0, par.eWD_alpha)*exp(-par.m_beta * rates.rgr*D*100) +
-		 par.cD0*pow(traits.wood_density/par.cWD0, par.eWD)*pow(D, par.eD0) + 
-		 par.cD1*exp(-D/0.01);
+	double fcrit = 0.05;
+	double pcrit_by_p50 = pow(log(fcrit)/log(0.5), 1/traits.b_xylem);
+	double pcrit_xylem = traits.p50_xylem*pcrit_by_p50;
+	double psi_xylem = env.clim_inst.swp - res.dpsi_avg/2;
+
+	double mu_hyd_norm = (psi_xylem <= pcrit_xylem)? 1e6 : std::fmin(1e6, atanh(pow(psi_xylem/pcrit_xylem, traits.b_xylem)));
+	// std::cout << "Hyd mortality rate (" << traits.species_name << ", h=" << geometry.height << "): " <<  res.dpsi_avg << " --> " << psi_xylem << " / " << pcrit_xylem << " --> " << mu_hyd << '\n';
+
+	mort.mu_0      = par.m_gamma*pow(traits.wood_density/par.cWD0, par.eWD_gamma);   //*pow(traits.wood_density/600, -1.8392) + 
+	mort.mu_growth = par.m_alpha*pow(traits.wood_density/par.cWD0, par.eWD_alpha)*exp(-par.m_beta * rates.rgr*D*100);
+	mort.mu_d	   = par.cD0*pow(traits.wood_density/par.cWD0, par.eWD)*pow(D, par.eD0) + 
+		             par.cD1*exp(-D/0.01);  
+	mort.mu_hyd	   = par.m_hydraulic*mu_hyd_norm;
+
+	double mu = mort.mu_0 + mort.mu_growth + mort.mu_d + mort.mu_hyd;
 
 	// mu = pow(traits.wood_density/par.cWD0, par.eWD)*
 	// 	 (par.m_gamma + 

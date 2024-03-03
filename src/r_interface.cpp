@@ -38,6 +38,7 @@ RCPP_MODULE(plantfate_module){
 		.field("K_xylem",      &plant::PlantTraits::K_xylem)
 		.field("b_leaf",       &plant::PlantTraits::b_leaf)
 		.field("b_xylem",      &plant::PlantTraits::b_xylem)
+		.field("sm_xylem",      &plant::PlantTraits::sm_xylem)
 		.field("m",            &plant::PlantTraits::m)
 		.field("n",            &plant::PlantTraits::n)
 		.field("a",            &plant::PlantTraits::a)
@@ -58,6 +59,7 @@ RCPP_MODULE(plantfate_module){
 		.field("eWD_gamma",    &plant::PlantParameters::eWD_gamma)
 		.field("cWD0",         &plant::PlantParameters::cWD0)
 		.field("eWD",          &plant::PlantParameters::eWD)
+		.field("m_hydraulic",  &plant::PlantParameters::m_hydraulic)
 
 		.constructor()
 		.method("print", &plant::PlantParameters::print)	

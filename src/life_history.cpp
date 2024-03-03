@@ -113,6 +113,10 @@ vector<std::string> LifeHistoryOptimizer::get_header(){
 		, "litter_mass"
 		, "mortality"
 		, "mortality_inst"
+		, "mortrate_0"
+		, "mortrate_growth"
+		, "mortrate_d"
+		, "mortrate_hyd"
 		, "leaf_lifespan"
 		, "fineroot_lifespan" 
 	};
@@ -156,6 +160,10 @@ vector<double> LifeHistoryOptimizer::get_state(double t){
 		, litter_pool
 		, P.state.mortality
 		, P.rates.dmort_dt
+		, P.mort.mu_0
+		, P.mort.mu_growth
+		, P.mort.mu_d
+		, P.mort.mu_hyd
 		, 1/P.assimilator.kappa_l
 		, 1/P.assimilator.kappa_r
 		};

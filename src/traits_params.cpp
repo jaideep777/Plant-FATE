@@ -177,6 +177,7 @@ void PlantParameters::init(io::Initializer &I){
 	eWD_gamma          = I.get<double>("eWD_gamma");
 	cWD0               = I.get<double>("cWD0");
 	eWD                = I.get<double>("eWD");
+	m_hydraulic        = I.get<double>("m_hydraulic");
 }
 
 
@@ -195,8 +196,10 @@ void PlantParameters::print(){
 	std:: cout << "   y     = " << y  << "\n";
 }
 
+// Changelog:
+// v3: add m_hydraulic
 void PlantParameters::save(std::ostream &fout){
-	fout << "Params::v2 ";
+	fout << "Params::v3 ";
 	fout << std::make_tuple(
 		  kphio
 		, alpha
@@ -237,6 +240,7 @@ void PlantParameters::save(std::ostream &fout){
 		, eWD_gamma
 		, cWD0
 		, eWD
+		, m_hydraulic
 			);
 	fout << '\n';
 }
@@ -244,7 +248,7 @@ void PlantParameters::save(std::ostream &fout){
 
 void PlantParameters::restore(std::istream &fin){
 	std::string s; fin >> s; // discard version number
-	assert(s == "Params::v2");
+	assert(s == "Params::v3");
 
 	fin >> kphio
 		>> alpha
@@ -285,6 +289,7 @@ void PlantParameters::restore(std::istream &fin){
 		>> eWD_gamma
 		>> cWD0
 		>> eWD
+		>> m_hydraulic
 	;
 }
 
