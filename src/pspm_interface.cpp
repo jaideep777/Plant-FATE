@@ -125,10 +125,10 @@ vector<double>::iterator PSPM_Plant::get_accumulatorRates(vector<double>::iterat
 /// @details    This function is called by the solver when printing a species. 
 void PSPM_Plant::print(std::ostream &out) const {
 	out << std::setw(10) << setprecision(3) << traits.species_name;
-	vector<double> traits_vec = (const_cast<PSPM_Plant*>(this))->get_evolvableTraits();
-	for (auto e : traits_vec){
-		out << std::setw(10) << setprecision(5) << "|" << e << "| ";
-	}
+	// vector<double> traits_vec = (const_cast<PSPM_Plant*>(this))->get_evolvableTraits();
+	// for (auto e : traits_vec){
+	// 	out << std::setw(10) << setprecision(5) << "|" << e << "| ";
+	// }
 	out << std::setw(10) << setprecision(3) << geometry.get_size() 
 	    << std::setw(10) << setprecision(3) << rates.dsize_dt 
 	    << std::setw(10) << setprecision(3) << geometry.lai 

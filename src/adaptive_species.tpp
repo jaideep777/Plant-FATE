@@ -16,14 +16,14 @@ AdaptiveSpecies<Model>::AdaptiveSpecies(Model M, bool res) : Species<Model>(M) {
 
 template <class Model>
 void AdaptiveSpecies<Model>::set_traits(std::vector<double> tvec){
-	this->boundaryCohort.set_evolvableTraits(tvec);
-	for (auto& c : this->cohorts) c.set_evolvableTraits(tvec);
+	this->boundaryCohort.set_evolvableTraits(evolvable_traits, tvec);
+	for (auto& c : this->cohorts) c.set_evolvableTraits(evolvable_traits, tvec);
 }
 
 
 template <class Model>
 std::vector<double> AdaptiveSpecies<Model>::get_traits(){
-	return this->boundaryCohort.get_evolvableTraits();
+	return this->boundaryCohort.get_evolvableTraits(evolvable_traits);
 }
 
 
@@ -86,15 +86,11 @@ void AdaptiveSpecies<Model>::print_extra(){
 	std::cout << "Probes: ";
 	for (auto x : probes) std::cout << x->species_name << " ";
 	std::cout << "\n";
-	std::cout << "Fitness gradient: ";
-	for (auto x : fitness_gradient) std::cout << x << " ";
-	std::cout << "\n";
-	std::cout << "Trait variance: ";
-	for (auto x : trait_variance) std::cout << x << " ";
-	std::cout << "\n";
-	std::cout << "Trait scalars: ";
-	for (auto x : trait_scalars) std::cout << x << " ";
-	std::cout << "\n";     // these scalars will be applied to fg_dx
+	std::cout << "Trait names: " << evolvable_traits << '\n';
+	std::cout << "Trait values: " << std::setprecision(10) << get_traits() << '\n';
+	std::cout << "Trait variance: " << trait_variance << '\n';
+	std::cout << "Trait scalars: " << trait_scalars << '\n';
+	std::cout << "Fitness gradient: " << fitness_gradient << '\n';
 }
 
 // Changelog:

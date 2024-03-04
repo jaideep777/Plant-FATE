@@ -84,9 +84,9 @@ class Plant{
 	/// @addtogroup trait_evolution
 	/// @{
 	/// @brief Set values for evolvable traits from vector
-	void set_evolvableTraits(std::vector<double> tvec);
+	void set_evolvableTraits(const std::vector<std::string>& tnames, const std::vector<double>& tvalues);
 	/// @brief Return values of evolvable traits in a vector
-	std::vector<double> get_evolvableTraits();
+	std::vector<double> get_evolvableTraits(const std::vector<std::string>& tnames);
 	/// @}
 
 	/// @brief  Set size (diameter and all associated variables) from x

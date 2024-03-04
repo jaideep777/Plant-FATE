@@ -47,6 +47,7 @@ class PlantFateConfig{
 
 	std::string solver_method;
 
+	std::vector<std::string> evolvable_traits;
 	std::vector<double> trait_variances;
 	std::vector<double> trait_scalars;
 	double T_r0_avg;

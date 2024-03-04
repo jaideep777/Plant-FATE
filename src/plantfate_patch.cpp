@@ -27,6 +27,7 @@ Patch::Patch(std::string params_file) : S("IEBT", "rk45ck") {
 	config.n_species = I.get<double>("nSpecies");
 
 	config.evolve_traits = (I.get<string>("evolveTraits") == "yes")? true : false;
+	config.evolvable_traits = I.get_vector<std::string>("evolvableTraits");
 	config.trait_scalars = I.get_vector<double>("traitScalars");
 	config.trait_variances = I.get_vector<double>("traitVariances");
 	config.T_r0_avg = I.get<double>("T_r0_averaging");
@@ -249,6 +250,7 @@ void Patch::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 	
 	AdaptiveSpecies<PSPM_Plant>* spp = new AdaptiveSpecies<PSPM_Plant>(p1);
 	spp->species_name = traits.species_name;
+	spp->evolvable_traits = config.evolvable_traits;
 	spp->trait_scalars = config.trait_scalars; //{800, 25};
 	spp->trait_variance = config.trait_variances; // vector<double>(2, 0.01);
 	spp->r0_hist.set_interval(config.T_r0_avg);

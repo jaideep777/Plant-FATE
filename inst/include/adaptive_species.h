@@ -36,6 +36,7 @@ class AdaptiveSpecies : public Species<Model>{
 	double invasion_fitness;
 	double r0;
 	std::vector<AdaptiveSpecies<Model>*> probes;
+	std::vector<std::string> evolvable_traits;
 	std::vector<double> fitness_gradient;
 	std::vector<double> trait_variance;
 	std::vector<double> trait_scalars;     // these scalars will be applied to fg_dx
