@@ -43,13 +43,15 @@ public:
 	double wd=0;
 	double gs=0;
 	double vcmax=0;
-	
+	double dpsi=0;
+
 	std::vector<double> n_ind_vec;
 	std::vector<double> biomass_vec;
 	std::vector<double> ba_vec;
 	std::vector<double> canopy_area_vec;
 	std::vector<double> height_vec;
 	std::vector<double> vcmax_vec;
+	std::vector<double> dpsi_vec;
 	
 	std::vector<double> lma_vec;
 	std::vector<double> p50_vec;
@@ -81,7 +83,7 @@ public:
 	double croot_mass=0;
 	double froot_mass=0;
 	double cc_est=0;
-	
+
 	std::vector <double> lai_vert;
 
 	

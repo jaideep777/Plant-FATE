@@ -12,6 +12,7 @@ void SpeciesProps::resize(int n){
 	canopy_area_vec.resize(n);
 	height_vec.resize(n);
 	vcmax_vec.resize(n);
+	dpsi_vec.resize(n);
 	hmat_vec.resize(n);
 	lma_vec.resize(n);
 	wd_vec.resize(n);
@@ -26,6 +27,7 @@ SpeciesProps& SpeciesProps::operator /= (double s){
 	canopy_area/=s;
 	height/=s;
 	vcmax/=s;
+	dpsi/=s;
 	lma/=s;
 	p50/=s;
 	hmat/=s;
@@ -37,6 +39,7 @@ SpeciesProps& SpeciesProps::operator /= (double s){
 	transform(canopy_area_vec.begin(), canopy_area_vec.end(), canopy_area_vec.begin(), [s](const double &c){ return c/s; });
 	transform(height_vec.begin(), height_vec.end(), height_vec.begin(), [s](const double &c){ return c/s; });
 	transform(vcmax_vec.begin(), vcmax_vec.end(), vcmax_vec.begin(), [s](const double &c){ return c/s; });
+	transform(dpsi_vec.begin(), dpsi_vec.end(), dpsi_vec.begin(), [s](const double &c){ return c/s; });
 	transform(lma_vec.begin(), lma_vec.end(), lma_vec.begin(), [s](const double &c){ return c/s; });
 	transform(p50_vec.begin(), p50_vec.end(), p50_vec.begin(), [s](const double &c){ return c/s; });
 	transform(hmat_vec.begin(), hmat_vec.end(), hmat_vec.begin(), [s](const double &c){ return c/s; });
@@ -53,6 +56,7 @@ SpeciesProps& SpeciesProps::operator += (const SpeciesProps &s){
 	canopy_area+=s.canopy_area;
 	height+=s.height;
 	vcmax+=s.vcmax;
+	dpsi+=s.dpsi;
 	lma+=s.lma;
 	p50+=s.p50;
 	hmat+=s.hmat;
@@ -64,6 +68,7 @@ SpeciesProps& SpeciesProps::operator += (const SpeciesProps &s){
 	transform(canopy_area_vec.begin(), canopy_area_vec.end(), s.canopy_area_vec.begin(), canopy_area_vec.begin(),std::plus<double>());
 	transform(height_vec.begin(), height_vec.end(), s.height_vec.begin(), height_vec.begin(),std::plus<double>());
 	transform(vcmax_vec.begin(), vcmax_vec.end(), s.vcmax_vec.begin(), vcmax_vec.begin(), std::plus<double>());
+	transform(dpsi_vec.begin(), dpsi_vec.end(), s.dpsi_vec.begin(), dpsi_vec.begin(), std::plus<double>());
 	transform(lma_vec.begin(), lma_vec.end(), s.lma_vec.begin(), lma_vec.begin(),std::plus<double>());
 	transform(p50_vec.begin(), p50_vec.end(), s.p50_vec.begin(), p50_vec.begin(),std::plus<double>());
 	transform(hmat_vec.begin(), hmat_vec.end(), s.hmat_vec.begin(), hmat_vec.begin(),std::plus<double>());
@@ -218,6 +223,25 @@ void SpeciesProps::update(double t, Solver &S){
 	double ca_uc = std::accumulate(canopy_area_uc.begin(), canopy_area_uc.end(), 0.0);
 	vcmax /= ca_uc;
 
+	// Upper canopy dpsi
+	dpsi_vec.clear();
+	dpsi_vec.resize(S.n_species(), 0);
+	// vector<double> canopy_area_uc(S.n_species(), 0);
+	for (int k=0; k<S.n_species(); ++k)
+		if (isResident(S.species_vec[k])){
+			dpsi_vec[k] = S.integrate_wudx_above([&S,k, h_uc](int i, double t){
+											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+											return (p.geometry.height > h_uc)? (p.res.dpsi_avg * p.geometry.crown_area) : 0;
+									}, t, {0.01}, k);
+			// canopy_area_uc[k] = S.integrate_wudx_above([&S,k, h_uc](int i, double t){
+			// 								auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
+			// 								return (p.geometry.height > h_uc)? p.geometry.crown_area : 0;
+			// 						}, t, {0.01}, k);
+		}	
+	dpsi = std::accumulate(dpsi_vec.begin(), dpsi_vec.end(), 0.0);
+	// double ca_uc = std::accumulate(canopy_area_uc.begin(), canopy_area_uc.end(), 0.0);
+	dpsi /= ca_uc;
+
 }
 
 
@@ -348,7 +372,7 @@ void SolverIO::openStreams(std::string dir){
 	ftraits.open(std::string(dir + "/" + traits_file).c_str());
 	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
-	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tCCEST\tCO2\n";
+	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tDPSI\tCCEST\tCO2\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
 	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tZETA\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
@@ -446,6 +470,7 @@ void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
 			<< props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
 			<< props.lai << "\t"
 			<< cwm.vcmax << "\t"
+			<< cwm.dpsi << "\t"
 			<< props.cc_est << "\t"
 			<< static_cast<PSPM_Environment*>(S->env)->clim_inst.co2 << std::endl;
 	
