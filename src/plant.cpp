@@ -41,8 +41,8 @@ void Plant::coordinateTraits(){
 
 	geometry.init(par, traits);
 	
-	std::cout << "Coordinated traits:\n";
-	traits.print();
+	// std::cout << "Coordinated traits:\n";
+	// traits.print();
 }
 
 
@@ -54,22 +54,18 @@ double Plant::get_biomass() const{
 	return geometry.total_mass(traits);
 }
 
-void Plant::set_evolvableTraits(std::vector<double> tvec){
-	vector<double>::iterator it = tvec.begin();
-	// traits.lma = *it++;
-	traits.wood_density = *it++;
-	traits.hmat = *it++;
-	// traits.zeta = *it++;
+void Plant::set_evolvableTraits(const std::vector<std::string>& tnames, const std::vector<double>& tvalues){
+	for (int i=0; i<tnames.size(); ++i){
+		traits[tnames[i]] = tvalues[i];
+	}
 	init(par, traits);
 }
 
-std::vector<double> Plant::get_evolvableTraits(){
-	vector<double> tvec({
-		// traits.lma,
-		traits.wood_density,
-		traits.hmat
-		// traits.zeta
-	});
+std::vector<double> Plant::get_evolvableTraits(const std::vector<std::string>& tnames){
+	std::vector<double> tvec(tnames.size());
+	for (int i=0; i<tnames.size(); ++i){
+		tvec[i] = traits[tnames[i]];
+	}
 	return tvec;
 }
 

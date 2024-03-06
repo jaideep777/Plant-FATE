@@ -2,6 +2,26 @@
 
 namespace plant{
 
+std::unordered_map<std::string, double PlantTraits::*> PlantTraits::members {
+	{"lma", &PlantTraits::lma},
+	{"zeta", &PlantTraits::zeta},
+	{"fcr", &PlantTraits::fcr},
+	{"hmat", &PlantTraits::hmat},
+	{"fhmat", &PlantTraits::fhmat},
+	{"seed_mass", &PlantTraits::seed_mass},
+	{"wood_density", &PlantTraits::wood_density},
+	{"p50_xylem", &PlantTraits::p50_xylem},
+	{"K_leaf", &PlantTraits::K_leaf},
+	{"K_xylem", &PlantTraits::K_xylem},
+	{"b_leaf", &PlantTraits::b_leaf},
+	{"b_xylem", &PlantTraits::b_xylem},
+	{"sm_xylem", &PlantTraits::sm_xylem},
+	{"m", &PlantTraits::m},
+	{"n", &PlantTraits::n},
+	{"a", &PlantTraits::a},
+	{"c", &PlantTraits::c}
+};        
+
 void PlantTraits::init(io::Initializer &I){
 	lma = I.get<double>("lma");
 	zeta = I.get<double>("zeta");
@@ -27,6 +47,10 @@ void PlantTraits::initFromFile(std::string fname){
 	io::Initializer I;
 	I.parse(fname);
 	init(I);
+}
+
+double& PlantTraits::operator[](const std::string& s){
+	return this->*(members.find(s)->second);
 }
 
 // Just for debugging purposes - to check if 2 plants have the same traits

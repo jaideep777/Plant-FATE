@@ -13,6 +13,9 @@ namespace plant{
 
 /// \ingroup physiology
 class PlantTraits{
+	protected:
+	static std::unordered_map<std::string, double PlantTraits::*> members;
+
 	public:
 	std::string species_name = "Tectona grandis";
 	
@@ -43,8 +46,13 @@ class PlantTraits{
 	public:
 	void init(io::Initializer &I);
 	void initFromFile(std::string fname);
+
+	// function to get/set traits by name. Needed for specifying evolvable traits from config file
+	double& operator[](const std::string& s);
+
 	// Just for debugging purposes - to check if 2 plants have the same traits
 	bool operator == (const PlantTraits& rhs) const;
+
 	// Changelog:
 	// v2: m,n,a,c move to traits from parameters
 	void save(std::ostream &fout);
