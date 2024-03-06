@@ -6,7 +6,7 @@ input_dir = "~/codes/Plant-FATE/tests/data/"
 output_dir = "~/codes/Plant-FATE/pspm_output_test"
 # output_dir = "~/output_data/test_3spp_100yr"
 expt_dir = "test_3spp_100yr" #_old_params"
-expt_dir = "test_1spp_evol_p50" #_old_params"
+expt_dir = "test_2spp_evol_p50" #_old_params"
 solver = "IEBT"
 
 setwd(paste0(output_dir,"/",expt_dir))
@@ -39,8 +39,8 @@ traits_used = read.csv(file = paste0(input_dir, "/Traits_random_HD2.csv"))
 
 # To get avg size distribution, sum over species and average over years
 names(dist)[1:2] = c("YEAR", "SPP")
-dist_amb = dist %>% filter(YEAR>min(1101,max(YEAR)-1) & YEAR<2000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
-dist_ele = dist %>% filter(YEAR>min(4101,max(YEAR)-1) & YEAR<5000) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
+dist_amb = dist %>% filter(YEAR>min(1101,max(YEAR)-2) & YEAR<2000) %>% filter(YEAR > min(YEAR)) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
+dist_ele = dist %>% filter(YEAR>min(4101,max(YEAR)-2) & YEAR<5000) %>% filter(YEAR > min(YEAR)) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
 
 # dist_amb = dist %>% filter(YEAR == 1100) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
 # dist_ele = dist %>% filter(YEAR == 1101) %>% pivot_longer(cols=-(YEAR:SPP), names_to="size_class") %>% group_by(YEAR,size_class) %>% summarize(de = sum(value, na.rm=T)) %>% pivot_wider(names_from = size_class, values_from = de) %>% colMeans(na.rm=T)
@@ -67,7 +67,7 @@ add_band()
 # mtext(line=0.5, side=3, text=expt_dir)
 
 BA = dat2 %>% filter(!grepl("probe", .$PID)) %>% select(YEAR, PID, BA) %>% spread(value = "BA", key = "PID")
-matplot(BA$YEAR, cbind(BA[,-1], rowSums(BA[,-1], na.rm=T))*1e4, lty=1, col=c(col_species, "black"), type="l",
+matplot(BA$YEAR, cbind(BA[,-1], BA %>% select(-YEAR) %>% rowSums(na.rm=T))*1e4, lty=1, col=c(col_species, "black"), type="l",
         las=1, xlab="Time (years)", ylab="Basal area", log="")
 add_hband(c(31.29, 31.29*1.02))
 add_band()
@@ -270,7 +270,7 @@ cwm_wd_pred = dat2 %>% select(YEAR, PID, BA) %>%
 
 hmat = traits %>% filter(!grepl("probe", .$SPP)) %>% select(YEAR, SPP, HMAT) %>% pivot_wider(names_from = "SPP", values_from = "HMAT") 
 wd = traits %>% filter(!grepl("probe", .$SPP)) %>% select(YEAR, SPP, WD) %>% pivot_wider(names_from = "SPP", values_from = "WD") 
-matplot(y=hmat[,-1], x=wd[,-1], lty=1, type="l", col=col_species, xlab="Wood density", ylab="Max height")
+matplot(y=hmat[,-1], x=wd[,-1], lty=1, type="o", pch=20, cex=0.5, col=col_species, xlab="Wood density", ylab="Max height")
 
 matplot(x=wd[,1], y=wd[,-1], col=col_species, lty=1, type="l", ylab="Wood density", xlab="Year")
 matplot(x=hmat[,1], y=hmat[,-1], col=col_species, lty=1, type="l", ylab="Max. height", xlab="Year")
@@ -280,7 +280,10 @@ zz = traits %>%
   filter(!grepl(x = SPP, "probe")) %>% 
   pivot_wider(names_from = SPP, values_from = r0_avg) %>%
   as.matrix()  
-matplot(y=tanh(zz[,-1]*20)/20, x=zz[,1], type="l", lty=1, ylab="r0", col=col_species)
+zz_smooth = zz %>% as.data.frame() %>% pivot_longer(-YEAR) %>% drop_na() %>% group_by(name) %>% mutate(value = loess(value~YEAR, span=60/length(value)) %>% fitted()) %>% pivot_wider(names_from=name) %>% as.matrix
+
+# matplot(y=tanh(zz[,-1]*20)/20, x=zz[,1], type="l", lty=1, ylab="r0", col=col_species)
+matplot(y=tanh(zz_smooth[,-1]*20)/20, x=zz[,1], type="l", lty=1, ylab="r0", col=(col_species))
 abline(h=0, col="black", lwd=0.2)
 # abline(v=1000, col="grey")
 
@@ -296,6 +299,8 @@ abline(h=0, col="black", lwd=0.2)
 
 p50 = traits %>% filter(!grepl("probe", .$SPP)) %>% select(YEAR, SPP, P50X) %>% pivot_wider(names_from = "SPP", values_from = "P50X") 
 matplot(x=p50[,1], y=p50[,-1], col=col_species, lty=1, type="l", ylab="P50", xlab="Year")
+
+p50 %>% tail() %>% print()
 
 if (plot_to_file) dev.off()
 
