@@ -31,6 +31,8 @@ Patch::Patch(std::string params_file) : S("IEBT", "rk45ck") {
 	config.trait_scalars = I.get_vector<double>("traitScalars");
 	config.trait_variances = I.get_vector<double>("traitVariances");
 	config.T_r0_avg = I.get<double>("T_r0_averaging");
+	if (config.trait_scalars.size() != config.evolvable_traits.size()) throw std::runtime_error("Please specify as many trait scalars as evolvable traits");
+	if (config.trait_variances.size() != config.evolvable_traits.size()) throw std::runtime_error("Please specify as many trait variances as evolvable traits");
 
 	config.timestep = I.get<double>("timestep");  // ODE Solver timestep
 	config.T_cohort_insertion = I.get<double>("T_cohort_insertion");    // Cohort insertion timestep
