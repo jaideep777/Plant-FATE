@@ -9,6 +9,7 @@
 #include <functional>
 
 #include <solver.h>
+#include <time_stepper.h>
 #include "pspm_interface.h"
 #include "community_properties.h"
 #include "adaptive_species.h"
@@ -30,7 +31,9 @@ class Patch{
 	plant::PlantParameters par0;
 	plant::PlantTraits traits0;
 
-	env::ClimateStream  climate_stream;  // should be moved out of patch
+	// should be moved out of patch
+	env::ClimateStream  climate_stream;  
+	flare::TimeStepper  ts;
 
 	// io::Initializer     I;
 	Solver              S;

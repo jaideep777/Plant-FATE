@@ -157,6 +157,14 @@ class Initializer{
 		return get_vector<T>("global", keyname);
 	}
 	
+	inline std::string get_verbatim(const std::string& sectionname, const std::string& keyname) const {
+		return get_value(sectionname, keyname);
+	}
+
+	inline std::string get_verbatim(const std::string& keyname) const {
+		return get_value("global", keyname);
+	}
+
 	inline void print() const {
 		std::cout << "------------------\n";
 		std::cout << "> Initializer:\n";

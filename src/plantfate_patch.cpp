@@ -34,7 +34,8 @@ Patch::Patch(std::string params_file) : S("IEBT", "rk45ck") {
 	if (config.trait_scalars.size() != config.evolvable_traits.size()) throw std::runtime_error("Please specify as many trait scalars as evolvable traits");
 	if (config.trait_variances.size() != config.evolvable_traits.size()) throw std::runtime_error("Please specify as many trait variances as evolvable traits");
 
-	config.timestep = I.get<double>("timestep");  // ODE Solver timestep
+	config.timestep = I.get<double>("timestep");  // timestep
+	config.time_unit = I.get_verbatim("time_unit");
 	config.T_cohort_insertion = I.get<double>("T_cohort_insertion");    // Cohort insertion timestep
 
 	config.solver_method = I.get<string>("solver");
@@ -140,6 +141,7 @@ void Patch::init(double tstart, double tend){
 	config.y0 = tstart; //I.get<double>("year0");
 	config.yf = tend;   //I.get<double>("yearf");
 	config.ye = config.y0 + config.T_r0_avg + 20;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
+	ts.set_units(config.time_unit);
 
 	t_next_disturbance = config.T_return;
 	t_next_invasion = config.T_invasion;
@@ -519,8 +521,8 @@ void Patch::simulate(){
 
 	for (double t=config.y0; t <= config.yf+1e-6; t=t+config.timestep) {  // 1e-6 ensures that last timestep to reach yf is actually executed
 		// read forcing inputs
-		update_climate(flare::yearsCE_to_julian(S.current_time)+1e-6, climate_stream); // The 1e-6 is to ensure that when t coincides exactly with time in climate file, we ensure that the value in climate file is read by asking for a slightly higher t
 		// std::cout << "update Env (explicit)... t = " << S.current_time << ":\n";
+		update_climate(ts.to_julian(S.current_time)+1e-6, climate_stream); // The 1e-6 is to ensure that when t coincides exactly with time in climate file, we ensure that the value in climate file is read by asking for a slightly higher t
 		// ((env::Climate&)E).print(t);
 
 		// simulate patch

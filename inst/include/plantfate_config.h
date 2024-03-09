@@ -36,14 +36,14 @@ class PlantFateConfig{
 	double      yf;
 	double      ye;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 
-	// t is years since 2000-01-01
+	std::string time_unit;      ///< Time unit in which all time points and intervals are specified. E.g. days since 1850-01-01
 	double timestep;            ///< Simulation timestep: Patches are stepped at this timestep and computations before/after timstep are done. Typically, these are climate update and seed-rain update 
 	double T_cohort_insertion;  ///< Interval after which cohorts should be inserted, if using IEBT solver
 	double T_seed_rain_avg;     ///< Interval over which seed rains should be averaged (multi-patch dynamics)
 	double T_return;            ///< Return interval of disturbance (patch clearance)
 	double T_invasion; 	        ///< Interval between successive species invasions
 
-	double res; // initial resolution on size axis - remains constant for fixed-mesh methods
+	double res; ///< initial resolution on size axis - remains constant for fixed-mesh methods
 
 	std::string solver_method;
 

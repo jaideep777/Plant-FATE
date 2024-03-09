@@ -59,7 +59,7 @@ int main(){
 	double fitness1 = lho.seeds;
 	cout << "Fitness = " << fitness1 << '\n';
 	// if (fabs(fitness1 - 0.0999331152132) > 1e-6) return 1;  // expected value updated after implementing inst phydro and setting kphio to 0.045
-	if (fabs(fitness1 - 0.0998537505871) > 1e-6) return 1;  // expected value updated after using actual p88/p50 ratio instead of 3.01
+	// if (fabs(fitness1 - 0.0998537505871) > 1e-6) return 1;  // expected value updated after using actual p88/p50 ratio instead of 3.01
 	if (fabs(fitness1 - 0.0192874440426) > 1e-6) return 1;  // expected value updated after using daylength in phydro
 
 
