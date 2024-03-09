@@ -25,9 +25,12 @@ LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file){
 	//paramsFile = params_file; // = "tests/params/p.ini";
 	I.parse(params_file);
 
+	ts.set_units(I.get_verbatim("time_unit"));
+
 	traits0.init(I);
 	par0.init(I);
-	par0.set_tscale(365.2425); // default time unit is year
+
+	par0.set_tscale(ts.get_tscale()); // default time unit is year
 
 	c_stream.i_metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	c_stream.a_metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
@@ -223,7 +226,7 @@ void LifeHistoryOptimizer::grow_for_dt(double t, double dt){
 
 	auto derivs = [this](double t, std::vector<double>&S, std::vector<double>&dSdt){
 		//if (fabs(t - 2050) < 1e-5) 
-		update_climate(flare::yearsCE_to_julian(t/P.par.days_per_tunit));
+		update_climate(ts.to_julian(t));
 		// C.Climate::print(t);
 		set_state(S.begin());
 		P.calc_demographic_rates(C, t);

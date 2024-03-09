@@ -13,6 +13,8 @@
 #include "climate_stream.h"
 #include "light_environment.h"
 
+#include <time_stepper.h>
+
 namespace pfate{
 
 class ErgodicEnvironment : public env::LightEnvironment, public env::Climate {
@@ -27,6 +29,7 @@ class ErgodicEnvironment : public env::LightEnvironment, public env::Climate {
 
 class LifeHistoryOptimizer{
 	public:
+	flare::TimeStepper ts;
 	plant::Plant P;
 	ErgodicEnvironment C;
 	env::ClimateStream c_stream;

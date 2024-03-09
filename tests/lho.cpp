@@ -11,7 +11,11 @@ int main(){
 	
 	pfate::LifeHistoryOptimizer lho("tests/params/p_test_v2.ini");
 	// lho.C.init_co2(414);
-	lho.par0.set_tscale(365.2425); //365.2425;
+
+	// lho.ts.set_units("days since 0000-01-00 0:0:0");
+	lho.ts.set_units("years since 0000-01-00 0:0:0");
+	lho.par0.set_tscale(lho.ts.get_tscale());
+
 	lho.init();
 	lho.C.Climate::print(0);
 
@@ -43,11 +47,11 @@ int main(){
 	double dpt = 365.2425/lho.par0.days_per_tunit;
 
 	ofstream fout("assim1.txt");
-	double dt = 0.1;
+	double dt = 0.1*dpt;
 	lho.printHeader(fout);
-	for (double t=2000*dpt; t<=2500*dpt; t=t+dt*dpt){
-		lho.grow_for_dt(t, dt*dpt);
-		lho.printState(t+dt*dpt, fout);
+	for (double t=2000*dpt; t<=2500*dpt; t=t+dt){
+		lho.grow_for_dt(t, dt);
+		lho.printState(t+dt, fout);
 		// lho.C.Climate::print(t);
 	}
 	fout.close();
