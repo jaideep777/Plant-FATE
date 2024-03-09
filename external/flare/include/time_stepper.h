@@ -54,6 +54,10 @@ class TimeStepper{
 		return (j - j_base)/tscale;
 	}
 
+	inline double get_tscale() const {
+		return tscale;
+	}
+
 	protected:
 	inline void parse_time_unit(std::string tunit_str){
 		// treat "years CE" as "years since 0000-01-00 0:0:0". 
