@@ -4,6 +4,7 @@ namespace plant{
 
 
 // LAI model
+// These equations do not assume any time unit
 template<class Env>
 double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env &env){
 	double lai_curr = geometry.lai;
@@ -31,10 +32,13 @@ double Plant::lai_model(PlantAssimilationResult& res, double _dmass_dt_tot, Env 
 
 
 // seed and sapling survival 
+// adjusted for time unit
 template<class Env>
 double Plant::p_survival_germination(Env &env){
-	auto res = assimilator.net_production(env, &geometry, par, traits);
-	double P = std::max(res.npp, 0.0)/geometry.crown_area;
+	auto res = assimilator.net_production(env, &geometry, par, traits); // FIXME: Does this need to be recalculated?
+
+	double npp_annual_avg = res.npp/par.years_per_tunit_avg; // convert NPP from kg unit_t-1 --> kg yr-1, then calculate per m2 crown
+	double P = std::max(npp_annual_avg, 0.0)/geometry.crown_area; 
 	double P2 = P*P;
 	double P2_half = par.npp_Sghalf * par.npp_Sghalf;
 	//std::cout << "P_seed = " << P << ", p_germ = " << P2 / (P2 + P2_half) << std::endl;
@@ -59,6 +63,7 @@ double Plant::size_growth_rate(double _dmass_dt_growth, Env &env){
 }
 
 
+// adjusted for time unit
 template<class Env>
 double Plant::mortality_rate(Env &env, double t){
 	double D = geometry.diameter;
@@ -104,13 +109,16 @@ double Plant::mortality_rate(Env &env, double t){
 	double mu_hyd_norm = (psi_xylem <= pcrit_xylem)? 1e6 : std::fmin(1e6, atanh(pow(psi_xylem/pcrit_xylem, traits.b_xylem)));
 	// std::cout << "Hyd mortality rate (" << traits.species_name << ", h=" << geometry.height << "): " <<  res.dpsi_avg << " --> " << psi_xylem << " / " << pcrit_xylem << " --> " << mu_hyd << '\n';
 
+	double rgr_annual_avg = rates.rgr / par.years_per_tunit_avg;
 	mort.mu_0      = par.m_gamma*pow(traits.wood_density/par.cWD0, par.eWD_gamma);   //*pow(traits.wood_density/600, -1.8392) + 
-	mort.mu_growth = par.m_alpha*pow(traits.wood_density/par.cWD0, par.eWD_alpha)*exp(-par.m_beta * rates.rgr*D*100);
+	mort.mu_growth = par.m_alpha*pow(traits.wood_density/par.cWD0, par.eWD_alpha)*exp(-par.m_beta * rgr_annual_avg *D*100);
 	mort.mu_d	   = par.cD0*pow(traits.wood_density/par.cWD0, par.eWD)*pow(D, par.eD0) + 
 		             par.cD1*exp(-D/0.01);  
 	mort.mu_hyd	   = par.m_hydraulic*mu_hyd_norm;
 
 	double mu = mort.mu_0 + mort.mu_growth + mort.mu_d + mort.mu_hyd;
+
+	mu *= par.years_per_tunit_avg;  // convert: yr-1 * yr t_unit-1 = t_unit-1
 
 	// mu = pow(traits.wood_density/par.cWD0, par.eWD)*
 	// 	 (par.m_gamma + 

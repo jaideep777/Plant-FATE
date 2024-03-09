@@ -143,7 +143,7 @@ void Patch::init(double tstart, double tend){
 	config.yf = tend;   //I.get<double>("yearf");
 	config.ye = config.y0 + config.T_r0_avg + 20;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 	ts.set_units(config.time_unit);
-	par0.days_per_tunit = ts.get_tscale();
+	par0.set_tscale(ts.get_tscale());
 
 	t_next_disturbance = config.T_return;
 	t_next_invasion = config.T_invasion;
