@@ -16,7 +16,7 @@ ROOT_DIR := ${shell dirname ${shell pwd}}
 # ^ Do NOT put trailing whitespaces or comments after the above line
 
 # include and lib dirs (esp for cuda)
-INC_PATH :=  -I./include -I../tensorlib/include  #-I./CppNumericalSolvers-1.0.0
+INC_PATH :=  -I./include -I./external/tensorlib/include  #-I./CppNumericalSolvers-1.0.0
 INC_PATH +=  -I./src # This is to allow inclusion of .tpp files in headers
 INC_PATH += 
 LIB_PATH := 
