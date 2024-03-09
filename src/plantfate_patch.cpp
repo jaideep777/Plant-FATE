@@ -138,10 +138,12 @@ void Patch::init(double tstart, double tend){
 	// sysresult = system(command.c_str());
 	// sysresult = system(command2.c_str());
 
+	// ~~~~~~~ Set up time-points ~~~~~~~~~~~~~~~
 	config.y0 = tstart; //I.get<double>("year0");
 	config.yf = tend;   //I.get<double>("yearf");
 	config.ye = config.y0 + config.T_r0_avg + 20;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
 	ts.set_units(config.time_unit);
+	par0.days_per_tunit = ts.get_tscale();
 
 	t_next_disturbance = config.T_return;
 	t_next_invasion = config.T_invasion;

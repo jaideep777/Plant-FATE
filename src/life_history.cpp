@@ -27,6 +27,7 @@ LifeHistoryOptimizer::LifeHistoryOptimizer(std::string params_file){
 
 	traits0.init(I);
 	par0.init(I);
+	par0.days_per_tunit = 365.2425;
 
 	c_stream.i_metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";
 	c_stream.a_metFile = ""; //"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv";

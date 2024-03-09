@@ -118,6 +118,10 @@ class PlantParameters{
 	double cWD0, eWD;
 	double m_hydraulic;
 	
+	// time stepping
+	// below parameter is not explicitly specified in ini file. It is set bythe time stepper for PlantFATE and manually in TreeLife
+	double days_per_tunit;  ///< Days in time unit used (e.g., if the unit of time is years, this will be 365.2425)
+
 	public:
 	void init(io::Initializer &I);
 	void initFromFile(std::string fname);
