@@ -9,8 +9,7 @@
 #include <cmath>
 #include <numeric>
 
-#include "utils.h"
-#include "time_math.h"
+#include "time_stepper.h"
 
 namespace flare{
 
@@ -40,7 +39,7 @@ inline std::ostream& operator<<(std::ostream& out, const flare::StreamIndex& id)
     return out;
 }
 
-class Stream{
+class Stream : public TimeStepper{
 	public:
 	StreamIndex current_index;  ///< Index of current record.
 	bool periodic = true;       ///< Should time points be traversed cyclically? Otherwise, index will be clamped at the ends when time points go out of range
@@ -55,11 +54,7 @@ class Stream{
 	std::vector<size_t> t_indices;    ///< For each t = times[i], this stores the index within the file's time vector that corresponds to t
 	std::vector<size_t> idx_f0;       ///< full index corresponding to the first entry in file. Used for convenience
 
-	std::string unit_str;   ///< full string representation of time unit (e.g., "days since yyyy-mm-dd hh:mm:ss")
-	std::string tunit = ""; ///< time unit in file (e.g., "days", "months", etc)
 	double tstep = 0;       ///< interval between data frames [days] 
-	double tscale = 1;      ///< multiplier to convert time intervals from file's unit to 'days'
-	std::tm t_base = {};    ///< epoch (base time) used in file
 	double DeltaT = 0;      ///< total duration represented in combined times vector
 
 	std::vector<std::string> tnames = {"time", "t"}; ///< Names to try when searcing for the time dimension in file
@@ -157,6 +152,7 @@ class Stream{
 		double t = j - date_to_julian(t_base); 
 		// std::cout << "t in file units = " << t << "\n";
 
+		// FIXME: Could use exact edges computed from t vector to do centered stepping
 		if (centered_t) t += tstep/2;    //   |----0----|-----1----|----2----|---
 		                                 //   x--->0    |     1    | shift t (x) by half the interval size
 		                                 //   |    x--->0     1    |    2
@@ -203,40 +199,9 @@ class Stream{
 
 
 	inline virtual void advance_to_time(double j){
+		j_current = j;
 		current_index = julian_to_indices(j);
 	} 
-
-
-	protected:
-
-	inline void parse_time_unit(std::string tunit_str){
-		// treat "years CE" as "years since 0000-01-00 0:0:0". 
-		// - This base date seems weird but works!
-		// - using "years since 0000-01-01" adds an extra day, 
-		//       perhaps because over 2000 years (0001-2000) all leap days cancel out, 
-		//       but 0000 is a leap year so adds an extra day
-		if (tunit_str == "years CE") tunit_str = "years since 0000-01-00 0:0:0";
-
-		// parse time units
-		std::string since;
-		std::stringstream ss(tunit_str);
-		ss >> tunit >> since;
-
-		if (since != "since") throw std::runtime_error("time unit is not in the correct format (<units> since <yyyy-mm-dd> <hh:mm:ss>)");
-
-		if      (tunit == "days")     tscale = 1;
-		else if (tunit == "hours")    tscale = 1.0/24.0;
-		else if (tunit == "minutes")  tscale = 1.0/24.0/60.0;
-		else if (tunit == "seconds")  tscale = 1.0/24.0/3600.0;
-		else if (tunit == "months")   tscale = 1.0*365.2425/12;
-		else if (tunit == "years")    tscale = 1.0*365.2425;
-
-		if (tunit == "months" || tunit == "years") std::cout << "Warning: using " << tunit << " as time unit. 365.2425 days per year will be assumed. Conversion of time points to dates may have an error of +/- 1 day.\n";
-
-		ss.str(tunit_str);
-		ss >> std::get_time(&t_base, std::string(tunit + " since %Y-%m-%d %H:%M:%S").c_str());
-		t_base.tm_zone = "GMT";
-	}
 
 };
 
