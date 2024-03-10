@@ -28,9 +28,26 @@ int main(int argc, char ** argv){
 
 	for (int i=0; i<1; ++i){
 		pfate::Patch sim(pfile);
-		// sim.expt_dir = sim.expt_dir + "_414ppm";
+
+		// // running with year as time unit
+		// double tpy = 1; // time units per year
+		// sim.config.time_unit = "years since 0000-01-00 0:0:0";
+
+		// running with day as time unit
+		double tpy = 365.2425;
+		sim.config.time_unit = "days since 0000-01-00 0:0:0";
+
+		// translate all time invervals to new units
+		sim.config.timestep = 0.04166666666666666666666*tpy;
+		sim.config.T_cohort_insertion *= tpy;
+		sim.config.T_invasion *= tpy;
+		sim.config.T_r0_avg *= tpy;
+		sim.config.T_return *= tpy;
+		sim.config.T_seed_rain_avg *= tpy;
+		sim.config.saveStateInterval *= tpy;
+
 		sim.E.init_co2(414);
-		sim.init(2000, 2100);
+		sim.init(2000*tpy, 2100*tpy);
 		sim.simulate();
 
 		vector<double> ba = sim.cwm.ba_vec;
