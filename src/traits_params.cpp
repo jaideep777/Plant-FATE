@@ -211,6 +211,13 @@ void PlantParameters::initFromFile(std::string fname){
 	init(I);
 }
 
+
+void PlantParameters::set_tscale(double tscale){
+	days_per_tunit = tscale;
+	years_per_tunit_avg = tscale/365.2425;
+}
+
+
 void PlantParameters::print(){
 	std::cout << "Params:\n";
 	std:: cout << "   rd    = " << rd  << "\n";

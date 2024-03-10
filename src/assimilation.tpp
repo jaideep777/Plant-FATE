@@ -182,12 +182,14 @@ void  Assimilator::calc_plant_assimilation_rate(Env &env, PlantArchitecture *G, 
 	}
 	//std::cout << "---\nCA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
-	// calculate yearly averages in mol/yr	
-	double sec_per_yr = 86400*365.2524; // s-1 ---> yr-1
+	// Convert units from per sec to per unit_t (unit_t is the unit in which time is counted, e.g. yr, day)
+	double sec_per_unit_t = 86400*par.days_per_tunit; // s-1 ---> unit_t-1
 
-	plant_assim.gpp   *= (sec_per_yr * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
-	plant_assim.rleaf *= (sec_per_yr * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/yr --> mol co2/yr --> kg/yr 
-	plant_assim.trans *= (sec_per_yr * 18e-3);                  // mol h2o/s  ----> mol h2o/yr  --> kg h2o /yr
+	plant_assim.gpp   *= (sec_per_unit_t * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/unit_t --> mol co2/unit_t --> kg/unit_t 
+	plant_assim.rleaf *= (sec_per_unit_t * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/unit_t --> mol co2/unit_t --> kg/unit_t 
+	plant_assim.trans *= (sec_per_unit_t * 18e-3);                  // mol h2o/s  ----> mol h2o/unit_t  --> kg h2o /unit_t
+
+	// TODO: other traits (vcmax, jmax, gs) etc could also be converted but they are only used in output and not in dynamics
 }
 
 
@@ -198,18 +200,18 @@ PlantAssimilationResult Assimilator::net_production(Env &env, PlantArchitecture 
 	calc_plant_assimilation_rate(env, G, par, traits); // update plant_assim
 	les_update_lifespans(G->lai, par, traits);
 
-	plant_assim.rleaf = leaf_respiration_rate(G,par,traits);      // kg yr-1  
-	plant_assim.rroot = root_respiration_rate(G, par,traits);     // kg yr-1
-	plant_assim.rstem = sapwood_respiration_rate(G, par,traits);  // kg yr-1
+	plant_assim.rleaf = leaf_respiration_rate(G,par,traits);      // kg unit_t-1  
+	plant_assim.rroot = root_respiration_rate(G, par,traits);     // kg unit_t-1
+	plant_assim.rstem = sapwood_respiration_rate(G, par,traits);  // kg unit_t-1
 	
-	plant_assim.tleaf = leaf_turnover_rate(kappa_l, G, par,traits);  // kg yr-1
-	plant_assim.troot = root_turnover_rate(kappa_r, G, par,traits);  // kg yr-1
+	plant_assim.tleaf = leaf_turnover_rate(kappa_l, G, par,traits);  // kg unit_t-1
+	plant_assim.troot = root_turnover_rate(kappa_r, G, par,traits);  // kg unit_t-1
 	
 	double A = plant_assim.gpp;
 	double R = plant_assim.rleaf + plant_assim.rroot + plant_assim.rstem;
 	double T = plant_assim.tleaf + plant_assim.troot;
 
-	plant_assim.npp = par.y*(A-R) - T; // net biomass growth rate (kg yr-1)
+	plant_assim.npp = par.y*(A-R) - T; // net biomass growth rate (kg unit_t-1)
 
 	// if (G->height > 15) std::cout << "h/A = " << G->height << " / " << A/G->crown_area << std::endl;
 	// if (env.n_layers > 1 && G->height < 5) std::cout << "h/L/ml/mr | A/R/T/Vc = " << G->height << " / " << G->lai << " / " << G->leaf_mass(traits) << " / " << G->root_mass(traits) << " | " << A << " / " << R << " / " << T << " / " << plant_assim.vcmax_avg << "\n"; 

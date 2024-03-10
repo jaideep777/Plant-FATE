@@ -34,7 +34,8 @@ Patch::Patch(std::string params_file) : S("IEBT", "rk45ck") {
 	if (config.trait_scalars.size() != config.evolvable_traits.size()) throw std::runtime_error("Please specify as many trait scalars as evolvable traits");
 	if (config.trait_variances.size() != config.evolvable_traits.size()) throw std::runtime_error("Please specify as many trait variances as evolvable traits");
 
-	config.timestep = I.get<double>("timestep");  // ODE Solver timestep
+	config.timestep = I.get<double>("timestep");  // timestep
+	config.time_unit = I.get_verbatim("time_unit");
 	config.T_cohort_insertion = I.get<double>("T_cohort_insertion");    // Cohort insertion timestep
 
 	config.solver_method = I.get<string>("solver");
@@ -51,10 +52,10 @@ Patch::Patch(std::string params_file) : S("IEBT", "rk45ck") {
 	climate_stream.update_a_met = (climate_stream.a_metFile == "null")? false : true;
 	climate_stream.update_co2   = (climate_stream.co2File   == "null")? false : true;
 
-	sio.emgProps_file = I.get<std::string>("emgProps");
-	sio.cwmAvg_file = I.get<std::string>("cwmAvg");
-	sio.cwmperSpecies_file = I.get<std::string>("cwmperSpecies");
-	sio.traits_file = I.get<std::string>("traits");
+	props.emgProps_file = I.get<std::string>("emgProps");
+	props.cwmAvg_file = I.get<std::string>("cwmAvg");
+	props.cwmperSpecies_file = I.get<std::string>("cwmperSpecies");
+	props.traits_file = I.get<std::string>("traits");
 
 	traits0.init(I);
 	par0.init(I);
@@ -137,9 +138,12 @@ void Patch::init(double tstart, double tend){
 	// sysresult = system(command.c_str());
 	// sysresult = system(command2.c_str());
 
+	// ~~~~~~~ Set up time-points ~~~~~~~~~~~~~~~
 	config.y0 = tstart; //I.get<double>("year0");
 	config.yf = tend;   //I.get<double>("yearf");
 	config.ye = config.y0 + config.T_r0_avg + 20;  // year in which trait evolution starts (need to allow this period because r0 is averaged over previous time)
+	ts.set_units(config.time_unit);
+	par0.set_tscale(ts.get_tscale());
 
 	t_next_disturbance = config.T_return;
 	t_next_invasion = config.T_invasion;
@@ -196,14 +200,14 @@ void Patch::init(double tstart, double tend){
 
 	S.print();	
 
-	sio.S = &S;
-	sio.openStreams(config.out_dir);
+	// sio.S = &S;
+	props.openStreams(config.out_dir);
 }
 
 
 void Patch::close(){
 	//S.print();
-	sio.closeStreams();
+	props.closeStreams();
 
 	saveState(&S, 
 	          config.out_dir + "/" + config.state_outfile, 
@@ -290,7 +294,7 @@ void Patch::removeDeadSpecies(double t){
 	for (int k=0; k<S.species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k]);
 		if (spp->isResident){
-			if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+			if (props.species.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
 		}
 	}
 	for (auto spp : toRemove) removeSpeciesAndProbes(spp);
@@ -380,7 +384,9 @@ void Patch::calc_seedrain_r0(double t){
 /// @param t Final time up to which patch should be simulated
 void Patch::simulate_to(double t){
 	if (int(t*12) % 12 == 0){
-		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
+		double t_years_ce = flare::julian_to_yearsCE(ts.to_julian(S.current_time));
+		double tplus_years_ce = flare::julian_to_yearsCE(ts.to_julian(t));
+		cout << "stepping = " << setprecision(6) << S.current_time << " (" << t_years_ce << " CE)" << " --> " << t << " (" << tplus_years_ce << " CE)" << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
 	}
@@ -401,8 +407,7 @@ void Patch::simulate_to(double t){
 	calc_seedrain_r0(t);
 
 	// update output metrics - needed before removeDeadSpecies()
-	cwm.update(t, S);
-	props.update(t, S);
+	props.update(t, *this);
 
 	// evolve traits
 	if (config.evolve_traits && t > config.ye){
@@ -519,8 +524,8 @@ void Patch::simulate(){
 
 	for (double t=config.y0; t <= config.yf+1e-6; t=t+config.timestep) {  // 1e-6 ensures that last timestep to reach yf is actually executed
 		// read forcing inputs
-		update_climate(flare::yearsCE_to_julian(S.current_time)+1e-6, climate_stream); // The 1e-6 is to ensure that when t coincides exactly with time in climate file, we ensure that the value in climate file is read by asking for a slightly higher t
 		// std::cout << "update Env (explicit)... t = " << S.current_time << ":\n";
+		update_climate(ts.to_julian(S.current_time)+1e-6, climate_stream); // The 1e-6 is to ensure that when t coincides exactly with time in climate file, we ensure that the value in climate file is read by asking for a slightly higher t
 		// ((env::Climate&)E).print(t);
 
 		// simulate patch
@@ -528,7 +533,7 @@ void Patch::simulate(){
 
 		// write outputs
 		if (t > t_next_writestate || fabs(t-t_next_writestate) < 1e-6){
-			sio.writeState(t, cwm, props);
+			props.writeOut(t, *this);
 			t_next_writestate += 1;
 		}
 

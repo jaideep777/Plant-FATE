@@ -1,398 +1,129 @@
 #include "community_properties.h"
 #include "light_environment.h"
+#include "plantfate_patch.h"
 
 using namespace std;
 
 namespace pfate{
 
-void SpeciesProps::resize(int n){
-	n_ind_vec.resize(n);
-	ba_vec.resize(n);
-	biomass_vec.resize(n);
-	canopy_area_vec.resize(n);
-	height_vec.resize(n);
-	vcmax_vec.resize(n);
-	dpsi_vec.resize(n);
-	hmat_vec.resize(n);
-	lma_vec.resize(n);
-	wd_vec.resize(n);
-	p50_vec.resize(n);
+void CommunityProperties::resize(int n){
+	species.n_ind_vec.resize(n);
+	species.biomass_vec.resize(n);
+	species.basal_area_vec.resize(n);
+	species.canopy_area_vec.resize(n);
+	species.height_vec.resize(n);
 }
 
-SpeciesProps& SpeciesProps::operator /= (double s){
-	
-	n_ind/=s;
-	biomass/=s;
-	ba/=s;
-	canopy_area/=s;
-	height/=s;
-	vcmax/=s;
-	dpsi/=s;
-	lma/=s;
-	p50/=s;
-	hmat/=s;
-	wd/=s;
-	gs/=s;
-	transform(n_ind_vec.begin(), n_ind_vec.end(), n_ind_vec.begin(), [s](const double &c){ return c/s; });
-	transform(biomass_vec.begin(), biomass_vec.end(), biomass_vec.begin(), [s](const double &c){ return c/s; });
-	transform(ba_vec.begin(), ba_vec.end(), ba_vec.begin(), [s](const double &c){ return c/s; });
-	transform(canopy_area_vec.begin(), canopy_area_vec.end(), canopy_area_vec.begin(), [s](const double &c){ return c/s; });
-	transform(height_vec.begin(), height_vec.end(), height_vec.begin(), [s](const double &c){ return c/s; });
-	transform(vcmax_vec.begin(), vcmax_vec.end(), vcmax_vec.begin(), [s](const double &c){ return c/s; });
-	transform(dpsi_vec.begin(), dpsi_vec.end(), dpsi_vec.begin(), [s](const double &c){ return c/s; });
-	transform(lma_vec.begin(), lma_vec.end(), lma_vec.begin(), [s](const double &c){ return c/s; });
-	transform(p50_vec.begin(), p50_vec.end(), p50_vec.begin(), [s](const double &c){ return c/s; });
-	transform(hmat_vec.begin(), hmat_vec.end(), hmat_vec.begin(), [s](const double &c){ return c/s; });
-	transform(wd_vec.begin(), wd_vec.end(), wd_vec.begin(), [s](const double &c){ return c/s; });
-	
-	return *this;
-}
-
-SpeciesProps& SpeciesProps::operator += (const SpeciesProps &s){
-	
-	n_ind+=s.n_ind;
-	biomass+=s.biomass;
-	ba+=s.ba;
-	canopy_area+=s.canopy_area;
-	height+=s.height;
-	vcmax+=s.vcmax;
-	dpsi+=s.dpsi;
-	lma+=s.lma;
-	p50+=s.p50;
-	hmat+=s.hmat;
-	wd+=s.wd;
-	gs+=s.gs;
-	transform(n_ind_vec.begin(), n_ind_vec.end(), s.n_ind_vec.begin(), n_ind_vec.begin(), std::plus<double>());
-	transform(biomass_vec.begin(), biomass_vec.end(), s.biomass_vec.begin(), biomass_vec.begin(),std::plus<double>());
-	transform(ba_vec.begin(), ba_vec.end(), s.ba_vec.begin(), ba_vec.begin(),std::plus<double>());
-	transform(canopy_area_vec.begin(), canopy_area_vec.end(), s.canopy_area_vec.begin(), canopy_area_vec.begin(),std::plus<double>());
-	transform(height_vec.begin(), height_vec.end(), s.height_vec.begin(), height_vec.begin(),std::plus<double>());
-	transform(vcmax_vec.begin(), vcmax_vec.end(), s.vcmax_vec.begin(), vcmax_vec.begin(), std::plus<double>());
-	transform(dpsi_vec.begin(), dpsi_vec.end(), s.dpsi_vec.begin(), dpsi_vec.begin(), std::plus<double>());
-	transform(lma_vec.begin(), lma_vec.end(), s.lma_vec.begin(), lma_vec.begin(),std::plus<double>());
-	transform(p50_vec.begin(), p50_vec.end(), s.p50_vec.begin(), p50_vec.begin(),std::plus<double>());
-	transform(hmat_vec.begin(), hmat_vec.end(), s.hmat_vec.begin(), hmat_vec.begin(),std::plus<double>());
-	transform(wd_vec.begin(), wd_vec.end(), s.wd_vec.begin(), wd_vec.begin(),std::plus<double>());
-	
-	return *this;
-}
-
-bool SpeciesProps::isResident(Species_Base * spp){
+bool CommunityProperties::isResident(Species_Base * spp){
 	return static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp)->isResident;
 }
 
-void SpeciesProps::update(double t, Solver &S){
-		
-	n_ind_vec.clear();
-	n_ind_vec.resize(S.n_species(), 0);
-	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k]))
-		n_ind_vec[k] = S.state_integral([&S,k](int i, double t){
-											return 1;
-									}, t, k);
-	n_ind = std::accumulate(n_ind_vec.begin(), n_ind_vec.end(), 0.0);
+void CommunityProperties::update(double t, Patch &P){
 
-	biomass_vec.clear();
-	biomass_vec.resize(S.n_species(), 0);
-	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k]))
-		biomass_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
-											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-											return p.get_biomass();
-									}, t, {0.1}, k);
-	biomass = std::accumulate(biomass_vec.begin(), biomass_vec.end(), 0.0);
+	Solver &S = P.S;
 
-	ba_vec.clear();
-	ba_vec.resize(S.n_species(), 0);
-	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k]))
-		ba_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
-											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-											double D = p.geometry.diameter_at_height(1.3, p.traits);
-											return M_PI*D*D/4;
-									}, t, {0.1}, k);
-	ba = std::accumulate(ba_vec.begin(), ba_vec.end(), 0.0);
+	// multiplier to convert unit_t-1 --> day-1
+	double m1 = 1/P.par0.days_per_tunit;
 
-	canopy_area_vec.clear();
-	canopy_area_vec.resize(S.n_species(), 0);
-	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k]))
-		canopy_area_vec[k] = S.state_integral([&S,k](int i, double t){
-											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i).geometry;
-											return p.crown_area;
-									}, t, k);
-	canopy_area = std::accumulate(canopy_area_vec.begin(), canopy_area_vec.end(), 0.0);
-	
+	// multiplier to convert kg biomass --> kg C
+	double m2 = 1/2.04;
 
-	height_vec.clear();
-	height_vec.resize(S.n_species(), 0);
-	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k]))
-		height_vec[k] = S.state_integral([&S,k](int i, double t){
-											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-											return p.geometry.height;
-									}, t, k);
-									
-	for (int k=0; k<S.n_species(); ++k) height_vec[k] /= n_ind_vec[k];
+	fluxes.gpp    = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.gpp;});
+	fluxes.npp    = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.npp;});
+	fluxes.trans  = m1      * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.trans;});
+	fluxes.tleaf  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.tleaf;});
+	fluxes.troot  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.troot;});
+	fluxes.rleaf  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rleaf;});
+	fluxes.rroot  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rroot;});
+	fluxes.rstem  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rstem;});
+	fluxes.mort   = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->get_biomass()*p->rates.dmort_dt;});
+	fluxes.gs = (fluxes.trans*55.55/86400)/1.6/(static_cast<PSPM_Environment*>(S.env)->clim_inst.vpd/1.0325e5);
+	//     ^ convert kg/m2/day --> mol/m2/s
 
+	// Note: for these vector calcs, multipliers are multiplied inside lambdas, where necesary
+	species.n_ind_vec       = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){return 1;});
+	species.biomass_vec     = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){return p->get_biomass();});
+	species.basal_area_vec  = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){
+		                                                                        double D = p->geometry.diameter_at_height(1.3, p->traits);
+	                                                                            return M_PI*D*D/4;
+	                                                                         });
+	species.canopy_area_vec = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){return p->geometry.crown_area;});
+	species.height_vec      = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){return p->geometry.height;});
+	for (int k=0; k<S.n_species(); ++k) species.height_vec[k] /= species.n_ind_vec[k];
+	species.mortality_vec   = integrate_prop_per_species(t, S, [m1, m2](PSPM_Plant * p){return m1*m2*p->get_biomass()*p->rates.dmort_dt;});
 
-	hmat = 0;
-	// for (int k=0; k<S.n_species(); ++k)
-	// 	hmat += S.state_integral([&S,k](int i, double t){
-	// 								      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-	// 								      return p.traits.hmat;
-	// 								}, t, k);
-	// hmat /= n_ind;
-	hmat_vec.clear();
-	hmat_vec.resize(S.n_species(), 0);
-	// for (int k=0; k<S.n_species(); ++k) hmat_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.hmat;
+	structure.n_ind         = std::accumulate(species.n_ind_vec.begin(),       species.n_ind_vec.end(),       0.0);
+	structure.biomass       = std::accumulate(species.biomass_vec.begin(),     species.biomass_vec.end(),     0.0);
+	structure.basal_area    = std::accumulate(species.basal_area_vec.begin(),  species.basal_area_vec.end(),  0.0);
+	structure.canopy_area   = std::accumulate(species.canopy_area_vec.begin(), species.canopy_area_vec.end(), 0.0);
 
+	structure.lai           =      integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.crown_area*p->geometry.lai;});
+	structure.leaf_mass     = m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.leaf_mass(p->traits);});
+	structure.stem_mass     = m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.stem_mass(p->traits);});
+	structure.croot_mass    = m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.coarse_root_mass(p->traits);});
+	structure.froot_mass    = m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.root_mass(p->traits);});
 
-	lma = 0;
-	// for (int k=0; k<S.n_species(); ++k)
-	// 	lma += S.state_integral([&S,k](int i, double t){
-	// 								      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-	// 								      return p.traits.lma;
-	// 								}, t, k);
-	// lma /= n_ind;
-	lma_vec.clear();
-	lma_vec.resize(S.n_species(), 0);
-	// for (int k=0; k<S.n_species(); ++k) lma_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.lma;
-
-	wd = 0;
-	// for (int k=0; k<S.n_species(); ++k)
-	// 	wd += S.state_integral([&S,k](int i, double t){
-	// 								      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-	// 								      return p.traits.wood_density;
-	// 								}, t, k);
-	// wd /= n_ind;
-	wd_vec.clear();
-	wd_vec.resize(S.n_species(), 0);
-	// for (int k=0; k<S.n_species(); ++k) wd_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.wood_density;
-
-	p50 = 0;
-	// for (int k=0; k<S.n_species(); ++k)
-	// 	p50 += S.state_integral([&S,k](int i, double t){
-	// 								      auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-	// 								      return p.traits.p50_xylem;
-	// 								}, t, k);
-	// p50 /= n_ind;
-	p50_vec.clear();
-	p50_vec.resize(S.n_species(), 0);
-	// for (int k=0; k<S.n_species(); ++k) p50_vec[k] = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(-1).traits.p50_xylem;
-
-	// This should not be used
-	gs = 0;
-	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k]))
-		gs += S.state_integral([&S,k](int i, double t){
-											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-											return p.res.gs_avg * p.geometry.crown_area;
-									}, t, k);
-	gs /= canopy_area;
-
-	// Mean Vcmax
-	// vcmax_vec.clear();
-	// vcmax_vec.resize(S.n_species(), 0);
-	// for (int k=0; k<S.n_species(); ++k)
-	// 	if (isResident(S.species_vec[k]))
-	// 	vcmax_vec[k] = S.integrate_wudx_above([&S,k](int i, double t){
-	// 										auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-	// 										return p.res.vcmax25_avg * p.geometry.crown_area;
-	// 								}, t, {0.1}, k);
-	// vcmax = std::accumulate(vcmax_vec.begin(), vcmax_vec.end(), 0.0);
-	// vcmax /= canopy_area;
-
-	// Upper canopy Vcmax
+	// upper canopy acclimated traits
 	double h_uc = static_cast<PSPM_Environment*>(S.env)->z_star[0];
-	vcmax_vec.clear();
-	vcmax_vec.resize(S.n_species(), 0);
-	vector<double> canopy_area_uc(S.n_species(), 0);
-	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k])){
-			vcmax_vec[k] = S.integrate_wudx_above([&S,k, h_uc](int i, double t){
-											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-											return (p.geometry.height > h_uc)? (p.res.vcmax25_avg * p.geometry.crown_area) : 0;
-									}, t, {0.01}, k);
-			canopy_area_uc[k] = S.integrate_wudx_above([&S,k, h_uc](int i, double t){
-											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-											return (p.geometry.height > h_uc)? p.geometry.crown_area : 0;
-									}, t, {0.01}, k);
-		}	
-	vcmax = std::accumulate(vcmax_vec.begin(), vcmax_vec.end(), 0.0);
-	double ca_uc = std::accumulate(canopy_area_uc.begin(), canopy_area_uc.end(), 0.0);
-	vcmax /= ca_uc;
+	structure.canopy_area_uc = integrate_prop_above(t, 0.1, S, [h_uc](PSPM_Plant * p){return (p->geometry.height > h_uc)? p->geometry.crown_area : 0;});
 
-	// Upper canopy dpsi
-	dpsi_vec.clear();
-	dpsi_vec.resize(S.n_species(), 0);
-	// vector<double> canopy_area_uc(S.n_species(), 0);
-	for (int k=0; k<S.n_species(); ++k)
-		if (isResident(S.species_vec[k])){
-			dpsi_vec[k] = S.integrate_wudx_above([&S,k, h_uc](int i, double t){
-											auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-											return (p.geometry.height > h_uc)? (p.res.dpsi_avg * p.geometry.crown_area) : 0;
-									}, t, {0.01}, k);
-			// canopy_area_uc[k] = S.integrate_wudx_above([&S,k, h_uc](int i, double t){
-			// 								auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-			// 								return (p.geometry.height > h_uc)? p.geometry.crown_area : 0;
-			// 						}, t, {0.01}, k);
-		}	
-	dpsi = std::accumulate(dpsi_vec.begin(), dpsi_vec.end(), 0.0);
-	// double ca_uc = std::accumulate(canopy_area_uc.begin(), canopy_area_uc.end(), 0.0);
-	dpsi /= ca_uc;
+	acc_traits.vcmax = integrate_prop_above(t, 0.1, S, [h_uc](PSPM_Plant * p){return (p->geometry.height > h_uc)? (p->res.vcmax25_avg * p->geometry.crown_area) : 0; });
+	acc_traits.vcmax /= structure.canopy_area_uc;
 
-}
+	acc_traits.dpsi  = integrate_prop_above(t, 0.1, S, [h_uc](PSPM_Plant * p){return (p->geometry.height > h_uc)? (p->res.dpsi_avg * p->geometry.crown_area) : 0; });
+	acc_traits.dpsi /= structure.canopy_area_uc;
 
-
-SpeciesProps operator + (SpeciesProps lhs, SpeciesProps &rhs){
-	lhs += rhs;
-	return lhs;
-}
-
-
-EmergentProps& EmergentProps::operator /= (double s){
-	
-	gpp/=s;
-	npp/=s;
-	resp_auto/=s;
-	trans/=s;
-	gs/=s;
-	lai/=s;
-	leaf_mass/=s;
-	stem_mass/=s;
-	croot_mass/=s;
-	froot_mass/=s;
-	
-	transform(lai_vert.begin(), lai_vert.end(), lai_vert.begin(), [s](const double &c){ return c/s; });
-	
-	return *this;
-}
-
-EmergentProps & EmergentProps::operator += (const EmergentProps &s){
-	
-	gpp+=s.gpp;
-	npp+=s.npp;
-	resp_auto+=s.resp_auto;
-	trans+=s.trans;
-	gs+=s.gs;
-	lai+=s.lai;
-	leaf_mass+=s.leaf_mass;
-	stem_mass+=s.stem_mass;
-	croot_mass+=s.croot_mass;
-	froot_mass+=s.froot_mass;
-
-	transform(lai_vert.begin(), lai_vert.end(), s.lai_vert.begin(), lai_vert.begin(), std::plus<double>());
-
-	return *this;
-}
-
-bool EmergentProps::isResident(Species_Base * spp){
-	return static_cast<AdaptiveSpecies<PSPM_Plant>*>(spp)->isResident;
-}
-
-
-void EmergentProps::update(double t, Solver &S){
-	gpp = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.gpp;});
-	npp = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.npp;});
-	trans = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.trans;});
-	resp_auto = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.rleaf + p->res.rroot + p->res.rstem;});
-	lai = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.crown_area*p->geometry.lai;});
-	leaf_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.leaf_mass(p->traits);});
-	stem_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.stem_mass(p->traits);});
-	croot_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.coarse_root_mass(p->traits);});
-	froot_mass = integrate_prop(t, S, [](const PSPM_Plant* p){return p->geometry.root_mass(p->traits);});
-	gs = (trans*55.55/365/86400)/1.6/(static_cast<PSPM_Environment*>(S.env)->clim_inst.vpd/1.0325e5);
-	//     ^ convert kg/m2/yr --> mol/m2/s
-
-	double tleaf_comm = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.tleaf;});
-	double troot_comm = integrate_prop(t, S, [](const PSPM_Plant* p){return p->res.troot;});
-	cc_est = (tleaf_comm + troot_comm + resp_auto)/tleaf_comm;
+	misc.cc_est = (fluxes.tleaf + fluxes.troot + fluxes.rleaf + fluxes.rroot + fluxes.rstem)/fluxes.tleaf;
 
 	// LAI vertical profile
-	lai_vert.clear();
-	lai_vert.resize(25, 0);
-	for (int iz=0; iz<25; ++iz)
-		for (int k=0; k<S.n_species(); ++k)
-			if (isResident(S.species_vec[k]))
-			lai_vert[iz] += S.state_integral([&S,k,iz](int i, double t){
-									auto& p = (static_cast<Species<PSPM_Plant>*>(S.species_vec[k]))->getCohort(i);
-									return p.geometry.crown_area_above(iz,p.traits)*p.geometry.lai;
-							}, t, k);
-
+	structure.lai_vert.clear();
+	structure.lai_vert.resize(25, 0);
+	for (int iz=0; iz<25; ++iz){
+		structure.lai_vert[iz] = integrate_prop(t, S, [iz](PSPM_Plant * p){return p->geometry.crown_area_above(iz,p->traits)*p->geometry.lai;});
+	}
 }
 
 
-
-EmergentProps operator + (EmergentProps lhs, EmergentProps &rhs){
+CommunityProperties operator + (CommunityProperties lhs, CommunityProperties &rhs){
 	lhs += rhs;
 	return lhs;
 }
 
 
-
-void SolverIO::openStreams(std::string dir){
+void CommunityProperties::openStreams(std::string dir){
 
 	if (b_output_cohort_props){
-		cohort_props_out.open(dir + "/cohort_props.txt");
-		cohort_props_out << "t\tspeciesID\tcohortID\t";
-		for (auto vname : varnames) cohort_props_out << vname << "\t";
+		cohort_props_out.open(dir + "/cohort_props.csv");
+		cohort_props_out << "t,speciesID,cohortID,";
+		for (auto vname : varnames) cohort_props_out << vname << ",";
 		cohort_props_out << std::endl;
 		cohort_props_out << std::setprecision(12);
 	}
 
-	size_dists_out.open(dir + "/size_distributions.txt");
-
-	// varnames.insert(varnames.begin(), "u");
-	// varnames.insert(varnames.begin(), "X");
-	
-	// for (int s=0; s < S->species_vec.size(); ++s){
-	// 	auto spp = S->species_vec[s];
-	// 	std::vector<std::ofstream> spp_streams;
-		
-	// 	for (int i=0; i<varnames.size(); ++i){
-	// 		std::stringstream sout;
-	// 		sout << dir << "/species_" << s << "_" << varnames[i] << ".txt";
-	// 		cout << sout.str() << endl;
-	// 		std::ofstream fout(sout.str().c_str());
-	// 		assert(fout);
-	// 		spp_streams.push_back(std::move(fout));
-	// 	}
-	// 	streams.push_back(std::move(spp_streams));
-	// }
-
-	fzst.open(std::string(dir + "/z_star.txt").c_str());
-	fco.open(std::string(dir + "/canopy_openness.txt").c_str());
-	// fseed.open(std::string(dir + "/seeds.txt").c_str());
-	// fabase.open(std::string(dir + "/basal_area.txt").c_str());
-	flai.open(std::string(dir + "/lai_profile.txt").c_str());
+	size_dists_out.open(dir + "/size_distributions.csv");
+	fzst.open(std::string(dir + "/z_star.csv").c_str());
+	fco.open(std::string(dir + "/canopy_openness.csv").c_str());
+	flai.open(std::string(dir + "/lai_profile.csv").c_str());
 	foutd.open(std::string(dir + "/" + emgProps_file).c_str());
 	fouty.open(std::string(dir + "/" + cwmAvg_file).c_str());
 	fouty_spp.open(std::string(dir + "/" + cwmperSpecies_file).c_str());
 	ftraits.open(std::string(dir + "/" + traits_file).c_str());
-	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
+	// fclim.open(std::string(dir + "/climate_co2.csv").c_str());
 
-	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tDPSI\tCCEST\tCO2\n";
-	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
-	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
-	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tZETA\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
-	// fclim << "t\ttc\tppfd_max\tppfd\tvpd\tco2\telv\tswp\n";
+	foutd << "YEAR,GPP,NPP,RAU,MORT,GS,ET,VCMAX,DPSI,CCEST,CO2\n";
+	fouty << "YEAR,DE,CL,CW,CCR,CFR,CR,CA,BA,TB,LAI\n";
+	fouty_spp << "YEAR,PID,DE,PH,CA,BA,TB,SEEDS\n";
+	ftraits << "YEAR,SPP,RES,LMA,WD,HMAT,P50X,ZETA,r0_last,r0_avg,r0_exp,r0_cesaro\n";
+	// fclim << "t,tc,ppfd_max,ppfd,vpd,co2,elv,swp\n";
 
 }
 
-void SolverIO::closeStreams(){
-	// for (int s=0; s<streams.size(); ++s){
-	// 	for (int j=0; j<streams[s].size(); ++j){
-	// 		streams[s][j].close();
-	// 	}
-	// }
+void CommunityProperties::closeStreams(){
 	if (b_output_cohort_props) cohort_props_out.close();
 	size_dists_out.close();
 	
 	fzst.close();
 	fco.close();
-	// fseed.close();
-	// fabase.close();
 	flai.close();
 	foutd.close();
 	fouty.close();
@@ -401,155 +132,202 @@ void SolverIO::closeStreams(){
 	// fclim.close();
 }
 
-void SolverIO::writeState(double t, SpeciesProps& cwm, EmergentProps& props){
+void CommunityProperties::writeOut(double t, Patch &P){
+	Solver *S = &P.S;
+
+	// consistently output date in decimal years across all files
+	double date = flare::julian_to_yearsCE(P.ts.to_julian(t));
+
 	for (int s=0; s < S->species_vec.size(); ++s){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[s]);
-
-		// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << t << "\t";
 
 		std::vector<double> breaks = my_log_seq(0.01, 10, 100);
 		std::vector<double> dist = S->getDensitySpecies1D(s, 0, breaks);
 		//cout << "here: " << breaks.size() << " " << dist.size() << endl;
 
 		if (spp->isResident){
-			size_dists_out << t << "\t" << spp->species_name << "\t";
+			size_dists_out << date << "," << spp->species_name << ",";
 			for (int i=0; i<100; ++i){
-				// streams[s][0] << breaks[i] << "\t";
-				// streams[s][1] << dist[i] << "\t";
-				size_dists_out << dist[i] << "\t";
+				size_dists_out << dist[i] << ",";
 			}
 			size_dists_out << "\n";
 		}
-
-		// for (int j=0; j<spp->xsize(); ++j){
-		// 	auto& C = spp->getCohort(j);
-		// 	int is = 2;
-		// 	//streams[s][is++] << C.x << "\t";
-		// 	//streams[s][is++] << C.u << "\t";
-		// 	streams[s][is++] << C.geometry.height << "\t";
-		// 	streams[s][is++] << C.geometry.lai << "\t";
-		// 	streams[s][is++] << C.rates.dmort_dt << "\t";
-		// 	streams[s][is++] << C.state.seed_pool << "\t";
-		// 	streams[s][is++] << C.rates.rgr << "\t";
-		// 	streams[s][is++] << C.res.gpp/C.geometry.crown_area << "\t";
-
-		// }
 		
-		// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << endl; //"\n";
 		if (b_output_cohort_props){
 			if (spp->isResident){
 				for (int j=0; j<spp->xsize()-1; ++j){
 					auto& C = spp->getCohort(j);
-					cohort_props_out << t << "\t" 
-									<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
-									<< j << "\t"
-									<< C.geometry.diameter << "\t"
-									<< C.geometry.height << "\t"
-									<< C.geometry.lai << "\t"
-									<< C.rates.dmort_dt << "\t"
-									<< C.rates.dseeds_dt << "\t"
-									<< C.rates.rgr << "\t"
-									<< C.res.gpp/C.geometry.crown_area << "\t";
+					cohort_props_out 
+						<< date << "," 
+						<< spp->species_name << ","  // use name instead of index s becuase it is unique and order-insensitive
+						<< j << ","
+						<< C.geometry.diameter << ","
+						<< C.geometry.height << ","
+						<< C.geometry.lai << ","
+						<< C.rates.dmort_dt << ","
+						<< C.rates.dseeds_dt << ","
+						<< C.rates.rgr << ","
+						<< C.res.gpp/C.geometry.crown_area << ",";
 					cohort_props_out << "\n";
 				}
 			}
 		}
 	}
 
-	foutd << t << "\t"
-			<< (t-floor(t))*365 << "\t"
-			<< props.gpp*0.5/365*1000 << "\t"
-			<< props.npp*0.5/365*1000 << "\t"
-			<< props.resp_auto*0.5/365*1000 << "\t"  // gC/m2/d
-			<< props.leaf_mass*1000*0.5 << "\t"     
-			<< props.stem_mass*1000*0.5 << "\t"
-			<< props.croot_mass*1000*0.5 << "\t"
-			<< props.froot_mass*1000*0.5 << "\t"
-			<< (props.croot_mass+props.froot_mass)*1000*0.5 << "\t" // gC/m2
-			<< cwm.gs << "\t"
-			<< props.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
-			<< props.lai << "\t"
-			<< cwm.vcmax << "\t"
-			<< cwm.dpsi << "\t"
-			<< props.cc_est << "\t"
-			<< static_cast<PSPM_Environment*>(S->env)->clim_inst.co2 << std::endl;
+	foutd 
+		<< date << ","
+		<< fluxes.gpp << ","
+		<< fluxes.npp << ","
+		<< (fluxes.rleaf + fluxes.rroot + fluxes.rstem) << ","  // kgC/m2/d
+		<< fluxes.mort << ","
+		<< fluxes.gs << ","
+		<< fluxes.trans << ","   
+		<< acc_traits.vcmax << ","
+		<< acc_traits.dpsi << ","
+		<< misc.cc_est << ","
+		<< static_cast<PSPM_Environment*>(S->env)->clim_inst.co2 
+		<< std::endl;
 	
-	fouty << t << "\t"
-			<< -9999  << "\t"
-			<< cwm.n_ind << "\t"
-			<< -9999  << "\t"
-			<< cwm.height  << "\t"
-			<< cwm.hmat  << "\t"
-			<< cwm.canopy_area  << "\t"   // m2/m2
-			<< cwm.ba  << "\t"            // m2/m2
-			<< cwm.biomass  << "\t"       // kg/m2
-			<< cwm.wd  << "\t"
-			<< -9999  << "\t"
-			<< 1/cwm.lma  << "\t"
-			<< cwm.p50  << std::endl;
+	fouty 
+		<< date << ","
+		<< structure.n_ind << ","
+		<< structure.leaf_mass << ","     
+		<< structure.stem_mass << ","
+		<< structure.croot_mass << ","
+		<< structure.froot_mass << ","
+		<< (structure.croot_mass+structure.froot_mass) << ","
+		<< structure.canopy_area  << ","
+		<< structure.basal_area  << ","
+		<< structure.biomass  << ","
+		<< structure.lai
+		<< std::endl;
 	
 	for (int k=0; k<S->species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		fouty_spp 
-				<< t << "\t"
-				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
-				<< cwm.n_ind_vec[k] << "\t"
-				<< -9999  << "\t"
-				<< cwm.height_vec[k]  << "\t"
-				<< cwm.hmat_vec[k]  << "\t"
-				<< cwm.canopy_area_vec[k]  << "\t"   // m2/m2
-				<< cwm.ba_vec[k]  << "\t"            // m2/m2
-				<< cwm.biomass_vec[k]  << "\t"       // kg/m2
-				<< cwm.wd_vec[k]  << "\t"
-				<< -9999  << "\t"
-				<< 1/cwm.lma_vec[k]  << "\t"
-				<< cwm.p50_vec[k]  << "\t"
-				<< spp->seeds_hist.get()  << "\n";
+			<< date << ","
+			<< spp->species_name  << "," // use name instead of index k becuase it is unique and order-insensitive
+			<< species.n_ind_vec[k] << ","
+			<< species.height_vec[k]  << ","
+			<< species.canopy_area_vec[k]  << "," 
+			<< species.basal_area_vec[k]  << ","
+			<< species.biomass_vec[k]  << ","
+			<< spp->seeds_hist.get()  
+			<< std::endl;
 	}
 
 	for (int k=0; k<S->species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		ftraits 
-				<< t << "\t"
-				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
-				<< spp->isResident << "\t";
-		ftraits << spp->getCohort(-1).traits.lma << "\t"
-				<< spp->getCohort(-1).traits.wood_density << "\t"
-				<< spp->getCohort(-1).traits.hmat << "\t"
-		        << spp->getCohort(-1).traits.p50_xylem << "\t"
-				<< spp->getCohort(-1).traits.zeta << "\t";
-		ftraits << spp->r0_hist.get_last() << "\t"
-				<< spp->r0_hist.get() << "\t"
-				<< 0 << "\t"
-				<< 0 << "\n"; //spp->r0_hist.get_cesaro() << "\n";
+			<< date << ","
+			<< spp->species_name  << "," // use name instead of index k becuase it is unique and order-insensitive
+			<< spp->isResident << ","
+			<< spp->getCohort(-1).traits.lma << ","
+			<< spp->getCohort(-1).traits.wood_density << ","
+			<< spp->getCohort(-1).traits.hmat << ","
+		    << spp->getCohort(-1).traits.p50_xylem << ","
+			<< spp->getCohort(-1).traits.zeta << ","
+			<< spp->r0_hist.get_last() << ","
+			<< spp->r0_hist.get() << ","
+			<< 0 << ","
+			<< 0 //spp->r0_hist.get_cesaro();
+			<< std::endl; 
 	}
 
 	ftraits.flush();
 	fouty_spp.flush();
 
-	flai << t << "\t";
-	for (int i=0; i<props.lai_vert.size(); ++i) flai << props.lai_vert[i] << "\t";
-	flai << std::endl;
+	flai << date << ",";
+	for (int i=0; i<structure.lai_vert.size(); ++i) flai << structure.lai_vert[i] << ",";
+	flai << std::endl;	
 
-	// // FIXME: Delete this
-	// fseed << t << "\t";
-	// for (int i=0; i<S->n_species(); ++i) fseed << static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[i])->seeds_hist.get() << "\t";
-	// fseed << endl;
-	
-	// fabase << t << "\t";
-	// for (int i=0; i<S->n_species(); ++i) fabase << cwm.ba_vec[i] << "\t";
-	// fabase << endl;
-	
-
-	fzst << t << "\t";
-	for (auto z : static_cast<PSPM_Environment*>(S->env)->z_star) fzst << z << "\t";
+	fzst << date << ",";
+	for (auto z : static_cast<PSPM_Environment*>(S->env)->z_star) fzst << z << ",";
 	fzst << std::endl;
 	
-	fco << t << "\t";
-	for (auto z : static_cast<PSPM_Environment*>(S->env)->canopy_openness) fco << z << "\t";
+	fco << date << ",";
+	for (auto z : static_cast<PSPM_Environment*>(S->env)->canopy_openness) fco << z << ",";
 	fco << std::endl;
 
 }
+
+// FIXME: These operators are not tested
+CommunityProperties& CommunityProperties::operator /= (double s){
+
+	fluxes.gpp            /= s;
+	fluxes.npp            /= s;
+	fluxes.trans          /= s;
+	fluxes.gs             /= s;
+	fluxes.tleaf          /= s;
+	fluxes.troot          /= s;
+	fluxes.rleaf          /= s;
+	fluxes.rroot          /= s;
+	fluxes.rstem          /= s;
+
+	structure.leaf_mass   /= s;
+	structure.stem_mass   /= s;
+	structure.croot_mass  /= s;
+	structure.froot_mass  /= s;
+	structure.biomass     /= s;
+	structure.basal_area  /= s;
+	structure.canopy_area /= s;
+	structure.n_ind       /= s;
+	structure.height      /= s;
+	structure.lai         /= s;
+	transform(structure.lai_vert.begin(), structure.lai_vert.end(), structure.lai_vert.begin(), [s](const double &c){ return c/s; });
+
+	misc.cc_est           /= s;
+
+	acc_traits.vcmax      /= s;
+	acc_traits.dpsi       /= s;
+
+	transform(species.n_ind_vec.begin(),       species.n_ind_vec.end(),       species.n_ind_vec.begin(),       [s](const double &c){ return c/s; });
+	transform(species.biomass_vec.begin(),     species.biomass_vec.end(),     species.biomass_vec.begin(),     [s](const double &c){ return c/s; });
+	transform(species.basal_area_vec.begin(),  species.basal_area_vec.end(),  species.basal_area_vec.begin(),  [s](const double &c){ return c/s; });
+	transform(species.canopy_area_vec.begin(), species.canopy_area_vec.end(), species.canopy_area_vec.begin(), [s](const double &c){ return c/s; });
+	transform(species.height_vec.begin(),      species.height_vec.end(),      species.height_vec.begin(),      [s](const double &c){ return c/s; });
+	
+	return *this;
+}
+
+CommunityProperties& CommunityProperties::operator += (const CommunityProperties &rhs){
+
+	fluxes.gpp            += rhs.fluxes.gpp;
+	fluxes.npp            += rhs.fluxes.npp;
+	fluxes.trans          += rhs.fluxes.trans;
+	fluxes.gs             += rhs.fluxes.gs;
+	fluxes.tleaf          += rhs.fluxes.tleaf;
+	fluxes.troot          += rhs.fluxes.troot;
+	fluxes.rleaf          += rhs.fluxes.rleaf;
+	fluxes.rroot          += rhs.fluxes.rroot;
+	fluxes.rstem          += rhs.fluxes.rstem;
+
+	structure.leaf_mass   += rhs.structure.leaf_mass;
+	structure.stem_mass   += rhs.structure.stem_mass;
+	structure.croot_mass  += rhs.structure.croot_mass;
+	structure.froot_mass  += rhs.structure.froot_mass;
+	structure.biomass     += rhs.structure.biomass;
+	structure.basal_area  += rhs.structure.basal_area;
+	structure.canopy_area += rhs.structure.canopy_area;
+	structure.n_ind       += rhs.structure.n_ind;
+	structure.height      += rhs.structure.height;
+	structure.lai         += rhs.structure.lai;
+	transform(structure.lai_vert.begin(), structure.lai_vert.end(), rhs.structure.lai_vert.begin(), structure.lai_vert.begin(), std::plus<double>());
+
+	misc.cc_est           += rhs.misc.cc_est;
+
+	acc_traits.vcmax      += rhs.acc_traits.vcmax;
+	acc_traits.dpsi       += rhs.acc_traits.dpsi;
+
+	transform(species.n_ind_vec.begin(),       species.n_ind_vec.end(),       rhs.species.n_ind_vec.begin(),       species.n_ind_vec.begin(),       std::plus<double>());
+	transform(species.biomass_vec.begin(),     species.biomass_vec.end(),     rhs.species.biomass_vec.begin(),     species.biomass_vec.begin(),     std::plus<double>());
+	transform(species.basal_area_vec.begin(),  species.basal_area_vec.end(),  rhs.species.basal_area_vec.begin(),  species.basal_area_vec.begin(),  std::plus<double>());
+	transform(species.canopy_area_vec.begin(), species.canopy_area_vec.end(), rhs.species.canopy_area_vec.begin(), species.canopy_area_vec.begin(), std::plus<double>());
+	transform(species.height_vec.begin(),      species.height_vec.end(),      rhs.species.height_vec.begin(),      species.height_vec.begin(),      std::plus<double>());
+	
+	return *this;
+}
+
 
 
 } // namespace pfate
