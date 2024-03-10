@@ -22,17 +22,25 @@ void CommunityProperties::update(double t, Patch &P){
 
 	Solver &S = P.S;
 
-	fluxes.gpp              = integrate_prop(t, S, [](PSPM_Plant* p){return p->res.gpp;});
-	fluxes.npp              = integrate_prop(t, S, [](PSPM_Plant* p){return p->res.npp;});
-	fluxes.trans            = integrate_prop(t, S, [](PSPM_Plant* p){return p->res.trans;});
-	fluxes.tleaf            = integrate_prop(t, S, [](PSPM_Plant* p){return p->res.tleaf;});
-	fluxes.troot            = integrate_prop(t, S, [](PSPM_Plant* p){return p->res.troot;});
-	fluxes.rleaf            = integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rleaf;});
-	fluxes.rroot            = integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rroot;});
-	fluxes.rstem            = integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rstem;});
-	fluxes.gs = (fluxes.trans*55.55/365/86400)/1.6/(static_cast<PSPM_Environment*>(S.env)->clim_inst.vpd/1.0325e5);
-	//     ^ convert kg/m2/yr --> mol/m2/s
+	// multiplier to convert unit_t-1 --> day-1
+	double m1 = 1/P.par0.days_per_tunit;
 
+	// multiplier to convert kg biomass --> kg C
+	double m2 = 1/2.04;
+
+	fluxes.gpp    = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.gpp;});
+	fluxes.npp    = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.npp;});
+	fluxes.trans  = m1      * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.trans;});
+	fluxes.tleaf  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.tleaf;});
+	fluxes.troot  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.troot;});
+	fluxes.rleaf  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rleaf;});
+	fluxes.rroot  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rroot;});
+	fluxes.rstem  = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->res.rstem;});
+	fluxes.mort   = m1 * m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->get_biomass()*p->rates.dmort_dt;});
+	fluxes.gs = (fluxes.trans*55.55/86400)/1.6/(static_cast<PSPM_Environment*>(S.env)->clim_inst.vpd/1.0325e5);
+	//     ^ convert kg/m2/day --> mol/m2/s
+
+	// Note: for these vector calcs, multipliers are multiplied inside lambdas, where necesary
 	species.n_ind_vec       = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){return 1;});
 	species.biomass_vec     = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){return p->get_biomass();});
 	species.basal_area_vec  = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){
@@ -42,17 +50,18 @@ void CommunityProperties::update(double t, Patch &P){
 	species.canopy_area_vec = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){return p->geometry.crown_area;});
 	species.height_vec      = integrate_prop_above_per_species(t, 0.1, S, [](PSPM_Plant * p){return p->geometry.height;});
 	for (int k=0; k<S.n_species(); ++k) species.height_vec[k] /= species.n_ind_vec[k];
+	species.mortality_vec   = integrate_prop_per_species(t, S, [m1, m2](PSPM_Plant * p){return m1*m2*p->get_biomass()*p->rates.dmort_dt;});
 
 	structure.n_ind         = std::accumulate(species.n_ind_vec.begin(),       species.n_ind_vec.end(),       0.0);
 	structure.biomass       = std::accumulate(species.biomass_vec.begin(),     species.biomass_vec.end(),     0.0);
 	structure.basal_area    = std::accumulate(species.basal_area_vec.begin(),  species.basal_area_vec.end(),  0.0);
 	structure.canopy_area   = std::accumulate(species.canopy_area_vec.begin(), species.canopy_area_vec.end(), 0.0);
 
-	structure.lai           = integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.crown_area*p->geometry.lai;});
-	structure.leaf_mass     = integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.leaf_mass(p->traits);});
-	structure.stem_mass     = integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.stem_mass(p->traits);});
-	structure.croot_mass    = integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.coarse_root_mass(p->traits);});
-	structure.froot_mass    = integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.root_mass(p->traits);});
+	structure.lai           =      integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.crown_area*p->geometry.lai;});
+	structure.leaf_mass     = m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.leaf_mass(p->traits);});
+	structure.stem_mass     = m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.stem_mass(p->traits);});
+	structure.croot_mass    = m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.coarse_root_mass(p->traits);});
+	structure.froot_mass    = m2 * integrate_prop(t, S, [](PSPM_Plant* p){return p->geometry.root_mass(p->traits);});
 
 	// upper canopy acclimated traits
 	double h_uc = static_cast<PSPM_Environment*>(S.env)->z_star[0];
@@ -122,7 +131,7 @@ void CommunityProperties::openStreams(std::string dir){
 	ftraits.open(std::string(dir + "/" + traits_file).c_str());
 	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
-	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tDPSI\tCCEST\tCO2\n";
+	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tMORT\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tDPSI\tCCEST\tCO2\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
 	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tZETA\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
@@ -195,16 +204,17 @@ void CommunityProperties::writeOut(double t, Patch &P){
 
 	foutd << t << "\t"
 			<< (t-floor(t))*365 << "\t"
-			<< fluxes.gpp*0.5/365*1000 << "\t"
-			<< fluxes.npp*0.5/365*1000 << "\t"
-			<< (fluxes.rleaf + fluxes.rroot + fluxes.rstem)*0.5/365*1000 << "\t"  // gC/m2/d
-			<< structure.leaf_mass*1000*0.5 << "\t"     
-			<< structure.stem_mass*1000*0.5 << "\t"
-			<< structure.croot_mass*1000*0.5 << "\t"
-			<< structure.froot_mass*1000*0.5 << "\t"
-			<< (structure.croot_mass+structure.froot_mass)*1000*0.5 << "\t" // gC/m2
+			<< fluxes.gpp << "\t"
+			<< fluxes.npp << "\t"
+			<< (fluxes.rleaf + fluxes.rroot + fluxes.rstem) << "\t"  // kgC/m2/d
+			<< fluxes.mort << "\t"
+			<< structure.leaf_mass << "\t"     
+			<< structure.stem_mass << "\t"
+			<< structure.croot_mass << "\t"
+			<< structure.froot_mass << "\t"
+			<< (structure.croot_mass+structure.froot_mass) << "\t" // kgC/m2
 			<< fluxes.gs << "\t"
-			<< fluxes.trans/365 << "\t"   // kg/m2/yr --> 1e-3 m3/m2/yr --> 1e-3*1e3 mm/yr --> 1/365 mm/day  
+			<< fluxes.trans << "\t"   
 			<< structure.lai << "\t"
 			<< acc_traits.vcmax << "\t"
 			<< acc_traits.dpsi << "\t"
@@ -249,13 +259,13 @@ void CommunityProperties::writeOut(double t, Patch &P){
 		ftraits 
 				<< t << "\t"
 				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
-				<< spp->isResident << "\t";
-		ftraits << spp->getCohort(-1).traits.lma << "\t"
+				<< spp->isResident << "\t"
+				<< spp->getCohort(-1).traits.lma << "\t"
 				<< spp->getCohort(-1).traits.wood_density << "\t"
 				<< spp->getCohort(-1).traits.hmat << "\t"
 		        << spp->getCohort(-1).traits.p50_xylem << "\t"
-				<< spp->getCohort(-1).traits.zeta << "\t";
-		ftraits << spp->r0_hist.get_last() << "\t"
+				<< spp->getCohort(-1).traits.zeta << "\t"
+				<< spp->r0_hist.get_last() << "\t"
 				<< spp->r0_hist.get() << "\t"
 				<< 0 << "\t"
 				<< 0 << "\n"; //spp->r0_hist.get_cesaro() << "\n";

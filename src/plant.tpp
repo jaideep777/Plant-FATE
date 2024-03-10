@@ -116,9 +116,14 @@ double Plant::mortality_rate(Env &env, double t){
 		             par.cD1*exp(-D/0.01);  
 	mort.mu_hyd	   = par.m_hydraulic*mu_hyd_norm;
 
+	// convert: yr-1 --> t_unit-1
+	mort.mu_0      *= par.years_per_tunit_avg;
+	mort.mu_growth *= par.years_per_tunit_avg;
+	mort.mu_d      *= par.years_per_tunit_avg;
+	mort.mu_hyd    *= par.years_per_tunit_avg;
+
 	double mu = mort.mu_0 + mort.mu_growth + mort.mu_d + mort.mu_hyd;
 
-	mu *= par.years_per_tunit_avg;  // convert: yr-1 * yr t_unit-1 = t_unit-1
 
 	// mu = pow(traits.wood_density/par.cWD0, par.eWD)*
 	// 	 (par.m_gamma + 

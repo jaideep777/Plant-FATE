@@ -123,9 +123,9 @@ add_band()
 
 
 
-matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC/m2/yr)", xlab="Time (years)")
+matplot(y=cbind(dat$GPP, dat$NPP, dat$MORT)*365.2425, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3", "brown"), ylab="GPP, NPP, MORT\n(kgC/m2/yr)", xlab="Time (years)")
 matlines(y=cbind(fitted(loess(dat$GPP~dat$YEAR, span=60/n_year)), 
-                 fitted(loess(dat$NPP~dat$YEAR, span=60/n_year)))*1e-3*365, x=dat$YEAR, type="l", lty=1, col="black", lwd=c(1,0.5))
+                 fitted(loess(dat$NPP~dat$YEAR, span=60/n_year)))*365, x=dat$YEAR, type="l", lty=1, col="black", lwd=c(1,0.5))
 # points(y=dat$NPP/dat$GPP*4, x=dat$YEAR, type="l", lty=1, col=c("yellow1"))
 # abline(h=c(3,3.5), col="grey")
 add_hband(c(3,3.5))#, col=scales::alpha("black",0.3))
@@ -139,12 +139,12 @@ add_hband(c(0.16, 0.16555))#, col=scales::alpha("cyan4", 0.6))
 # abline(h=c(0.16), col=scales::muted("cyan3"))
 add_band()
 
-agb = cbind(dat$CL+dat$CW)/1e3
+agb = cbind(dat$CL+dat$CW)
 matplot(y=agb, x=dat$YEAR, type="l", lty=1, col=c("yellow4"), ylim=c(0,max(agb)), ylab="AGB\n(kgC/m2)", xlab = "Time (years)")
 add_hband(c(16.9, 20.7))#, col=scales::alpha("yellow3", 0.3))
 add_band()
 
-matplot(y=cbind(dat$CFR)/1e3, x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR\n(kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
+matplot(y=cbind(dat$CFR), x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR\n(kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
 add_hband(c(0.48, 0.66))#, col=scales::alpha("brown", 0.3))
 add_band()
 

@@ -13,61 +13,64 @@ namespace pfate {
 
 class Patch;
 
+/// @brief This class calculates and stores community-level properties of interest
 class CommunityProperties{
 	public:
+
+	// CO2 and water fluxes
 	struct{
-		double gpp=0;
-		double npp=0;
-		double trans=0;
-		double gs=0;
-		double tleaf=0;
-		double troot=0;
-		double rleaf=0;
-		double rroot=0;
-		double rstem=0;
+		double gpp=0;      ///< Gross primary productivity [kgC m-2 day-1]
+		double npp=0;      ///< Net primary productivity [kgC m-2 day-1]
+		double trans=0;    ///< Transpiration [kg m-2 day-1 == mm day-1]
+		double gs=0;       ///< Stomatal conductance [mol-h2o m-2 s-1]
+		double tleaf=0;    ///< Leaf turnover rate [kgC m-2 day-1]
+		double troot=0;    ///< Fine root turnover rate [kgC m-2 day-1]
+		double rleaf=0;    ///< Leaf respiration rate [kgC m-2 day-1]
+		double rroot=0;    ///< Fine root respiration rate [kgC m-2 day-1]
+		double rstem=0;    ///< Stem + Coarse-root respiration rate [kgC m-2 day-1]
+		double mort=0;     ///< Biomass loss rate by mortality [kgC m-2 day-1]
 	} fluxes;
 
+	// Structural properties of the community
 	struct{
-		double leaf_mass=0;
-		double stem_mass=0;
-		double croot_mass=0;
-		double froot_mass=0;
-		double biomass=0;
-		double basal_area=0;
-		double canopy_area=0;
-		double canopy_area_uc=0;
-		double n_ind=0;
-		double height=0;
-		double lai=0;
-		std::vector <double> lai_vert;
+		double leaf_mass=0;       ///< Leaf biomass [kgC m-2]
+		double stem_mass=0;       ///< Stem biomass [kgC m-2]
+		double croot_mass=0;      ///< Coarse root biomass [kgC m-2]
+		double froot_mass=0;      ///< Fine root biomass [kgC m-2]
+		double biomass=0;         ///< Total biomass [kgC m-2]
+		double basal_area=0;      ///< Total basal area at breast height [m2 m2-1] 
+		double canopy_area=0;     ///< Total crown area [m2 m-2]
+		double canopy_area_uc=0;  ///< Total crown area in the uppermost canopy layer [m2 m-2]
+		double n_ind=0;           ///< Number of individuals in the community [m-2]
+		double height=0;          ///< Average height of all individuals [m]
+		double lai=0;             ///< Community leaf area index [m2 m-2]
+		std::vector <double> lai_vert; ///< Vertical profile of LAI (cumulative LAI above height i metres, where i is index in this vector)
 	} structure;
 
+	// Species level totals of some properties in the same units as above
 	struct{
 		std::vector<double> n_ind_vec;
 		std::vector<double> biomass_vec;
 		std::vector<double> basal_area_vec;
 		std::vector<double> canopy_area_vec;
 		std::vector<double> height_vec;
+		std::vector<double> mortality_vec;
+		// std::vector<double> mortality_vec_base;
+		// std::vector<double> mortality_vec_light;
+		// std::vector<double> mortality_vec_hyd;
 	} species;
 
+	// Miscellaneous properties
 	struct{
-		double cc_est=0;
+		double cc_est=0; ///< Estimated carbon cost of leaves averaged over the leaf lifespan
 	} misc;
 
+	// Acclimated traits
 	struct{
-		double vcmax=0;
-		double dpsi=0;
+		double vcmax=0; ///< Average Vcmax in leaves of the upper canopy [umol m-2 s-1]
+		double dpsi=0;  ///< Average dpsi in leaves of the upper canopy [MPa]
 	} acc_traits;
 
-	// double lma=0;
-	// double p50=0;
-	// double hmat=0;
-	// double wd=0;
-	
-	// std::vector<double> lma_vec;
-	// std::vector<double> p50_vec;
-	// std::vector<double> hmat_vec;
-	// std::vector<double> wd_vec;
 	
 	bool b_output_cohort_props = false;
 	std::string emgProps_file;
