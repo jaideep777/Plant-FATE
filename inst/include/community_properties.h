@@ -29,7 +29,6 @@ double integrate_prop(double t, Solver &S, const Func &f){
 
 
 
-// FIXME: move definitions to cpp
 class SpeciesProps{
 public:
 	double n_ind=0;

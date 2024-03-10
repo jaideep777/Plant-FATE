@@ -134,7 +134,7 @@ void LifeHistoryOptimizer::printHeader(ostream &lfout){
 
 vector<double> LifeHistoryOptimizer::get_state(double t){
 	return {
-		  t 
+		  ts.to_julian(t)
 		, C.clim_inst.ppfd
 		, P.assimilator.plant_assim.npp 
 		, P.assimilator.plant_assim.gpp 

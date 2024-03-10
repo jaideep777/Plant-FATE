@@ -49,7 +49,7 @@ int main(){
 	ofstream fout("assim1.txt");
 	double dt = 0.1*dpt;
 	lho.printHeader(fout);
-	for (double t=2000*dpt; t<=2500*dpt; t=t+dt){
+	for (double t=2000*dpt; t<=2500*dpt+1e-6; t=t+dt){
 		lho.grow_for_dt(t, dt);
 		lho.printState(t+dt, fout);
 		// lho.C.Climate::print(t);
