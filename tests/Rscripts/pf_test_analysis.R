@@ -32,6 +32,7 @@ co = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50))
 lai_v = read.delim("lai_profile.txt", header=F, col.names = paste0("V", 1:27))
 traits = read.delim("traits.txt")
 dat = read.delim("D_PFATE.txt")
+# dat$YEAR = decimal_date(as_date(dat$YEAR, format = "%Y-%m-%d %H:%M:%S GMT (doy = %j)"))
 dat2 = read.delim("Y_PFATE.txt")
 dist = read.delim("size_distributions.txt", header=F)
 dist = dist[,-ncol(dist)]

@@ -101,29 +101,8 @@ void CommunityProperties::openStreams(std::string dir){
 	}
 
 	size_dists_out.open(dir + "/size_distributions.txt");
-
-	// varnames.insert(varnames.begin(), "u");
-	// varnames.insert(varnames.begin(), "X");
-	
-	// for (int s=0; s < S->species_vec.size(); ++s){
-	// 	auto spp = S->species_vec[s];
-	// 	std::vector<std::ofstream> spp_streams;
-		
-	// 	for (int i=0; i<varnames.size(); ++i){
-	// 		std::stringstream sout;
-	// 		sout << dir << "/species_" << s << "_" << varnames[i] << ".txt";
-	// 		cout << sout.str() << endl;
-	// 		std::ofstream fout(sout.str().c_str());
-	// 		assert(fout);
-	// 		spp_streams.push_back(std::move(fout));
-	// 	}
-	// 	streams.push_back(std::move(spp_streams));
-	// }
-
 	fzst.open(std::string(dir + "/z_star.txt").c_str());
 	fco.open(std::string(dir + "/canopy_openness.txt").c_str());
-	// fseed.open(std::string(dir + "/seeds.txt").c_str());
-	// fabase.open(std::string(dir + "/basal_area.txt").c_str());
 	flai.open(std::string(dir + "/lai_profile.txt").c_str());
 	foutd.open(std::string(dir + "/" + emgProps_file).c_str());
 	fouty.open(std::string(dir + "/" + cwmAvg_file).c_str());
@@ -131,7 +110,7 @@ void CommunityProperties::openStreams(std::string dir){
 	ftraits.open(std::string(dir + "/" + traits_file).c_str());
 	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
-	foutd << "YEAR\tDOY\tGPP\tNPP\tRAU\tMORT\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tDPSI\tCCEST\tCO2\n";
+	foutd << "YEAR\tGPP\tNPP\tRAU\tMORT\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tDPSI\tCCEST\tCO2\n";
 	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
 	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
 	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tZETA\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
@@ -140,18 +119,11 @@ void CommunityProperties::openStreams(std::string dir){
 }
 
 void CommunityProperties::closeStreams(){
-	// for (int s=0; s<streams.size(); ++s){
-	// 	for (int j=0; j<streams[s].size(); ++j){
-	// 		streams[s][j].close();
-	// 	}
-	// }
 	if (b_output_cohort_props) cohort_props_out.close();
 	size_dists_out.close();
 	
 	fzst.close();
 	fco.close();
-	// fseed.close();
-	// fabase.close();
 	flai.close();
 	foutd.close();
 	fouty.close();
@@ -163,20 +135,19 @@ void CommunityProperties::closeStreams(){
 void CommunityProperties::writeOut(double t, Patch &P){
 	Solver *S = &P.S;
 
+	// consistently output date in decimal years across all files
+	double date = flare::julian_to_yearsCE(P.ts.to_julian(t));
+
 	for (int s=0; s < S->species_vec.size(); ++s){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[s]);
-
-		// for (int i=0; i<streams[s].size(); ++i) streams[s][i] << t << "\t";
 
 		std::vector<double> breaks = my_log_seq(0.01, 10, 100);
 		std::vector<double> dist = S->getDensitySpecies1D(s, 0, breaks);
 		//cout << "here: " << breaks.size() << " " << dist.size() << endl;
 
 		if (spp->isResident){
-			size_dists_out << t << "\t" << spp->species_name << "\t";
+			size_dists_out << date << "\t" << spp->species_name << "\t";
 			for (int i=0; i<100; ++i){
-				// streams[s][0] << breaks[i] << "\t";
-				// streams[s][1] << dist[i] << "\t";
 				size_dists_out << dist[i] << "\t";
 			}
 			size_dists_out << "\n";
@@ -186,7 +157,7 @@ void CommunityProperties::writeOut(double t, Patch &P){
 			if (spp->isResident){
 				for (int j=0; j<spp->xsize()-1; ++j){
 					auto& C = spp->getCohort(j);
-					cohort_props_out << t << "\t" 
+					cohort_props_out << date << "\t" 
 									<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
 									<< j << "\t"
 									<< C.geometry.diameter << "\t"
@@ -202,8 +173,7 @@ void CommunityProperties::writeOut(double t, Patch &P){
 		}
 	}
 
-	foutd << t << "\t"
-			<< (t-floor(t))*365 << "\t"
+	foutd << date << "\t"
 			<< fluxes.gpp << "\t"
 			<< fluxes.npp << "\t"
 			<< (fluxes.rleaf + fluxes.rroot + fluxes.rstem) << "\t"  // kgC/m2/d
@@ -221,7 +191,7 @@ void CommunityProperties::writeOut(double t, Patch &P){
 			<< misc.cc_est << "\t"
 			<< static_cast<PSPM_Environment*>(S->env)->clim_inst.co2 << std::endl;
 	
-	fouty << t << "\t"
+	fouty << date << "\t"
 			<< -9999  << "\t"
 			<< structure.n_ind << "\t"
 			<< -9999  << "\t"
@@ -238,7 +208,7 @@ void CommunityProperties::writeOut(double t, Patch &P){
 	for (int k=0; k<S->species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		fouty_spp 
-			<< t << "\t"
+			<< date << "\t"
 			<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 			<< species.n_ind_vec[k] << "\t"
 			<< -9999  << "\t"
@@ -257,7 +227,7 @@ void CommunityProperties::writeOut(double t, Patch &P){
 	for (int k=0; k<S->species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		ftraits 
-				<< t << "\t"
+				<< date << "\t"
 				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 				<< spp->isResident << "\t"
 				<< spp->getCohort(-1).traits.lma << "\t"
@@ -274,15 +244,15 @@ void CommunityProperties::writeOut(double t, Patch &P){
 	ftraits.flush();
 	fouty_spp.flush();
 
-	flai << t << "\t";
+	flai << date << "\t";
 	for (int i=0; i<structure.lai_vert.size(); ++i) flai << structure.lai_vert[i] << "\t";
 	flai << std::endl;	
 
-	fzst << t << "\t";
+	fzst << date << "\t";
 	for (auto z : static_cast<PSPM_Environment*>(S->env)->z_star) fzst << z << "\t";
 	fzst << std::endl;
 	
-	fco << t << "\t";
+	fco << date << "\t";
 	for (auto z : static_cast<PSPM_Environment*>(S->env)->canopy_openness) fco << z << "\t";
 	fco << std::endl;
 

@@ -384,7 +384,9 @@ void Patch::calc_seedrain_r0(double t){
 /// @param t Final time up to which patch should be simulated
 void Patch::simulate_to(double t){
 	if (int(t*12) % 12 == 0){
-		cout << "stepping = " << setprecision(6) << S.current_time << " --> " << t << "\t(";
+		double t_years_ce = flare::julian_to_yearsCE(ts.to_julian(S.current_time));
+		double tplus_years_ce = flare::julian_to_yearsCE(ts.to_julian(t));
+		cout << "stepping = " << setprecision(6) << S.current_time << " (" << t_years_ce << " CE)" << " --> " << t << " (" << tplus_years_ce << " CE)" << "\t(";
 		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
 		cout << ")" << endl;
 	}
