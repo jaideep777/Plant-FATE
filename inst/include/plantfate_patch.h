@@ -39,9 +39,9 @@ class Patch{
 	Solver              S;
 	PSPM_Environment    E;
 
-	SolverIO      sio;
-	SpeciesProps  cwm;
-	EmergentProps props; 
+	// SolverIO      sio;
+	// SpeciesProps  cwm;
+	CommunityProperties props; 
 
 	public:
 	Patch(std::string params_file);

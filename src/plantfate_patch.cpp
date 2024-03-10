@@ -52,10 +52,10 @@ Patch::Patch(std::string params_file) : S("IEBT", "rk45ck") {
 	climate_stream.update_a_met = (climate_stream.a_metFile == "null")? false : true;
 	climate_stream.update_co2   = (climate_stream.co2File   == "null")? false : true;
 
-	sio.emgProps_file = I.get<std::string>("emgProps");
-	sio.cwmAvg_file = I.get<std::string>("cwmAvg");
-	sio.cwmperSpecies_file = I.get<std::string>("cwmperSpecies");
-	sio.traits_file = I.get<std::string>("traits");
+	props.emgProps_file = I.get<std::string>("emgProps");
+	props.cwmAvg_file = I.get<std::string>("cwmAvg");
+	props.cwmperSpecies_file = I.get<std::string>("cwmperSpecies");
+	props.traits_file = I.get<std::string>("traits");
 
 	traits0.init(I);
 	par0.init(I);
@@ -200,14 +200,14 @@ void Patch::init(double tstart, double tend){
 
 	S.print();	
 
-	sio.S = &S;
-	sio.openStreams(config.out_dir);
+	// sio.S = &S;
+	props.openStreams(config.out_dir);
 }
 
 
 void Patch::close(){
 	//S.print();
-	sio.closeStreams();
+	props.closeStreams();
 
 	saveState(&S, 
 	          config.out_dir + "/" + config.state_outfile, 
@@ -294,7 +294,7 @@ void Patch::removeDeadSpecies(double t){
 	for (int k=0; k<S.species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k]);
 		if (spp->isResident){
-			if (cwm.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
+			if (props.species.n_ind_vec[k] < 1e-6 && (t-spp->t_introduction) > 50) toRemove.push_back(spp);
 		}
 	}
 	for (auto spp : toRemove) removeSpeciesAndProbes(spp);
@@ -405,8 +405,7 @@ void Patch::simulate_to(double t){
 	calc_seedrain_r0(t);
 
 	// update output metrics - needed before removeDeadSpecies()
-	cwm.update(t, S);
-	props.update(t, S);
+	props.update(t, *this);
 
 	// evolve traits
 	if (config.evolve_traits && t > config.ye){
@@ -532,7 +531,7 @@ void Patch::simulate(){
 
 		// write outputs
 		if (t > t_next_writestate || fabs(t-t_next_writestate) < 1e-6){
-			sio.writeState(t, cwm, props);
+			props.writeOut(t, *this);
 			t_next_writestate += 1;
 		}
 

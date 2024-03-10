@@ -6,9 +6,9 @@ input_dir = "~/codes/Plant-FATE/tests/data/"
 output_dir = "~/codes/Plant-FATE/pspm_output_test"
 # output_dir = "~/output_data/test_3spp_100yr"
 expt_dir = "test_3spp_100yr" #_old_params"
-expt_dir = "test_1spp_evol_p50" #_old_params"
-expt_dir = "test_2spp_evol_p50" #_old_params"
-expt_dir = "test_4spp_evol_wd_hmat" #_old_params"
+# expt_dir = "test_1spp_evol_p50" #_old_params"
+# expt_dir = "test_2spp_evol_p50" #_old_params"
+# expt_dir = "test_4spp_evol_wd_hmat" #_old_params"
 solver = "IEBT"
 
 setwd(paste0(output_dir,"/",expt_dir))
@@ -56,11 +56,11 @@ if (plot_to_file) png("master_plot.png", width=2412*1.5, height = 1472*1.5, res=
 par(mfcol=c(4,5), mar=c(4.5,6,.5,1), oma=c(1,1,2,1), cex.lab=1.1, cex.axis=1.1, mgp=c(3.2,1,0), las=1)
 seeds = dat2 %>% filter(!grepl("probe", .$PID)) %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID")
 seeds_smooth = seeds %>% pivot_longer(-YEAR) %>% drop_na() %>% group_by(name) %>% mutate(value = loess(value~YEAR, span=60/length(value)) %>% fitted()) %>% pivot_wider(names_from=name)
-# matplot(seeds$YEAR, seeds[,-1], lty=1, col=scales::alpha(col_species, 0.3), type="l",
-#         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
-matplot(seeds_smooth$YEAR, seeds_smooth[,-1], lty=1, type="l",
-        col=col_species, #col=scales::alpha(scales::muted(col_species), alpha=min(30/n_species, 1)), 
+matplot(seeds$YEAR, seeds[,-1], lty=1, col=scales::alpha(col_species, 0.3), type="l",
         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
+# matplot(seeds_smooth$YEAR, seeds_smooth[,-1], lty=1, type="l",
+#         col=col_species, #col=scales::alpha(scales::muted(col_species), alpha=min(30/n_species, 1)), 
+#         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
 mtext(line=0.5, side=3, text=expt_dir)
 add_band()
 
@@ -79,8 +79,14 @@ matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type=
 add_band()
 # matplot(co$V1, co[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
 #         las=1, xlab="Time (years)", ylab="Io")
-matplot(y=1:24, x=t(-lai_v[,3:26]+lai_v[,2:25]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
-        las=1, xlab="Leaf area density", ylab="Height")
+
+matplot(y=cbind(dat$DPSI), x=dat$YEAR, type="l", lty=1, col=c("seagreen"), ylab="Dpsi\n(MPa)", xlab="Time (years)")
+matlines(y=cbind(fitted(loess(dat$DPSI~dat$YEAR, span=60/n_year))), x=dat$YEAR, type="l", lty=1, col="black", lwd=c(1,0.5))
+# add_hband(c(0.16, 0.16555))#, col=scales::alpha("cyan4", 0.6))
+# abline(h=c(0.16), col=scales::muted("cyan3"))
+add_band()
+
+
 matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
         las=1, xlab="Cumulative LAI", ylab="Height")
 

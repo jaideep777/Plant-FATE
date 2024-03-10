@@ -29,13 +29,13 @@ int main(int argc, char ** argv){
 	for (int i=0; i<1; ++i){
 		pfate::Patch sim(pfile);
 
-		// // running with year as time unit
-		// double tpy = 1; // time units per year
-		// sim.config.time_unit = "years since 0000-01-00 0:0:0";
+		// running with year as time unit
+		double tpy = 1; // time units per year
+		sim.config.time_unit = "years since 0000-01-00 0:0:0";
 
-		// running with day as time unit
-		double tpy = 365.2425;
-		sim.config.time_unit = "days since 0000-01-00 0:0:0";
+		// // running with day as time unit
+		// double tpy = 365.2425;
+		// sim.config.time_unit = "days since 0000-01-00 0:0:0";
 
 		// translate all time invervals to new units
 		sim.config.timestep = 0.04166666666666666666666*tpy;
@@ -50,7 +50,7 @@ int main(int argc, char ** argv){
 		sim.init(2000*tpy, 2100*tpy);
 		sim.simulate();
 
-		vector<double> ba = sim.cwm.ba_vec;
+		vector<double> ba = sim.props.species.basal_area_vec;
 		for (auto& b : ba) b*=1e4;
 		cout << setprecision(10) << "Basal areas [m2/Ha]: " << ba << '\n';
 
