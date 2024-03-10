@@ -157,53 +157,58 @@ void CommunityProperties::writeOut(double t, Patch &P){
 			if (spp->isResident){
 				for (int j=0; j<spp->xsize()-1; ++j){
 					auto& C = spp->getCohort(j);
-					cohort_props_out << date << "\t" 
-									<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
-									<< j << "\t"
-									<< C.geometry.diameter << "\t"
-									<< C.geometry.height << "\t"
-									<< C.geometry.lai << "\t"
-									<< C.rates.dmort_dt << "\t"
-									<< C.rates.dseeds_dt << "\t"
-									<< C.rates.rgr << "\t"
-									<< C.res.gpp/C.geometry.crown_area << "\t";
+					cohort_props_out 
+						<< date << "\t" 
+						<< spp->species_name << "\t"  // use name instead of index s becuase it is unique and order-insensitive
+						<< j << "\t"
+						<< C.geometry.diameter << "\t"
+						<< C.geometry.height << "\t"
+						<< C.geometry.lai << "\t"
+						<< C.rates.dmort_dt << "\t"
+						<< C.rates.dseeds_dt << "\t"
+						<< C.rates.rgr << "\t"
+						<< C.res.gpp/C.geometry.crown_area << "\t";
 					cohort_props_out << "\n";
 				}
 			}
 		}
 	}
 
-	foutd << date << "\t"
-			<< fluxes.gpp << "\t"
-			<< fluxes.npp << "\t"
-			<< (fluxes.rleaf + fluxes.rroot + fluxes.rstem) << "\t"  // kgC/m2/d
-			<< fluxes.mort << "\t"
-			<< structure.leaf_mass << "\t"     
-			<< structure.stem_mass << "\t"
-			<< structure.croot_mass << "\t"
-			<< structure.froot_mass << "\t"
-			<< (structure.croot_mass+structure.froot_mass) << "\t" // kgC/m2
-			<< fluxes.gs << "\t"
-			<< fluxes.trans << "\t"   
-			<< structure.lai << "\t"
-			<< acc_traits.vcmax << "\t"
-			<< acc_traits.dpsi << "\t"
-			<< misc.cc_est << "\t"
-			<< static_cast<PSPM_Environment*>(S->env)->clim_inst.co2 << std::endl;
+	foutd 
+		<< date << "\t"
+		<< fluxes.gpp << "\t"
+		<< fluxes.npp << "\t"
+		<< (fluxes.rleaf + fluxes.rroot + fluxes.rstem) << "\t"  // kgC/m2/d
+		<< fluxes.mort << "\t"
+		<< structure.leaf_mass << "\t"     
+		<< structure.stem_mass << "\t"
+		<< structure.croot_mass << "\t"
+		<< structure.froot_mass << "\t"
+		<< (structure.croot_mass+structure.froot_mass) << "\t" // kgC/m2
+		<< fluxes.gs << "\t"
+		<< fluxes.trans << "\t"   
+		<< structure.lai << "\t"
+		<< acc_traits.vcmax << "\t"
+		<< acc_traits.dpsi << "\t"
+		<< misc.cc_est << "\t"
+		<< static_cast<PSPM_Environment*>(S->env)->clim_inst.co2 
+		<< std::endl;
 	
-	fouty << date << "\t"
-			<< -9999  << "\t"
-			<< structure.n_ind << "\t"
-			<< -9999  << "\t"
-			<< -9999  << "\t" // height
-			<< -9999 /*cwm.hmat*/  << "\t"
-			<< structure.canopy_area  << "\t"   // m2/m2
-			<< structure.basal_area  << "\t"            // m2/m2
-			<< structure.biomass  << "\t"       // kg/m2
-			<< -9999 /*cwm.wd*/  << "\t"
-			<< -9999  << "\t"
-			<< -9999 /*1/cwm.lma*/  << "\t"
-			<< -9999 /*cwm.p50*/  << std::endl;
+	fouty 
+		<< date << "\t"
+		<< -9999  << "\t"
+		<< structure.n_ind << "\t"
+		<< -9999  << "\t"
+		<< -9999  << "\t" // height
+		<< -9999 /*cwm.hmat*/  << "\t"
+		<< structure.canopy_area  << "\t"   // m2/m2
+		<< structure.basal_area  << "\t"            // m2/m2
+		<< structure.biomass  << "\t"       // kg/m2
+		<< -9999 /*cwm.wd*/  << "\t"
+		<< -9999  << "\t"
+		<< -9999 /*1/cwm.lma*/  << "\t"
+		<< -9999 /*cwm.p50*/  
+		<< std::endl;
 	
 	for (int k=0; k<S->species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
@@ -221,24 +226,26 @@ void CommunityProperties::writeOut(double t, Patch &P){
 			<< -9999  << "\t"
 			<< -9999 /*1/cwm.lma_vec[k]*/  << "\t"
 			<< -9999 /*cwm.p50_vec[k]*/  << "\t"
-			<< spp->seeds_hist.get()  << "\n";
+			<< spp->seeds_hist.get()  
+			<< std::endl;
 	}
 
 	for (int k=0; k<S->species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S->species_vec[k]);
 		ftraits 
-				<< date << "\t"
-				<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
-				<< spp->isResident << "\t"
-				<< spp->getCohort(-1).traits.lma << "\t"
-				<< spp->getCohort(-1).traits.wood_density << "\t"
-				<< spp->getCohort(-1).traits.hmat << "\t"
-		        << spp->getCohort(-1).traits.p50_xylem << "\t"
-				<< spp->getCohort(-1).traits.zeta << "\t"
-				<< spp->r0_hist.get_last() << "\t"
-				<< spp->r0_hist.get() << "\t"
-				<< 0 << "\t"
-				<< 0 << "\n"; //spp->r0_hist.get_cesaro() << "\n";
+			<< date << "\t"
+			<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
+			<< spp->isResident << "\t"
+			<< spp->getCohort(-1).traits.lma << "\t"
+			<< spp->getCohort(-1).traits.wood_density << "\t"
+			<< spp->getCohort(-1).traits.hmat << "\t"
+		    << spp->getCohort(-1).traits.p50_xylem << "\t"
+			<< spp->getCohort(-1).traits.zeta << "\t"
+			<< spp->r0_hist.get_last() << "\t"
+			<< spp->r0_hist.get() << "\t"
+			<< 0 << "\t"
+			<< 0 //spp->r0_hist.get_cesaro();
+			<< std::endl; 
 	}
 
 	ftraits.flush();
