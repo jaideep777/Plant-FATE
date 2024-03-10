@@ -110,9 +110,9 @@ void CommunityProperties::openStreams(std::string dir){
 	ftraits.open(std::string(dir + "/" + traits_file).c_str());
 	// fclim.open(std::string(dir + "/climate_co2.txt").c_str());
 
-	foutd << "YEAR\tGPP\tNPP\tRAU\tMORT\tCL\tCW\tCCR\tCFR\tCR\tGS\tET\tLAI\tVCMAX\tDPSI\tCCEST\tCO2\n";
-	fouty << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\n";
-	fouty_spp << "YEAR\tPID\tDE\tOC\tPH\tMH\tCA\tBA\tTB\tWD\tMO\tSLA\tP50\tSEEDS\n";
+	foutd << "YEAR\tGPP\tNPP\tRAU\tMORT\tGS\tET\tVCMAX\tDPSI\tCCEST\tCO2\n";
+	fouty << "YEAR\tDE\tCL\tCW\tCCR\tCFR\tCR\tCA\tBA\tTB\tLAI\n";
+	fouty_spp << "YEAR\tPID\tDE\tPH\tCA\tBA\tTB\tSEEDS\n";
 	ftraits << "YEAR\tSPP\tRES\tLMA\tWD\tHMAT\tP50X\tZETA\tr0_last\tr0_avg\tr0_exp\tr0_cesaro\n";
 	// fclim << "t\ttc\tppfd_max\tppfd\tvpd\tco2\telv\tswp\n";
 
@@ -180,14 +180,8 @@ void CommunityProperties::writeOut(double t, Patch &P){
 		<< fluxes.npp << "\t"
 		<< (fluxes.rleaf + fluxes.rroot + fluxes.rstem) << "\t"  // kgC/m2/d
 		<< fluxes.mort << "\t"
-		<< structure.leaf_mass << "\t"     
-		<< structure.stem_mass << "\t"
-		<< structure.croot_mass << "\t"
-		<< structure.froot_mass << "\t"
-		<< (structure.croot_mass+structure.froot_mass) << "\t" // kgC/m2
 		<< fluxes.gs << "\t"
 		<< fluxes.trans << "\t"   
-		<< structure.lai << "\t"
 		<< acc_traits.vcmax << "\t"
 		<< acc_traits.dpsi << "\t"
 		<< misc.cc_est << "\t"
@@ -196,18 +190,16 @@ void CommunityProperties::writeOut(double t, Patch &P){
 	
 	fouty 
 		<< date << "\t"
-		<< -9999  << "\t"
 		<< structure.n_ind << "\t"
-		<< -9999  << "\t"
-		<< -9999  << "\t" // height
-		<< -9999 /*cwm.hmat*/  << "\t"
-		<< structure.canopy_area  << "\t"   // m2/m2
-		<< structure.basal_area  << "\t"            // m2/m2
-		<< structure.biomass  << "\t"       // kg/m2
-		<< -9999 /*cwm.wd*/  << "\t"
-		<< -9999  << "\t"
-		<< -9999 /*1/cwm.lma*/  << "\t"
-		<< -9999 /*cwm.p50*/  
+		<< structure.leaf_mass << "\t"     
+		<< structure.stem_mass << "\t"
+		<< structure.croot_mass << "\t"
+		<< structure.froot_mass << "\t"
+		<< (structure.croot_mass+structure.froot_mass) << "\t"
+		<< structure.canopy_area  << "\t"
+		<< structure.basal_area  << "\t"
+		<< structure.biomass  << "\t"
+		<< structure.lai
 		<< std::endl;
 	
 	for (int k=0; k<S->species_vec.size(); ++k){
@@ -216,16 +208,10 @@ void CommunityProperties::writeOut(double t, Patch &P){
 			<< date << "\t"
 			<< spp->species_name  << "\t" // use name instead of index k becuase it is unique and order-insensitive
 			<< species.n_ind_vec[k] << "\t"
-			<< -9999  << "\t"
 			<< species.height_vec[k]  << "\t"
-			<< -9999 /*species.hmat_vec[k]*/  << "\t"
-			<< species.canopy_area_vec[k]  << "\t"   // m2/m2
-			<< species.basal_area_vec[k]  << "\t"            // m2/m2
-			<< species.biomass_vec[k]  << "\t"       // kg/m2
-			<< -9999 /*species.wd_vec[k]*/  << "\t"
-			<< -9999  << "\t"
-			<< -9999 /*1/cwm.lma_vec[k]*/  << "\t"
-			<< -9999 /*cwm.p50_vec[k]*/  << "\t"
+			<< species.canopy_area_vec[k]  << "\t" 
+			<< species.basal_area_vec[k]  << "\t"
+			<< species.biomass_vec[k]  << "\t"
 			<< spp->seeds_hist.get()  
 			<< std::endl;
 	}

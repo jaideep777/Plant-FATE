@@ -34,6 +34,7 @@ traits = read.delim("traits.txt")
 dat = read.delim("D_PFATE.txt")
 # dat$YEAR = decimal_date(as_date(dat$YEAR, format = "%Y-%m-%d %H:%M:%S GMT (doy = %j)"))
 dat2 = read.delim("Y_PFATE.txt")
+dat3 = read.delim("Y_mean_PFATE.txt", )
 dist = read.delim("size_distributions.txt", header=F)
 dist = dist[,-ncol(dist)]
 x = exp(seq(log(0.01), log(10), length.out=100))
@@ -92,36 +93,11 @@ matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = n_year, start = 0, end
         las=1, xlab="Cumulative LAI", ylab="Height")
 
 
-plot(dat$LAI~dat$YEAR, type="l", col="red3", ylim=c(0,max(dat$LAI,6.5)), xlab="Time (years)", ylab="Total LAI")
+plot(dat3$LAI~dat3$YEAR, type="l", col="red3", ylim=c(0,max(dat$LAI,6.5)), xlab="Time (years)", ylab="Total LAI")
 # abline(h=c(5.3, 6.2), col=scales::muted("red"))
 add_hband(c(5.3, 6.2))#, col=scales::alpha("red3", 0.2))
 add_band()
 # abline(h=c(3.5), col=scales::muted("grey100"))
-
-
-# matplot(BA1$V1, cbind(BA1[,-1], rowSums(BA1[,-1], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species+1, start = 0, end = 0.85), "black"), type="l",
-#         las=1, xlab="Time (years)", ylab="Basal area", log="")
-# abline(h=31.29, col="grey40")
-
-# 
-# maxcol = 1200
-# dp = read.delim("species_0_height.txt", header=F, col.names = paste0("V", 1:maxcol))
-# up = read.delim("species_0_u.txt", header=F, col.names = paste0("V", 1:maxcol))
-# # mp = read.delim("species_0_mort.txt", header=F, col.names = paste0("V", 1:maxcol))
-# rgr = read.delim("species_0_rgr.txt", header=F, col.names = paste0("V", 1:maxcol))
-# lai = read.delim("species_0_lai.txt", header=F, col.names = paste0("V", 1:maxcol))
-# 
-# # id = as.integer(seq(1,min(nrow(up), nrow(dp)),length.out = 100))
-# # matplot(x=t(dp[id,-1]), y=t(up[id,-1]), type="l", lty=1, col=rainbow(n = 101, start = 0, end = 0.85, alpha = 10/100), log="xy", ylim=c(1e-6,1e2))
-# # points(x=colMeans(dp[-(1:1000),-1]), y=colMeans(up[-(1:1000),-1]))
-# 
-
-
-# nrows = min(nrow(dp), nrow(lai), nrow(rgr))-1
-# ids = max((nrows-50),1):nrows
-# smoothScatter(as.numeric(as.matrix((mp[ids,-1])))~as.numeric(as.matrix((dp[ids,-1]))), xlim=c(0.01,.5))
-# smoothScatter(as.numeric(as.matrix(mp[ids,-1]))~as.numeric(as.matrix(log(1000*rgr[ids,-1]*dp[ids,-1]))), xlim=c(0,0.2))
-
 
 
 matplot(y=cbind(dat$GPP, dat$NPP, dat$MORT)*365.2425, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3", "brown"), ylab="GPP, NPP, MORT\n(kgC/m2/yr)", xlab="Time (years)")
@@ -140,12 +116,12 @@ add_hband(c(0.16, 0.16555))#, col=scales::alpha("cyan4", 0.6))
 # abline(h=c(0.16), col=scales::muted("cyan3"))
 add_band()
 
-agb = cbind(dat$CL+dat$CW)
-matplot(y=agb, x=dat$YEAR, type="l", lty=1, col=c("yellow4"), ylim=c(0,max(agb)), ylab="AGB\n(kgC/m2)", xlab = "Time (years)")
+agb = cbind(dat3$CL+dat3$CW)
+matplot(y=agb, x=dat3$YEAR, type="l", lty=1, col=c("yellow4"), ylim=c(0,max(agb)), ylab="AGB\n(kgC/m2)", xlab = "Time (years)")
 add_hband(c(16.9, 20.7))#, col=scales::alpha("yellow3", 0.3))
 add_band()
 
-matplot(y=cbind(dat$CFR), x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR\n(kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
+matplot(y=cbind(dat3$CFR), x=dat3$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR\n(kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
 add_hband(c(0.48, 0.66))#, col=scales::alpha("brown", 0.3))
 add_band()
 
