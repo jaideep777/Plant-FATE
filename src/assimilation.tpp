@@ -26,7 +26,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 	double f_day_length = 0.5;
 
 	double Iabs_acclim = fipar*C.clim_acclim.ppfd;
-	double Iabs_inst   = fipar*C.clim_inst.ppfd/f_day_length;
+	double Iabs_day    = fipar*C.clim_inst.ppfd/f_day_length;
 	double Iabs_24hr   = fipar*C.clim_inst.ppfd;
 
 	auto out_phydro_acclim = phydro::phydro_analytical(
@@ -66,7 +66,7 @@ phydro::PHydroResult Assimilator::leaf_assimilation_rate(double fipar, double fa
 		out_phydro_acclim.jmax25,  // acclimated jmax25
 		C.clim_inst.tc,            // current temperature
 		C.clim_acclim.tc,          // growth temperature
-		Iabs_inst,                 // daytime mean incident PAR [umol m-2 s-1]
+		Iabs_day,                  // daytime mean incident PAR [umol m-2 s-1]
 		C.clim_inst.rn,            // mean net radiation [W m-2] (only used for LE calculations which we dont use)
 		C.clim_inst.vpd,           // vpd [kPa]
 		C.clim_inst.co2,	       // co2 [ppm]
