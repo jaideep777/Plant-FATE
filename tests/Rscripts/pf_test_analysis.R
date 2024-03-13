@@ -6,7 +6,9 @@ input_dir = "~/codes/Plant-FATE/tests/data/"
 output_dir = "~/codes/Plant-FATE/pspm_output_test"
 # output_dir = "~/output_data/test_3spp_100yr"
 expt_dir = "test_3spp_100yr" #_old_params"
-expt_dir = "test_2spp_evol_p50" #_old_params"
+# expt_dir = "test_1spp_evol_p50" #_old_params"
+# expt_dir = "test_2spp_evol_p50" #_old_params"
+# expt_dir = "test_4spp_evol_wd_hmat" #_old_params"
 solver = "IEBT"
 
 setwd(paste0(output_dir,"/",expt_dir))
@@ -23,15 +25,17 @@ add_hband = function(ylim, col=scales::alpha("grey30",0.2), xlim=c(-1e20,3000)){
   polygon(y=c(ylim[1],ylim[2],ylim[2],ylim[1]), x=c(xlim[1],xlim[1],xlim[2],xlim[2]), border = NA, col=col)
 }
 
-# seeds1 = read.delim("seeds.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
-Zp = read.delim("z_star.txt", header=F, col.names = paste0("V", 1:50))
-# BA1 = read.delim("basal_area.txt", header=F, col.names = paste0("V", 1:(n_species+2)))
-co = read.delim("canopy_openness.txt", header=F, col.names = paste0("V", 1:50))
-lai_v = read.delim("lai_profile.txt", header=F, col.names = paste0("V", 1:27))
-traits = read.delim("traits.txt")
-dat = read.delim("D_PFATE.txt")
-dat2 = read.delim("Y_PFATE.txt")
-dist = read.delim("size_distributions.txt", header=F)
+# seeds1 = read.delim("seeds.csv", header=F, col.names = paste0("V", 1:(n_species+2)))
+Zp = read.csv("z_star.csv", header=F, col.names = paste0("V", 1:50))
+# BA1 = read.csv("basal_area.csv", header=F, col.names = paste0("V", 1:(n_species+2)))
+co = read.csv("canopy_openness.csv", header=F, col.names = paste0("V", 1:50))
+lai_v = read.csv("lai_profile.csv", header=F, col.names = paste0("V", 1:27))
+traits = read.csv("traits.csv")
+dat = read.csv("D_PFATE.csv")
+# dat$YEAR = decimal_date(as_date(dat$YEAR, format = "%Y-%m-%d %H:%M:%S GMT (doy = %j)"))
+dat2 = read.csv("Y_PFATE.csv")
+dat3 = read.csv("Y_mean_PFATE.csv", )
+dist = read.csv("size_distributions.csv", header=F)
 dist = dist[,-ncol(dist)]
 x = exp(seq(log(0.01), log(10), length.out=100))
 traits_obs = read.csv(file = paste0(input_dir, "/Amz_trait_filled_HD.csv"))
@@ -54,11 +58,11 @@ if (plot_to_file) png("master_plot.png", width=2412*1.5, height = 1472*1.5, res=
 par(mfcol=c(4,5), mar=c(4.5,6,.5,1), oma=c(1,1,2,1), cex.lab=1.1, cex.axis=1.1, mgp=c(3.2,1,0), las=1)
 seeds = dat2 %>% filter(!grepl("probe", .$PID)) %>% select(YEAR, PID, SEEDS) %>% spread(value = "SEEDS", key = "PID")
 seeds_smooth = seeds %>% pivot_longer(-YEAR) %>% drop_na() %>% group_by(name) %>% mutate(value = loess(value~YEAR, span=60/length(value)) %>% fitted()) %>% pivot_wider(names_from=name)
-# matplot(seeds$YEAR, seeds[,-1], lty=1, col=scales::alpha(col_species, 0.3), type="l",
-#         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
-matplot(seeds_smooth$YEAR, seeds_smooth[,-1], lty=1, type="l",
-        col=col_species, #col=scales::alpha(scales::muted(col_species), alpha=min(30/n_species, 1)), 
+matplot(seeds$YEAR, seeds[,-1], lty=1, col=scales::alpha(col_species, 0.3), type="l",
         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
+# matplot(seeds_smooth$YEAR, seeds_smooth[,-1], lty=1, type="l",
+#         col=col_species, #col=scales::alpha(scales::muted(col_species), alpha=min(30/n_species, 1)), 
+#         las=1, xlab="Time (years)", ylab="Species seed\noutput", log="")
 mtext(line=0.5, side=3, text=expt_dir)
 add_band()
 
@@ -77,47 +81,28 @@ matplot(Zp$V1, Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type=
 add_band()
 # matplot(co$V1, co[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l",
 #         las=1, xlab="Time (years)", ylab="Io")
-matplot(y=1:24, x=t(-lai_v[,3:26]+lai_v[,2:25]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
-        las=1, xlab="Leaf area density", ylab="Height")
+
+matplot(y=cbind(dat$DPSI), x=dat$YEAR, type="l", lty=1, col=c("seagreen"), ylab="Dpsi\n(MPa)", xlab="Time (years)")
+matlines(y=cbind(fitted(loess(dat$DPSI~dat$YEAR, span=60/n_year))), x=dat$YEAR, type="l", lty=1, col="black", lwd=c(1,0.5))
+# add_hband(c(0.16, 0.16555))#, col=scales::alpha("cyan4", 0.6))
+# abline(h=c(0.16), col=scales::muted("cyan3"))
+add_band()
+
+
 matplot(y=1:25, x=t(lai_v[,2:26]), lty=1, col=rainbow(n = n_year, start = 0, end = 0.85, alpha=0.05), type="l",
         las=1, xlab="Cumulative LAI", ylab="Height")
 
 
-plot(dat$LAI~dat$YEAR, type="l", col="red3", ylim=c(0,max(dat$LAI,6.5)), xlab="Time (years)", ylab="Total LAI")
+plot(dat3$LAI~dat3$YEAR, type="l", col="red3", ylim=c(0,max(dat$LAI,6.5)), xlab="Time (years)", ylab="Total LAI")
 # abline(h=c(5.3, 6.2), col=scales::muted("red"))
 add_hband(c(5.3, 6.2))#, col=scales::alpha("red3", 0.2))
 add_band()
 # abline(h=c(3.5), col=scales::muted("grey100"))
 
 
-# matplot(BA1$V1, cbind(BA1[,-1], rowSums(BA1[,-1], na.rm=T))*1e4, lty=1, col=c(rainbow(n = n_species+1, start = 0, end = 0.85), "black"), type="l",
-#         las=1, xlab="Time (years)", ylab="Basal area", log="")
-# abline(h=31.29, col="grey40")
-
-# 
-# maxcol = 1200
-# dp = read.delim("species_0_height.txt", header=F, col.names = paste0("V", 1:maxcol))
-# up = read.delim("species_0_u.txt", header=F, col.names = paste0("V", 1:maxcol))
-# # mp = read.delim("species_0_mort.txt", header=F, col.names = paste0("V", 1:maxcol))
-# rgr = read.delim("species_0_rgr.txt", header=F, col.names = paste0("V", 1:maxcol))
-# lai = read.delim("species_0_lai.txt", header=F, col.names = paste0("V", 1:maxcol))
-# 
-# # id = as.integer(seq(1,min(nrow(up), nrow(dp)),length.out = 100))
-# # matplot(x=t(dp[id,-1]), y=t(up[id,-1]), type="l", lty=1, col=rainbow(n = 101, start = 0, end = 0.85, alpha = 10/100), log="xy", ylim=c(1e-6,1e2))
-# # points(x=colMeans(dp[-(1:1000),-1]), y=colMeans(up[-(1:1000),-1]))
-# 
-
-
-# nrows = min(nrow(dp), nrow(lai), nrow(rgr))-1
-# ids = max((nrows-50),1):nrows
-# smoothScatter(as.numeric(as.matrix((mp[ids,-1])))~as.numeric(as.matrix((dp[ids,-1]))), xlim=c(0.01,.5))
-# smoothScatter(as.numeric(as.matrix(mp[ids,-1]))~as.numeric(as.matrix(log(1000*rgr[ids,-1]*dp[ids,-1]))), xlim=c(0,0.2))
-
-
-
-matplot(y=cbind(dat$GPP, dat$NPP)*1e-3*365, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3"), ylab="GPP, NPP\n(kgC/m2/yr)", xlab="Time (years)")
+matplot(y=cbind(dat$GPP, dat$NPP, dat$MORT)*365.2425, x=dat$YEAR, type="l", lty=1, col=c("green4", "green3", "brown"), ylab="GPP, NPP, MORT\n(kgC/m2/yr)", xlab="Time (years)")
 matlines(y=cbind(fitted(loess(dat$GPP~dat$YEAR, span=60/n_year)), 
-                 fitted(loess(dat$NPP~dat$YEAR, span=60/n_year)))*1e-3*365, x=dat$YEAR, type="l", lty=1, col="black", lwd=c(1,0.5))
+                 fitted(loess(dat$NPP~dat$YEAR, span=60/n_year)))*365, x=dat$YEAR, type="l", lty=1, col="black", lwd=c(1,0.5))
 # points(y=dat$NPP/dat$GPP*4, x=dat$YEAR, type="l", lty=1, col=c("yellow1"))
 # abline(h=c(3,3.5), col="grey")
 add_hband(c(3,3.5))#, col=scales::alpha("black",0.3))
@@ -131,12 +116,12 @@ add_hband(c(0.16, 0.16555))#, col=scales::alpha("cyan4", 0.6))
 # abline(h=c(0.16), col=scales::muted("cyan3"))
 add_band()
 
-agb = cbind(dat$CL+dat$CW)/1e3
-matplot(y=agb, x=dat$YEAR, type="l", lty=1, col=c("yellow4"), ylim=c(0,max(agb)), ylab="AGB\n(kgC/m2)", xlab = "Time (years)")
+agb = cbind(dat3$CL+dat3$CW)
+matplot(y=agb, x=dat3$YEAR, type="l", lty=1, col=c("yellow4"), ylim=c(0,max(agb)), ylab="AGB\n(kgC/m2)", xlab = "Time (years)")
 add_hband(c(16.9, 20.7))#, col=scales::alpha("yellow3", 0.3))
 add_band()
 
-matplot(y=cbind(dat$CFR)/1e3, x=dat$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR\n(kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
+matplot(y=cbind(dat3$CFR), x=dat3$YEAR, type="l", lty=1, col=c("brown"), ylab="C-FR\n(kgC/m2)", xlab = "Time (years)", ylim=c(0, max(dat$CFR/1e3,0.7)))
 add_hband(c(0.48, 0.66))#, col=scales::alpha("brown", 0.3))
 add_band()
 

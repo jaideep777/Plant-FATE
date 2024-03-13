@@ -7,36 +7,49 @@ using namespace std;
 
 int main(){
 
-
-// Creating random number generator for soil water potential
-	// ofstream fswp("swp.txt");
-
-	// double prng_mean = -3.0;
-	// double prng_stddev = -4.0;
-	// std::default_random_engine generator;
-	// std::normal_distribution<double> dist(prng_mean, prng_stddev);
-	// for (double t=2000; t<=2100; t=t+10){
-	// 	C.t_met.push_back(t);
-	// 	double val = dist(generator);
-	// 	if(val>0) val = 0;
-	// 	C.v_met_swp.push_back(val);
-	// 	fswp << C.v_met_swp[t] << "\n";
-	// }
-	
 	cout << setprecision(12);
 	
 	pfate::LifeHistoryOptimizer lho("tests/params/p_test_v2.ini");
 	// lho.C.init_co2(414);
+
+	// lho.ts.set_units("days since 0000-01-00 0:0:0");
+	lho.ts.set_units("years since 0000-01-00 0:0:0");
+	lho.par0.set_tscale(lho.ts.get_tscale());
+
 	lho.init();
 	lho.C.Climate::print(0);
+
+	cout << "Starting rates:\n";
+	lho.P.calc_demographic_rates(lho.C, 0);
+	cout << "  npp   = " << lho.P.res.npp   *365 / lho.par0.days_per_tunit << '\n';
+	cout << "  rleaf = " << lho.P.res.rleaf *365 / lho.par0.days_per_tunit << '\n';
+	cout << "  rstem = " << lho.P.res.rstem *365 / lho.par0.days_per_tunit << '\n';
+	cout << "  rroot = " << lho.P.res.rroot *365 / lho.par0.days_per_tunit << '\n';
+	cout << "  tleaf = " << lho.P.res.tleaf *365 / lho.par0.days_per_tunit << '\n';
+	cout << "  troot = " << lho.P.res.troot *365 / lho.par0.days_per_tunit << '\n';
+	cout << "  mort  = " << lho.P.rates.dmort_dt *365 / lho.par0.days_per_tunit << '\n';
+	cout << "  fec   = " << lho.P.rates.dseeds_dt *365 / lho.par0.days_per_tunit << '\n';
+
+	if (fabs(lho.P.res.npp   *365 / lho.par0.days_per_tunit / 0.00649373522273 - 1) > 1e-6) return 1; 
+	if (fabs(lho.P.res.rleaf *365 / lho.par0.days_per_tunit / 0.00105810720763 - 1) > 1e-6) return 1; 
+	if (fabs(lho.P.res.rstem *365 / lho.par0.days_per_tunit / 0.00223950139619 - 1) > 1e-6) return 1; 
+	if (fabs(lho.P.res.rroot *365 / lho.par0.days_per_tunit / 0.00063537663421 - 1) > 1e-6) return 1; 
+	if (fabs(lho.P.res.tleaf *365 / lho.par0.days_per_tunit / 0.000356239104633 - 1) > 1e-6) return 1; 
+	if (fabs(lho.P.res.troot *365 / lho.par0.days_per_tunit / 0.000962086104036 - 1) > 1e-6) return 1; 
+	if (fabs(lho.P.rates.dmort_dt *365 / lho.par0.days_per_tunit / 0.0658361385886 - 1) > 1e-6) return 1; 
+	if (fabs(lho.P.rates.dseeds_dt *365 / lho.par0.days_per_tunit / 0.000402691681301 - 1) > 1e-6) return 1; 
+	// if (fabs(lho.P.rates.dmort_dt / 2.65329323718 - 1) > 1e0.0658361385886 return 1; 
+
 	double total_prod = lho.P.get_biomass();
 	cout << "Starting biomass = " << total_prod << "\n";
 	cout << "Mortality until seedling stage = " << lho.P.state.mortality << "\n";
 
+	double dpt = 365.2425/lho.par0.days_per_tunit;
+
 	ofstream fout("assim1.txt");
-	double dt = 0.1;
+	double dt = 0.1*dpt;
 	lho.printHeader(fout);
-	for (double t=2000; t<=2500; t=t+dt){
+	for (double t=2000*dpt; t<=2500*dpt+1e-6; t=t+dt){
 		lho.grow_for_dt(t, dt);
 		lho.printState(t+dt, fout);
 		// lho.C.Climate::print(t);
@@ -59,8 +72,9 @@ int main(){
 	double fitness1 = lho.seeds;
 	cout << "Fitness = " << fitness1 << '\n';
 	// if (fabs(fitness1 - 0.0999331152132) > 1e-6) return 1;  // expected value updated after implementing inst phydro and setting kphio to 0.045
-	if (fabs(fitness1 - 0.0998537505871) > 1e-6) return 1;  // expected value updated after using actual p88/p50 ratio instead of 3.01
-	if (fabs(fitness1 - 0.0192874440426) > 1e-6) return 1;  // expected value updated after using daylength in phydro
+	// if (fabs(fitness1 - 0.0998537505871) > 1e-6) return 1;  // expected value updated after using actual p88/p50 ratio instead of 3.01
+	// if (fabs(fitness1 - 0.0192874440426) > 1e-6) return 1;  // expected value updated after using daylength in phydro
+	if (fabs(fitness1 - 0.0192813597174) > 1e-6) return 1;  // expected value updated after bugfix in unit conversion in assimilation.tpp
 
 
 	// FIXME. This reinit of LHO does not work. assim rate is NAN.

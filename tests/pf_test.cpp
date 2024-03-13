@@ -28,12 +28,29 @@ int main(int argc, char ** argv){
 
 	for (int i=0; i<1; ++i){
 		pfate::Patch sim(pfile);
-		// sim.expt_dir = sim.expt_dir + "_414ppm";
+
+		// running with year as time unit
+		double tpy = 1; // time units per year
+		sim.config.time_unit = "years since 0000-01-00 0:0:0";
+
+		// // running with day as time unit
+		// double tpy = 365.2425;
+		// sim.config.time_unit = "days since 0000-01-00 0:0:0";
+
+		// translate all time invervals to new units
+		sim.config.timestep = 0.04166666666666666666666*tpy;
+		sim.config.T_cohort_insertion *= tpy;
+		sim.config.T_invasion *= tpy;
+		sim.config.T_r0_avg *= tpy;
+		sim.config.T_return *= tpy;
+		sim.config.T_seed_rain_avg *= tpy;
+		sim.config.saveStateInterval *= tpy;
+
 		sim.E.init_co2(414);
-		sim.init(2000, 2100);
+		sim.init(2000*tpy, 2100*tpy);
 		sim.simulate();
 
-		vector<double> ba = sim.cwm.ba_vec;
+		vector<double> ba = sim.props.species.basal_area_vec;
 		for (auto& b : ba) b*=1e4;
 		cout << setprecision(10) << "Basal areas [m2/Ha]: " << ba << '\n';
 
@@ -49,7 +66,8 @@ int main(int argc, char ** argv){
 		// err = is_equal(ba, {1.723887226, 7.637860375, 26.86129712});  // this is the output  at BIWEEKLY step_to after adding 1-e6 to t in climate reading, and setting acclim_tc as t_growth in inst model.
 		// err = is_equal(ba, {1.723740236, 7.642284321, 26.8675819});   // this is the output  at BIWEEKLY step_to after moving calc_seed_rain_r0.out of afterStep() and after step_to(). Difference is because there are still some tiny steps. 
 		// err = is_equal(ba, {1.723090486, 7.639859488, 26.85158121});  // this is the output  at BIWEEKLY step_to after using actual p88/p50 ratio, instead of 3.01, in coordinateTraits()
-		err = is_equal(ba, {1.651351438, 7.370938402, 26.55374903});  // this is the output  at BIWEEKLY step_to after using daylength of 0.5 in phydro
+		// err = is_equal(ba, {1.651351438, 7.370938402, 26.55374903});  // this is the output  at BIWEEKLY step_to after using daylength of 0.5 in phydro
+		err = is_equal(ba, {1.651263056, 7.37018801, 26.55223556});  // this is the output  at BIWEEKLY step_to after bugfix in unit conversion in assimilation.tpp
 
 
 		sim.close();
