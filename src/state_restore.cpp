@@ -37,8 +37,23 @@ void restoreState(Patch& P, string state_infile, string config_infile){
 	cout << "Restoring config from: " << config_infile << '\n';
 
 	ifstream fin(state_infile.c_str());
-	if (!fin) throw runtime_error("Could not open file for restoring state: " + state_infile);
+	if (!fin) {
+				cerr << "Error opening file: " << state_infile
+             << std::endl;
 
+        // Check for specific error conditions
+        if (fin.bad()) {
+            cerr << "Fatal error: badbit is set." << endl;
+        }
+
+        if (fin.fail()) {
+            // Print a more detailed error message using
+            // strerror
+            cerr << "Error details: " << strerror(errno)
+                 << endl;
+        }
+		throw runtime_error("Could not open file for restoring state: " + state_infile);
+	}
 	string s; fin >> s;  // discard version number
 
 	P.restore(fin);

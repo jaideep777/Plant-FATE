@@ -101,7 +101,7 @@ void Solver::addSpecies(std::vector<std::vector<double>> xbreaks, Species_Base* 
 	s->n_grid_edges   = std::accumulate(s->dim_edges.begin(),   s->dim_edges.end(),   1, std::multiplies<int>());
 	if (s->n_grid_edges > 1e6) cout << "**** WARNING ****: The number of cohorts/cells may exceed 1M. Consider using a lower resolution\n\n";
 
-	std::cout << "Find J" << std::endl;
+	// std::cout << "Find J" << std::endl;
 	int J = 1;
 	if      (method == SOLVER_FMU)   J = s->n_grid_centres; // xbreaks.size()-1;	
 	else if (method == SOLVER_IFMU)  J = s->n_grid_centres;	// as many as grid centres but labelled by upper edge
@@ -112,13 +112,13 @@ void Solver::addSpecies(std::vector<std::vector<double>> xbreaks, Species_Base* 
 	else if (method == SOLVER_ABM)   J = s->n_grid_centres;    // For ABM solver, this is a temporary size thats used to generate the initial density distribution. s will be resized during init to abm_n0. FIXME JJ: Can ABM init be kept identical to EBT?
 	else    throw std::runtime_error("Unsupported method");
 
-	std::cout << "Resize with J" << std::endl;
+	// std::cout << "Resize with J" << std::endl;
 	s->resize(J);
 
-	std::cout << "Add species to vector" << std::endl;
+	// std::cout << "Add species to vector" << std::endl;
 	species_vec.push_back(s);
 
-	std::cout << "Initialise species" << std::endl;
+	// std::cout << "Initialise species" << std::endl;
 	initializeSpecies(s);
 
 	// Test Print out X, x and h from the new species
@@ -150,11 +150,11 @@ void Solver::addSpecies(std::vector<int> _J, std::vector<double> _xb, std::vecto
 	// }
 	// Initialise as a grid and assume each dimension starts off with _J numbers
 
-	std::cout << "Initialise as a grid and assume each dimension starts off with _J[k] numbers" << std::endl;
+	// std::cout << "Initialise as a grid and assume each dimension starts off with _J[k] numbers" << std::endl;
 	int total_states = std::accumulate(_J.begin(), _J.end(), 1, std::multiplies<int>()) +1;
 
 	//  Initialise as a grid
-	std::cout << "Initialise as a grid" << std::endl;
+	// std::cout << "Initialise as a grid" << std::endl;
 	std::vector<std::vector<double>> breaks;
 
 	for (int k=0; k< s->istate_size; ++k){
@@ -180,9 +180,9 @@ void Solver::addSpecies(std::vector<int> _J, std::vector<double> _xb, std::vecto
 	// 	xnbreaks[i] = xn;
 	// }
 
-	std::cout << "Grid populated:" << std::endl;
-	for (auto& b : breaks) std::cout << b << '\n';
-	std::cout.flush();
+	// std::cout << "Grid populated:" << std::endl;
+	// for (auto& b : breaks) std::cout << b << '\n';
+	// std::cout.flush();
 
 	addSpecies(breaks, s, _n_accumulators, input_birth_flux);
 }
@@ -353,18 +353,18 @@ void Solver::initializeSpecies(Species_Base * s){
 		// set x and u of boundary cohort
 		// Boundary cohort is not in state, but used as a reference.	
 
-		std::cout << "Set up boundary" << std::endl;
+		// std::cout << "Set up boundary" << std::endl;
 		s->set_xb(s->xb); // set x of boundary cohort - this is needed to set any other variables that depend on size
-		std::cout << "Set up u at boundary" << std::endl;
+		// std::cout << "Set up u at boundary" << std::endl;
 		s->set_ub(0);     // set initial density of boundary cohort to 0.
 		
-		std::cout << "set birthtime" << std::endl;
+		// std::cout << "set birthtime" << std::endl;
 		// set birth time for each cohort to current_time
 		// FIXME: current_time has never been initialized till this point. It is only init in resetState() 
 		for (int i=0; i<s->J; ++i) s->set_birthTime(i, current_time); // FIXME: doesnt make sense, because larger cohorts would have been born earlier, but birthTime is not used anyways
 
 
-		std::cout << "set x and u for all cohorts" << std::endl;
+		// std::cout << "set x and u for all cohorts" << std::endl;
 		// set x, u for all cohorts
 		if (method == SOLVER_FMU || method == SOLVER_IFMU){
 			for (size_t i=0; i<s->J; ++i){
@@ -397,12 +397,12 @@ void Solver::initializeSpecies(Species_Base * s){
 				s->setX(i,X); 
 
 				vector<double> dx = utils::tensor::coord_value(utils::tensor::index(i, s->dim_centres), s->h);
-				cout << "dx = " << dx << '\n';
+				// cout << "dx = " << dx << '\n';
 				double dV = std::accumulate(dx.begin(), dx.end(), 1.0, std::multiplies<double>());
-				cout << "dV = " << dV << '\n';
+				// cout << "dV = " << dV << '\n';
 				double U = s->init_density(i, env)*dV; 
 				s->setU(i,U);
-				cout << "Init: X = " << X << " / U = " << U << '\n';
+				// cout << "Init: X = " << X << " / U = " << U << '\n';
 			}
 			// set pi0, N0 as x, u for the last cohort. This scheme allows using this last cohort with xb+pi0 in integrals etc 
 			s->setX(s->J-1, vector<double>(s->istate_size, 0)); 
@@ -422,7 +422,7 @@ void Solver::initializeSpecies(Species_Base * s){
 				s->setX(i, X);
 				double U = s->init_density(i, env)*dV; 
 
-				cout << "i/X/U = " << i << " / " << X << " / " << U/dV << endl;
+				// cout << "i/X/U = " << i << " / " << X << " / " << U/dV << endl;
 				Uvec.push_back(U);	
 			}
 			//cout << "HERE\n";
@@ -436,7 +436,7 @@ void Solver::initializeSpecies(Species_Base * s){
 
 			// Utot = sum(Uvec) = sum(u[i] * dx[i])
 			double Utot = std::accumulate(Uvec.begin(), Uvec.end(), 0.0, std::plus<double>());
-			std::cout << "Utot = " << Utot << std::endl;
+			// std::cout << "Utot = " << Utot << std::endl;
 			if (Utot <= 0) throw std::runtime_error("Total density is 0 or negative. Please check your initial condition function");
 			double N_cohort = Utot/s->J;
 

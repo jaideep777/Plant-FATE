@@ -54,11 +54,11 @@ class OdeSolver{
 	// TODO: Implement this via copy & swap idiom
 	OdeSolver& operator=(const OdeSolver &rhs){
 		if (this != &rhs){
-			std::cout << "OdeSolver::operator= entered\n"; 
+			// std::cout << "OdeSolver::operator= entered\n"; 
 			// copy construct the new solver as per the rhs's type
 			// do this first, so that if this throws an exception, the lhs object is still valid
 			void * solver2;
-			std::cout << "RKCK45 constructor entered: " << solver << '\n';
+			// std::cout << "RKCK45 constructor entered: " << solver << '\n';
 			if      (rhs.type == ODE_RKCK45) solver2 = new RKCK45(*static_cast<RKCK45*>(rhs.solver));
 			else if (rhs.type == ODE_LSODA)  solver2 = new LSODA(*static_cast<LSODA*>(rhs.solver));
 			else throw std::runtime_error("Fatal: Unknown ODE Solver type " + type);

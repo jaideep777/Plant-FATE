@@ -126,6 +126,10 @@ class Initializer{
 		parse(fin, add, verbose);
 	}
 
+	inline void close(){
+		fin.close();
+	}
+
 	template<class T>
 	T get(const std::string& sectionname, const std::string& keyname) const {
 		std::string result = get_value(sectionname, keyname);

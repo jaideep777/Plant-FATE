@@ -27,6 +27,7 @@ class Patch{
 	double t_next_invasion;
 	double t_next_savestate;
 	double t_next_writestate;
+	double t_next_verbose_statement;
 
 	plant::PlantParameters par0;
 	plant::PlantTraits traits0;

@@ -64,6 +64,8 @@ class AdaptiveSpecies : public Species<Model>{
 	void save(std::ostream& fout) override;
 	void restore(std::istream& fin) override;
 
+	void set_tscale(double tscale);
+
 };
 
 } // namespace pfate

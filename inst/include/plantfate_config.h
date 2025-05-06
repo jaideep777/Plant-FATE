@@ -42,6 +42,7 @@ class PlantFateConfig{
 	double T_seed_rain_avg;     ///< Interval over which seed rains should be averaged (multi-patch dynamics)
 	double T_return;            ///< Return interval of disturbance (patch clearance)
 	double T_invasion; 	        ///< Interval between successive species invasions
+	double verbose_insertiontime; //How often to write output statements
 
 	double res; ///< initial resolution on size axis - remains constant for fixed-mesh methods
 

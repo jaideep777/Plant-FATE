@@ -173,4 +173,22 @@ PYBIND11_MODULE(pypfate, m)
 		.def("close", &pf::Patch::close)
 		.def_readwrite("config", &pf::Patch::config)
 		.def_readonly("props", &pf::Patch::props);
+		// .def(py::pickle(
+        // [](const pf::Patch &p) { // __getstate__
+        //     /* Return a tuple that fully encodes the state of the object */
+        //     return py::make_tuple(p.value(), p.extra());
+        // },
+        // [](py::tuple t) { // __setstate__
+        //     if (t.size() != 2)
+        //         throw std::runtime_error("Invalid state!");
+
+        //     /* Create a new C++ instance */
+        //     Pickleable p(t[0].cast<std::string>());
+
+        //     /* Assign any additional state */
+        //     p.setExtra(t[1].cast<int>());
+
+        //     return p;
+        // }
+    	// ));
 };

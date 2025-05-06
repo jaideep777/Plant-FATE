@@ -40,6 +40,8 @@ Patch::Patch(std::string params_file) : S("IEBT", "rk45ck"){
 	config.time_unit = I.get_verbatim("time_unit");
 	config.T_cohort_insertion = I.get<double>("T_cohort_insertion");    // Cohort insertion timestep
 
+	config.verbose_insertiontime = 1;
+
 	config.solver_method = I.get<string>("solver");
 	config.res = I.get<double>("resolution");
 
@@ -61,6 +63,8 @@ Patch::Patch(std::string params_file) : S("IEBT", "rk45ck"){
 
 	traits0.init(I);
 	par0.init(I);
+
+	I.close();
 }
 
 
@@ -86,6 +90,20 @@ std::vector<plant::PlantTraits> Patch::readTraitsFromFile(std::string fname){
 
 	std::ifstream fin(fname.c_str());
 	if (!fin){
+		cerr << "Error opening file: " << fname
+             << std::endl;
+
+        // Check for specific error conditions
+        if (fin.bad()) {
+            cerr << "Fatal error: badbit is set." << endl;
+        }
+
+        if (fin.fail()) {
+            // Print a more detailed error message using
+            // strerror
+            cerr << "Error details: " << strerror(errno)
+                 << endl;
+        }
 		throw std::runtime_error("Could not open file " + fname + "\n");
 	}
 
@@ -118,25 +136,34 @@ std::vector<plant::PlantTraits> Patch::readTraitsFromFile(std::string fname){
 		cell = row[7];
 		if (cell != "" && cell != "NA")	traits.p50_xylem = std::stod(cell);
 		else traits.p50_xylem = -2.29;
-
 		// ignore further data (for now)	
 
 		species.push_back(traits);
 	}
+
+	// std::cout << "closing input of traits" << std::endl;
+	fin.close();
 
 	return species;
 }
 
 
 void Patch::init(double tstart, double tend){
+	// std::cout <<"IN INIT TEST" << std::endl;
+
 	config.out_dir  = config.parent_dir + "/" + config.expt_dir; // TODO: Move to config::init()?
 
 	// string command = "mkdir -p " + out_dir;
 	std::filesystem::create_directories(config.out_dir);
 	// string command2 = "cp " + paramsFile + " " + out_dir + "/p.ini";
 	std::string copy_to = config.out_dir + "/p.ini";
-	if (std::filesystem::exists(copy_to)) std::filesystem::remove(copy_to); // use this because the overwrite flag in below command does not work!
-	std::filesystem::copy_file(config.paramsFile, copy_to, std::filesystem::copy_options::overwrite_existing);
+
+	// std::cout <<"IN INIT TEST: ccreated strings" << std::endl;
+
+	// if (std::filesystem::exists(copy_to)) std::filesystem::remove(copy_to); // use this because the overwrite flag in below command does not work!
+	// std::filesystem::copy_file(config.paramsFile, copy_to, std::filesystem::copy_options::overwrite_existing);
+
+	// std::cout <<"IN INIT TEST: copied file" << std::endl;
 	// int sysresult;
 	// sysresult = system(command.c_str());
 	// sysresult = system(command2.c_str());
@@ -153,6 +180,9 @@ void Patch::init(double tstart, double tend){
 	config.T_return           *= tpy;
 	config.T_seed_rain_avg    *= tpy;
 	config.saveStateInterval  *= tpy;
+	config.verbose_insertiontime *= tpy;
+
+	// std::cout <<"IN INIT TEST: set up time units" << std::endl;
 
 	// ~~~~~~~ Set up time-points ~~~~~~~~~~~~~~~
 	config.y0 = tstart; //I.get<double>("year0");
@@ -163,12 +193,17 @@ void Patch::init(double tstart, double tend){
 	t_next_invasion    = config.y0 + config.T_invasion;
 	t_next_savestate   = config.y0; // this will write state once at the beginning too, which is probably unnecessary
 	t_next_writestate  = config.y0; // this will write state once at the beginning too, which is probably unnecessary
+	t_next_verbose_statement = config.y0;
+
+	// std::cout <<"IN INIT TEST: set up time points" << std::endl;
 
 	// ~~~~~~~ Set up environment ~~~~~~~~~~~~~~~
 	E.use_ppa = true;
 	E.set_elevation(0);
 	E.set_acclim_timescale(7);
 	climate_stream.init();
+
+	// std::cout <<"IN INIT TEST: set up environment " << std::endl;
 
 	// ~~~~~~~~~~ Create solver ~~~~~~~~~~~~~~~~~~~~~~~~~
 	S = Solver(config.solver_method, "rk45ck");
@@ -182,17 +217,22 @@ void Patch::init(double tstart, double tend){
 	// S.control.cohort_insertion_tol = 1e-6;
 	S.setEnvironment(&E);
 
+	// std::cout <<"IN INIT TEST: created solver" << std::endl;
 	// Add species
 	if (config.continuePrevious){
 		restoreState(*this, config.continueFrom_stateFile, config.continueFrom_configFile);
 		config.y0 = S.current_time; // replace y0
+	
+		// std::cout <<"IN INIT TEST: continued from previous" << std::endl;
 	}
 	else {
 		// ~~~~~~~~~~ Read initial trait values ~~~~~~~~~~~~~~~~~~~~~~~~~
 		std::vector<plant::PlantTraits> file_species = readTraitsFromFile(config.traits_file);
-		for (auto& s : file_species){
-			std::cout << s.species_name << ":  " << s.lma << "\t" << s.wood_density << "\t" << s.hmat << "\t" << s.p50_xylem << "\n";
-		}
+		// for (auto& s : file_species){
+			// std::cout << s.species_name << ":  " << s.lma << "\t" << s.wood_density << "\t" << s.hmat << "\t" << s.p50_xylem << "\n";
+		// }
+
+		// std::cout <<"IN INIT TEST: new species read plants" << std::endl;
 
 		// ~~~ Create initial resident species pool from traits file ~~~~
 		for (int i=0; i < config.n_species; ++i){
@@ -208,6 +248,8 @@ void Patch::init(double tstart, double tend){
 
 		// S.resetState(y0);
 		S.initialize(config.y0);
+
+		// std::cout <<"IN INIT TEST:: initialised solver" << std::endl;
 	}
 
 //	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
@@ -215,8 +257,10 @@ void Patch::init(double tstart, double tend){
 	// S.print();
 
 	// sio.S = &S;
-	props.b_output_cohort_props = true;
-	props.openStreams(config.out_dir);
+	props.b_output_cohort_props = false;
+	// props.openStreams(config.out_dir);
+
+	// std::cout <<"IN INIT TEST: END" << std::endl;
 }
 
 
@@ -265,7 +309,7 @@ void Patch::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 
 	p1.init(par0, traits);
 
-	((plant::Plant*)&p1)->print();
+	// ((plant::Plant*)&p1)->print();
 
 	//p1.geometry.set_lai(p1.par.lai0); // these are automatically set by init_state() in pspm_interface
 	p1.set_size({0.01});
@@ -404,13 +448,20 @@ void Patch::calc_r0(double t){
 void Patch::simulate_to(double t){
 	// starting state: t-dt, x(t-dt), u(t-dt), E(t-dt, u(t-dt), x(t-dt)), S1[a(t-dt, x(t-dt))], S2[a(t-dt, x(t-2*dt))]
 
+	// std::cout << "In Simulate to" << std::endl;
+
 	if (int(t * 12) % 12 == 0){
 		double t_years_ce = flare::julian_to_yearsCE(ts.to_julian(S.current_time));
 		double tplus_years_ce = flare::julian_to_yearsCE(ts.to_julian(t));
-		cout << "stepping = " << setprecision(6) << S.current_time << " (" << t_years_ce << " CE)" << " --> " << t << " (" << tplus_years_ce << " CE)" << "\t(";
-		for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
-		cout << ")" << endl;
+		if(t > t_next_verbose_statement){
+			cout << "stepping = " << setprecision(6) << S.current_time << " (" << t_years_ce << " CE)" << " --> " << t << " (" << tplus_years_ce << " CE)" << "\t(";
+			for (auto spp : S.species_vec) cout << spp->xsize() << ", ";
+			cout << ")" << endl;
+			t_next_verbose_statement = t_next_verbose_statement + config.verbose_insertiontime;
+		}
 	}
+
+	// std::cout << "In Simulate to: finished time operations" << std::endl;
 	// Step size to be used for evolutionary dynamics, 
 	// since trait evolution is done after completing step_to call
 	double dt_evol = t - S.current_time; // S.current_time is t-dt
@@ -426,6 +477,8 @@ void Patch::simulate_to(double t){
 	// state now: t, x(t-dt), u(t), E(t-dt_solver, u(t-dt_solver)), S1[a(t-dt, x(t-dt))], S2[a(t-dt, x(t-2*dt))]
 	//                              ^ env update happens before dynamics update, so env is at the last solver step
 
+
+	// std::cout << "In Simulate to: finished step to" << std::endl;
 	// evolve traits
 	if (config.evolve_traits){
 		// update r0 and seed rain after dynamics update
@@ -451,26 +504,34 @@ void Patch::simulate_to(double t){
 	// update input seed rain
 	vector<double> seeds = S.newborns_out(t); // E(t, u(t), x(t)) ---> a(t, x(t))
 	validate_seedrain(seeds); // check that no species has negative seed rain
+
+	// std::cout << "In Simulate to:: done seed stuff" << std::endl;
 	// push interim seed rain into averager S1
 	for (int k=0; k < S.species_vec.size(); ++k){
 		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k]);
 		spp->seeds_hist1.push(t, seeds[k]); // S1[a(t, x(t))]
 		spp->set_inputBirthFlux(spp->seeds_hist1.get()); // S1[a(t, x(t))] will be input for next step
 	}
+
+	// std::cout << "In Simulate to: after input things" << std::endl;
 	// state now: t, x(t), u(t), E(t, u(t), x(t)), S1[a(t, x(t))], S2[a(t, x(t-dt))]
 
 	// update output metrics - needed before removeDeadSpecies()
 	props.update(t, *this);
-	props.writeOut_inst(t, *this);
 
-	// write outputs - must be done before species list is altered
-	if (t > t_next_writestate || fabs(t - t_next_writestate) < 1e-6){
-		props.writeOut(t, *this);
-		t_next_writestate += 1 / par0.years_per_tunit_avg; // next write_state after one year
-	}
+	// std::cout << "In Simulate to:: updated properties" << std::endl;
+	// props.writeOut_inst(t, *this);
+
+	// // write outputs - must be done before species list is altered
+	// if (t > t_next_writestate || fabs(t - t_next_writestate) < 1e-6){
+	// 	props.writeOut(t, *this);
+	// 	t_next_writestate += 1 / par0.years_per_tunit_avg; // next write_state after one year
+	// }
 
 	// remove species whose total abundance has fallen below threshold (its probes are also removed)
 	removeDeadSpecies(t); // needs updated props for reading species abundances
+
+	// std::cout << "In Simulate to:: removed dead species" << std::endl;
 
 	// Invasion by a random new species
 	if (t >= t_next_invasion){
@@ -505,6 +566,21 @@ void Patch::simulate_to(double t){
 void Patch::reset_time(double julian_time){
 	S.current_time = julian_time;
 	config.y0 = julian_time;
+
+	t_next_disturbance = config.y0 + config.T_return;
+	t_next_invasion    = config.y0 + config.T_invasion;
+	t_next_savestate   = config.y0; // this will write state once at the beginning too, which is probably unnecessary
+	t_next_writestate  = config.y0; // this will write state once at the beginning too, which is probably unnecessary
+	t_next_verbose_statement = config.y0;
+
+	S.control.cohort_insertion_dt = config.T_cohort_insertion;
+
+	// Reset species time 
+
+	for (int k=0; k < S.species_vec.size(); ++k){
+		auto spp = static_cast<AdaptiveSpecies<PSPM_Plant>*>(S.species_vec[k]);
+		spp->set_tscale(ts.get_tscale());
+	}
 }
 
 void Patch::update_climate(double julian_time, env::ClimateStream& c_stream){
@@ -590,8 +666,8 @@ void Patch::restore(std::istream& fin){
 	}
 
 	// Species read: 
-	cout << "Species read:\n";
-	for (int i=0; i < spp_names.size(); ++i) cout << i << " " << indices[spp_names[i]] << " " << spp_names[i] << "\n";
+	// cout << "Species read:\n";
+	// for (int i=0; i < spp_names.size(); ++i) cout << i << " " << indices[spp_names[i]] << " " << spp_names[i] << "\n";
 
 	for (string s : spp_names){
 		string r_name; vector<string> probes_list;
@@ -600,25 +676,26 @@ void Patch::restore(std::istream& fin){
 		assert(r_name == s);
 		// read probe names
 		fin >> n >> s; // s has " | " 
-		cout << spp_names[indices[r_name]] << " --> " << n << " " << s;
+		// cout << spp_names[indices[r_name]] << " --> " << n << " " << s;
 		for (int i=0; i < n; ++i){
 			fin >> std::quoted(s);
-			cout << spp_names[indices[s]] << " ";
+			// cout << spp_names[indices[s]] << " ";
 			probe_lists[indices[r_name]].push_back(indices[s]);
 		}
-		cout << '\n';
+		// cout << '\n';
 	}
 
 	PSPM_Plant p;
+	p.par = par0;
 	vector<Species_Base*> spp_proto;
 	for (int i=0; i < spp_names.size(); ++i){
 		auto spp = new AdaptiveSpecies<PSPM_Plant>(p);
 		spp_proto.push_back(static_cast<Species_Base*>(spp));
 	}
 
-	for (auto spp : spp_proto){
-		static_cast<Species_Base*>(spp)->print();
-	}
+	// for (auto spp : spp_proto){
+	// 	static_cast<Species_Base*>(spp)->print();
+	// }
 
 	// restore solver
 	S.restore(fin, spp_proto);

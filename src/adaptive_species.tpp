@@ -168,4 +168,21 @@ void AdaptiveSpecies<Model>::restore(std::istream& fin){
 
 }
 
+template <class Model>
+void AdaptiveSpecies<Model>::set_tscale(double tscale){
+	
+	// std::cout << "CHANGING TIME SCALE" << std::endl;
+
+	// Create a Model object and restore all individual properties to this object
+	// This will be used to copy-construct the species
+	int c_size = this->cohorts.size();
+	for (int i=-1; i < c_size; ++i){
+		auto& C = this->getCohort(i);
+		C.par.set_tscale(tscale);
+	}
+
+	// C.par.print();
+	
+}
+
 } // namespace pfate

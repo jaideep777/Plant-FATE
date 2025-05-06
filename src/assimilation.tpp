@@ -227,6 +227,7 @@ void  Assimilator::calc_plant_assimilation_rate(Env& env, PlantArchitecture* G, 
 	// std::cout << "---\nCA traversed = " << ca_cumm << " -- " << G->crown_area << "\n";
 
 	// Convert units from per sec to per unit_t (unit_t is the unit in which time is counted, e.g. yr, day)
+	// std::cout << "In plant assimilation current days per unit time is " << par.days_per_tunit << std::endl;
 	double sec_per_unit_t = 86400 * par.days_per_tunit; // s-1 ---> unit_t-1
 
 	plant_assim.gpp   *= (sec_per_unit_t * 1e-6 * par.cbio);        // umol co2/s ----> umol co2/unit_t --> mol co2/unit_t --> kg/unit_t 
