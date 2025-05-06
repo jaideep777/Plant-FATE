@@ -94,16 +94,16 @@ std::vector<plant::PlantTraits> Patch::readTraitsFromFile(std::string fname){
              << std::endl;
 
         // Check for specific error conditions
-        if (fin.bad()) {
-            cerr << "Fatal error: badbit is set." << endl;
-        }
+        // if (fin.bad()) {
+        //     cerr << "Fatal error: badbit is set." << endl;
+        // }
 
-        if (fin.fail()) {
-            // Print a more detailed error message using
-            // strerror
-            cerr << "Error details: " << strerror(errno)
-                 << endl;
-        }
+        // if (fin.fail()) {
+        //     // Print a more detailed error message using
+        //     // strerror
+        //     cerr << "Error details: " << stderror(errno)
+        //          << endl;
+        // }
 		throw std::runtime_error("Could not open file " + fname + "\n");
 	}
 
