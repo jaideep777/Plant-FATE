@@ -85,6 +85,9 @@ external_libs:
 python: dir $(TARGET) # $(PYBINDFILES)
 	pip3 install .
 
+python-geb: dir $(TARGET) # $(PYBINDFILES)
+	uv pip3 install .
+
 dir:
 	mkdir -p lib build tests/build bin
 
