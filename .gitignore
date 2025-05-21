@@ -47,7 +47,6 @@ pspm_output*
 docs
 .Rbuildignore
 tests_old
-tests/data
 
 venv/
 env/
