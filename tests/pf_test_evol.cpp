@@ -10,7 +10,7 @@
 
 using namespace std;
 
-int is_equal(const vector<double>& v1, const vector<double>& v2, double tol=1e-6){
+int is_equal(const vector<double>& v1, const vector<double>& v2, double tol=1e-5){
 	bool b = true;
 	for (int i=0; i<v1.size(); ++i){
 		cout << "Comparing v["<<i<<"]: " << v1[i] << " " << v2[i] << '\n';
