@@ -39,7 +39,8 @@ int main(int argc, char ** argv){
 
 		// err = is_equal(ba, {13.90109726, 0, 15.36616065, 0});
 		// err = is_equal(ba, {14.05855586, 0, 15.19054511, 0}); // expected values after bugfix, commit 3c21690
-		err = is_equal(ba, {14.05855709, 0, 15.19052784, 0}); // expected values after minor changes in multipliers etc, commit 40e39c0
+		// err = is_equal(ba, {14.05855709, 0, 15.19052784, 0}); // expected values after minor changes in multipliers etc, commit 40e39c0
+		err = is_equal(ba, {12.88653956, 0, 16.3275356, 0}); // expected values after using gy-guy dataset
 
 		sim.close();
 	}
