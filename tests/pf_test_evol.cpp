@@ -38,7 +38,8 @@ int main(int argc, char ** argv){
 		cout << setprecision(10) << "Basal areas [m2/Ha]: " << ba << '\n';
 
 		// err = is_equal(ba, {13.90109726, 0, 15.36616065, 0});
-		err = is_equal(ba, {14.05855586, 0, 15.19054511, 0}); // expected values after bugfix, commit 3c21690
+		// err = is_equal(ba, {14.05855586, 0, 15.19054511, 0}); // expected values after bugfix, commit 3c21690
+		err = is_equal(ba, {14.05855709, 0, 15.19052784, 0}); // expected values after minor changes in multipliers etc, commit 40e39c0
 
 		sim.close();
 	}
