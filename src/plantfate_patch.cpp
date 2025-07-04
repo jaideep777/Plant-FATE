@@ -1,5 +1,6 @@
 #include "plantfate_patch.h"
 #include <filesystem>
+#include <algorithm>
 #include <csvrow.h>
 using namespace std;
 
@@ -342,10 +343,10 @@ void Patch::addSpeciesAndProbes(double t, const plant::PlantTraits& traits){
 
 
 void Patch::shuffleSpecies(){
-	// Shuffle species in the species vector -- just for debugging
-	cout << "shuffling...\n";
-	std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
-	S.copyCohortsToState();
+	// // Shuffle species in the species vector -- just for debugging
+	// cout << "shuffling...\n";
+	// std::random_shuffle(S.species_vec.begin(), S.species_vec.end());
+	// S.copyCohortsToState();
 }
 
 
