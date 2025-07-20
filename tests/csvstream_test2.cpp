@@ -10,13 +10,14 @@ int test(string outfile){
 	flare::CsvStream in_stream;
 	in_stream.periodic = true;
 	in_stream.centered_t = false;
+	in_stream.set_tname("decimal_year");
 
-	in_stream.open({"tests/data/MetData_AmzFACE_Monthly_2000_2015_PlantFATE.csv"}, 
+	in_stream.open({"tests/data/gf-guy_drivers_plantfate.csv"},
 					"years CE");
 	in_stream.print_meta();
 	in_stream.print_times();
 
-	in_stream.advance_to_time(flare::datestring_to_julian("2002-01-04"));
+	in_stream.advance_to_time(flare::datestring_to_julian("2006-01-04"));
 	in_stream.print_meta();
 	cout << "Data:\n";
 	// cout << '|' << in_stream.current_row.get_line_raw() << '|' << endl;
@@ -24,7 +25,7 @@ int test(string outfile){
 	cout << '\n';
 	
 	ofstream fout(outfile.c_str());
-	double t0 = flare::datestring_to_julian("1921-01-04");
+	double t0 = flare::datestring_to_julian("1921-01-16");
 	double tf = flare::datestring_to_julian("2081-12-31");
 	for (double t = t0; t <= tf; t += 365.2425/12.0/1.0){
 		in_stream.advance_to_time(t);
