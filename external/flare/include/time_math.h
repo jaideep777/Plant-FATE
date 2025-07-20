@@ -7,7 +7,7 @@
 #include <sstream>
 
 // Note: 
-// tm format:
+// std::tm format:
 // year = years OVER 1900. So add 1900 to get CE year
 // mon = 0-11. So add 1 for gday calculations
 // mday = 1-31
@@ -16,26 +16,38 @@
 
 namespace flare{
 
+struct time_point {
+	int year = 0;   // CE year = years over 0000
+	int mon = 0;    // 1-12
+	int day = 0;    // 1-31
+	int hour = 0;   // 0-23
+	int min = 0;    // 0-59
+	int sec = 0;    // 0-59
+};
+
 inline bool isLeapYear(int year){
     return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
 }
 
 // time is assumed to be in GMT. Time zone conversion is up to the user
-inline std::tm string_to_date(std::string s, std::string format = "%Y-%m-%d %H:%M:%S %Z"){
-	std:: tm t = {};
-	std::stringstream ss(s);
-	ss >> std::get_time(&t, format.c_str());
-	if (t.tm_zone == nullptr) t.tm_zone = "GMT";
-	// std::cout << "date_to_string: tz = " << t.tm_zone << "\n";
+inline time_point string_to_date(const std::string& s, std::string format = "%d-%d-%d %d:%d:%d") {
+	time_point t = {};
+
+	int n = std::sscanf(s.c_str(), format.c_str(),
+		&t.year, &t.mon, &t.day, &t.hour, &t.min, &t.sec);
+
+	if (n < 3) throw std::invalid_argument("Invalid date string format");
+
+	if (n < 6) t.hour = t.min = t.sec = 0;
+
 	return t;
 }
 
-inline std::string date_to_string(std::tm t, std::string format = "%Y-%m-%d %H:%M:%S %Z (doy = %j)"){
-	std::ostringstream sout;
-	sout << std::put_time(&t, format.c_str());
-	// sout << t.tm_year+1900 << "-" << t.tm_mon+1 << "-" << t.tm_mday << " "
-	//      << t.tm_hour << ":" << t.tm_min << ":" << t.tm_sec;
-	return sout.str();
+inline std::string date_to_string(const time_point& t) {
+	char buf[64];
+	std::sprintf(buf, "%04d-%02d-%02d %02d:%02d:%02d GMT",
+			t.year, t.mon, t.day, t.hour, t.min, t.sec);
+	return buf;
 }
 
 /// @brief calculate days since 01-Mar-0000 AD 
@@ -59,13 +71,9 @@ inline int _ymd2gday(int y, int m, int d){
 /// Julian days start on -4173-11-24 12:00:00 (24 Nov 4174 BC)
 /// https://en.wikipedia.org/wiki/Julian_day
 /// time is assumed to be in GMT. Time zone conversion is up to the user
-inline double date_to_julian(std::tm time_struct){
-	// transform to conform to gday format
-	time_struct.tm_year += 1900; 
-	time_struct.tm_mon += 1;
-
-	double d_int = _ymd2gday(time_struct.tm_year, time_struct.tm_mon, time_struct.tm_mday);
-	double d_frac = (double(time_struct.tm_hour) + double(time_struct.tm_min)/60.0 + double(time_struct.tm_sec)/3600.0)/24.0;
+inline double date_to_julian(time_point time_struct){
+	double d_int = _ymd2gday(time_struct.year, time_struct.mon, time_struct.day);
+	double d_frac = (double(time_struct.hour) + double(time_struct.min)/60.0 + double(time_struct.sec)/3600.0)/24.0;
 	// std::cout << "d = " << d_int << " . " << d_frac << '\n';
 	return d_int + d_frac + 1721119.5; // 1721119.5 is julian day number at 00:00:00 on 01-03-0000, i.e. the difference between gday epoch (01-03-0000 00:00:00) and julian epoch (-4173-11-24 12:00:00)
 }
@@ -80,8 +88,8 @@ inline double date_to_julian(std::tm time_struct){
 ///   archived here: https://web.archive.org/web/20170507133619/https://alcor.concordia.ca/~gpkatch/gdate-algorithm.html 
 /// Then converts that to time struct
 /// time is assumed to be in GMT. Time zone conversion is up to the user
-inline std::tm julian_to_date(double julian_date){
-	std::tm result;
+inline time_point julian_to_date(double julian_date){
+	time_point result;
 	double gday = julian_date - 1721119.5;
 	int g = int(gday);
 	double dayf = gday - g;	// use of double here gives 5:29:59.9 for 5:30:0!!
@@ -96,30 +104,17 @@ inline std::tm julian_to_date(double julian_date){
 		ddd = g - (365*y + y/4 - y/100 + y/400);
 	}
 	mi = (52 + 100*ddd)/3060;
-	result.tm_year = ystr = y + (mi + 2)/12;
-	result.tm_mon = mstr = (mi + 2)%12 + 1;
-	result.tm_mday = dstr = ddd - (mi*306 + 5)/10 + 1;
+	result.year = ystr = y + (mi + 2)/12;
+	result.mon = mstr = (mi + 2)%12 + 1;
+	result.day = dstr = ddd - (mi*306 + 5)/10 + 1;
 	
 	// get time in hh, mm, ss
 	dayf = dayf*24;
-	result.tm_hour = int(dayf);
+	result.hour = int(dayf);
 	double r = dayf - int(dayf);
-	result.tm_min = int(r*60);
+	result.min = int(r*60);
 	r = r*60 - int(r*60);
-	result.tm_sec = r*60;
-
-	// transform to conform to tm format 
-	result.tm_year -= 1900;
-	result.tm_mon -= 1;
-	// result.tm_yday = g - _ymd2gday(ystr, 1, 1); // This calculation is probably buggy
-	// std::mktime(&result);  // this will renormalize result and calculate yday etc, but messes up time zone
-
-	static const int daysToMonth[2][12] = {
-		{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 },
-		{ 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335 },
-	};
-	result.tm_yday = daysToMonth[isLeapYear(ystr)? 1 : 0][mstr-1] + dstr-1;
-	result.tm_zone = "GMT";
+	result.sec = r*60;
 
 	return result;
 }
@@ -132,9 +127,17 @@ inline double datestring_to_julian(std::string datestring){
 	return date_to_julian(string_to_date(datestring));
 }
 
-inline double decimal_year(std::tm time_point){
-	double days_in_yr = isLeapYear(time_point.tm_year+1900)? 366:365;
-	return time_point.tm_year + 1900 + time_point.tm_yday/days_in_yr;
+inline double decimal_year(time_point tp){
+	double days_in_yr = isLeapYear(tp.year)? 366:365;
+
+	static const int daysToMonth[2][12] = {
+		{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 },
+		{ 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335 },
+	};
+	
+	double yday = daysToMonth[isLeapYear(tp.year)? 1 : 0][tp.mon-1] + tp.day-1;
+
+	return tp.year + yday/days_in_yr;
 }
 
 inline double julian_to_yearsCE(double j){

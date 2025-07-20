@@ -2,33 +2,32 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <netcdf>
+// #include <netcdf>
 #include <chrono>
 #include <cmath>
 #include "../include/time_math.h"
 using namespace std;
 
 // checks if 2 dates are within 1 sec of each other
-bool second_equal(const std::tm& t1, const std::tm& t2){
+bool second_equal(const flare::time_point& t1, const flare::time_point& t2){
 	return 
-		(t1.tm_hour == t2.tm_hour) &&
-		(t1.tm_mday == t2.tm_mday) &&
-		(t1.tm_min  == t2.tm_min)  &&
-		(t1.tm_mon	== t2.tm_mon)  &&
-		(t1.tm_year == t2.tm_year) &&
-		(t1.tm_yday == t2.tm_yday) &&
-		(fabs(t1.tm_sec  - t2.tm_sec) < 2);
+		(t1.hour == t2.hour) &&
+		(t1.day == t2.day) &&
+		(t1.min  == t2.min)  &&
+		(t1.mon	== t2.mon)  &&
+		(t1.year == t2.year) &&
+		(fabs(t1.sec  - t2.sec) < 2);
 }
 
 int main(){
 	vector<string> datestrings = {
-		"2013-01-01 00:30:00", // https://en.wikipedia.org/wiki/Julian_day
+		"2013-01-01 00:30:00 GMT", // https://en.wikipedia.org/wiki/Julian_day
 		"2001-12-18 12:10:45",
-		"1990-06-17 21:14:45",
+		"1990-06-17 21:14:45 CET",
 		"1988-10-18 08:58:30", 
-		"2988-07-01 12:00:00",
+		"2988-07-01 12:00:00 IST",
 		"0000-03-01 12:00:00",
-		"0000-03-01 00:00:00"
+		"0000-03-01"
 		// "0000-01-00 00:00:00"
 		// "-2000-03-01 00:00:00",
 		// "-4172-11-24 12:00:00"
@@ -46,7 +45,7 @@ int main(){
 		// 1721059.50000
 	};
 
-	vector<std::tm> dates;
+	vector<flare::time_point> dates;
 	for (auto s : datestrings){
 		dates.push_back(flare::string_to_date(s));
 		cout << flare::date_to_string(*dates.rbegin());
@@ -71,7 +70,7 @@ int main(){
 		}
 	}
 
-	vector<std::tm> dates_reconv;
+	vector<flare::time_point> dates_reconv;
 	for (auto j : julians){
 		cout << j << " = ";
 		dates_reconv.push_back(flare::julian_to_date(j));
