@@ -1,0 +1,8 @@
+#!/bin/sh
+
+LIBPSPM_PATH="external/libpspm"
+
+echo "Cleaning libpspm in $LIBPSPM_PATH"
+(cd "$LIBPSPM_PATH" && make clean)
+
+exit 0
