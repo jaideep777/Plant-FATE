@@ -22,7 +22,18 @@ RCPP_EXPOSED_CLASS_NODECL(pfate::PSPM_Environment);
 
 RCPP_EXPOSED_CLASS_NODECL(pfate::ErgodicEnvironment);
 
+#include "plantfate_config.h"
+
+RCPP_EXPOSED_CLASS_NODECL(pfate::PlantFateConfig);
+
 #include "plantfate_patch.h"
+#include "community_properties.h"
+
+RCPP_EXPOSED_CLASS_NODECL(pfate::Structure);
+RCPP_EXPOSED_CLASS_NODECL(pfate::Fluxes);
+RCPP_EXPOSED_CLASS_NODECL(pfate::CommunitySpecies);
+RCPP_EXPOSED_CLASS_NODECL(pfate::Acc_traits);
+RCPP_EXPOSED_CLASS_NODECL(pfate::Misc);
 
 RCPP_MODULE(plantfate_module){
 	class_ <plant::PlantTraits>("PlantTraits")
@@ -156,11 +167,20 @@ RCPP_MODULE(plantfate_module){
 		.method("set_i_metFile", &pfate::Patch::set_i_metFile)
 		.method("set_a_metFile", &pfate::Patch::set_a_metFile)
 		.method("set_co2File", &pfate::Patch::set_co2File)
+		.method("init_co2", &pfate::Patch::init_co2)
+
+		.method("get_props_structure", &pfate::Patch::get_props_structure)
+		.method("get_props_fluxes", &pfate::Patch::get_props_fluxes)
+		.method("get_props_species", &pfate::Patch::get_props_species)
+		.method("get_props_misc", &pfate::Patch::get_props_misc)
+		.method("get_props_acc_traits", &pfate::Patch::get_props_acc_traits)
+
 		.method("init", &pfate::Patch::init)
 		.method("simulate", &pfate::Patch::simulate)
 		.method("close", &pfate::Patch::close)
 
 		.field("E", &pfate::Patch::E)
+		.field("config", &pfate::Patch::config)
 
 		.field("traits0", &pfate::Patch::traits0)
 		.field("par0", &pfate::Patch::par0)
@@ -180,6 +200,53 @@ RCPP_MODULE(plantfate_module){
 		.field("y0", &pfate::PlantFateConfig::y0)
 		.field("yf", &pfate::PlantFateConfig::yf)
 		.field("ye", &pfate::PlantFateConfig::ye)
+		;
+
+	class_<pfate::Structure>("CommunityStructure")
+		.field("leaf_mass", &pfate::Structure::leaf_mass)
+		.field("stem_mass", &pfate::Structure::stem_mass)
+		.field("croot_mass", &pfate::Structure::croot_mass)
+		.field("froot_mass", &pfate::Structure::froot_mass)
+		.field("biomass", &pfate::Structure::biomass)
+		.field("basal_area", &pfate::Structure::basal_area)
+		.field("canopy_area", &pfate::Structure::canopy_area)
+		.field("canopy_area_uc", &pfate::Structure::canopy_area_uc)
+		.field("n_ind", &pfate::Structure::n_ind)
+		.field("height", &pfate::Structure::height)
+		.field("lai", &pfate::Structure::lai)
+		.field("lai_vert", &pfate::Structure::lai_vert)
+		;
+
+	class_<pfate::Fluxes>("CommunityFluxes")
+		.field("gpp", &pfate::Fluxes::gpp)
+		.field("npp", &pfate::Fluxes::npp)
+		.field("trans", &pfate::Fluxes::trans)
+		.field("gs", &pfate::Fluxes::gs)
+		.field("tleaf", &pfate::Fluxes::tleaf)
+		.field("troot", &pfate::Fluxes::troot)
+		.field("rleaf", &pfate::Fluxes::rleaf)
+		.field("rroot", &pfate::Fluxes::rroot)
+		.field("rstem", &pfate::Fluxes::rstem)
+		.field("mort", &pfate::Fluxes::mort)
+		.field("pe_soil", &pfate::Fluxes::pe_soil)
+		;
+
+	class_<pfate::CommunitySpecies>("CommunitySpecies")
+		.field("n_ind_vec", &pfate::CommunitySpecies::n_ind_vec)
+		.field("biomass_vec", &pfate::CommunitySpecies::biomass_vec)
+		.field("basal_area_vec", &pfate::CommunitySpecies::basal_area_vec)
+		.field("canopy_area_vec", &pfate::CommunitySpecies::canopy_area_vec)
+		.field("height_vec", &pfate::CommunitySpecies::height_vec)
+		.field("mortality_vec", &pfate::CommunitySpecies::mortality_vec)
+		;
+
+	class_<pfate::Misc>("CommunityMisc")
+		.field("cc_est", &pfate::Misc::cc_est)
+		;
+
+	class_<pfate::Acc_traits>("CommunityAccTraits")
+		.field("vcmax", &pfate::Acc_traits::vcmax)
+		.field("dpsi", &pfate::Acc_traits::dpsi)
 		;
 
 }

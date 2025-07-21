@@ -25,19 +25,20 @@ PKG_LIBS = -L"$(LIBPSPM_PATH)"/lib -lpspm # -lstdc++fs
 
 # SOURCES = $(wildcard src/*.cpp)
 
-SOURCES = traits_params.cpp \
-          plant_architecture.cpp \
-          assimilation.cpp \
-          plant.cpp \
-          light_environment.cpp \
-          climate.cpp \
-          climate_stream.cpp \
-          pspm_interface.cpp \
-          community_properties.cpp \
-          state_restore.cpp \
-          life_history.cpp \
-          plantfate_patch.cpp \
-          r_interface.cpp
+SOURCES = traits_params.cpp 
+# \
+#           plant_architecture.cpp \
+#           assimilation.cpp \
+#           plant.cpp \
+#           light_environment.cpp \
+#           climate.cpp \
+#           climate_stream.cpp \
+#           pspm_interface.cpp \
+#           community_properties.cpp \
+#           state_restore.cpp \
+#           life_history.cpp \
+#           plantfate_patch.cpp \
+#           r_interface.cpp
 
 # Obtain the object files
 OBJECTS=$(SOURCES:.cpp=.o) 
