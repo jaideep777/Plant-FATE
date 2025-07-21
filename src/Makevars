@@ -17,9 +17,6 @@ PKG_CXXFLAGS += -Wno-sign-compare -Wno-unused-variable \
 
 PKG_CPPFLAGS = $(INC_PATH)
 
-RCPPEIGEN_PATH := $(shell Rscript -e "cat(RcppEigen:::CxxFlags())")
-
-
 # Need libstdc++fs for using std::filesystem
 PKG_LIBS = -L"$(LIBPSPM_PATH)"/lib -lpspm # -lstdc++fs
 
@@ -42,20 +39,12 @@ SOURCES = traits_params.cpp \
 # Obtain the object files
 OBJECTS=$(SOURCES:.cpp=.o) 
 
-.PHONY: all libpspm
+.PHONY: all 
 
 # Make the shared object
 all: $(SHLIB)
 
-$(SHLIB): libpspm
-
-# To compile libpspm, pass down g++ and ar from here, and clear profiling flags (as they are not supported on windows)
-# FIXME. For now, the eigen path is sent to PROFILING_FLAGS as thats available in libpspm Makefile. In the next subtree pull, create PKG_CPPFLAGS in libpspm and send eigen path to those.
-libpspm:
-    (cd $(LIBPSPM_PATH) && $(MAKE) CXX=$(CXX17) AR=$(AR) PROFILING_FLAGS="$(RCPPEIGEN_PATH)")
-
 # Provide recipe to remove all objects
 clean:
 	@rm -f $(OBJECTS)
-	(cd $(LIBPSPM_PATH) && $(MAKE) clean)
-	
+
