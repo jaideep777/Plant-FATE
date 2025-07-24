@@ -57,6 +57,14 @@ l = pf_read_outputs(input_dir = input_dir, output_dir = output_dir, expt_dir = p
 
 matplot(l$Zp$YEAR, l$Zp[,-1], lty=1, col=rainbow(n = 10, start = 0, end = 0.85), type="l", las=1, xlab="Time (years)", ylab="Z*")
 
+l$Zp |>
+  filter(YEAR > (max(YEAR)-100)) |>
+  summarize(across(everything(), ~mean(.x, na.rm = TRUE))) |> 
+  pivot_longer(-YEAR) |>
+  slice(1:4) |> 
+  pull(value) |> 
+  print()
+
 ```
 
 <!-- Let us look at some emergent properties -->
