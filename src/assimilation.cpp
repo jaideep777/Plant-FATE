@@ -45,7 +45,8 @@ double Assimilator::sapwood_respiration_rate(PlantArchitecture* G, PlantParamete
 //	double dpsi_gravity = (1000*10*G->height/1e6);
 	double factor = traits.p50_xylem;
 	double factor1 = (1 + par.p50x_cost * factor * factor); // 3e3 7e3
-	return (par.rs * par.years_per_tunit_avg) * G->sapwood_mass(traits) * factor1; // * (plant_assim.gpp/G->crown_area);
+	// return (par.rs * par.years_per_tunit_avg) * G->sapwood_mass(traits) * factor1; // * (plant_assim.gpp/G->crown_area);
+	return (par.rs * plant_assim.trans) * factor1 * traits.wood_density/700;
 }
 
 
