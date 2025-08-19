@@ -81,7 +81,7 @@ class LifeHistoryOptimizer{
 	void grow_for_dt(double t, double dt);
 
 
-	double calcFitness();
+	double calcFitness(double t_start=2000, double t_end=2500);
 
 };
 

@@ -112,6 +112,7 @@ class PlantParameters{
 
 	// Mortality	
 	double cD0, cD1, eD0;
+	double m_inf;
 	double m_alpha, m_beta, m_gamma;
 	double eWD_alpha, eWD_gamma;
 	double cWD0, eWD;

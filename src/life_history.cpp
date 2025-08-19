@@ -247,9 +247,9 @@ void LifeHistoryOptimizer::grow_for_dt(double t, double dt){
 }
 
 
-double LifeHistoryOptimizer::calcFitness(){
+double LifeHistoryOptimizer::calcFitness(double t_start, double t_end){
 	// lho_set_traits(tvec);
-	for (double t=2000; t <= 2500; t=t + dt){
+	for (double t=t_start; t <= t_end; t=t + dt){
 		grow_for_dt(t, dt);
 	}
 	return seeds;

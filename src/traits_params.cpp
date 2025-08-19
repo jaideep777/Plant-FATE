@@ -203,6 +203,7 @@ void PlantParameters::init(io::Initializer& I){
 	cWD0               = I.get<double>("cWD0");
 	eWD                = I.get<double>("eWD");
 	m_hydraulic        = I.get<double>("m_hydraulic");
+	m_inf              = I.get<double>("m_inf");
 }
 
 
@@ -263,6 +264,7 @@ void PlantParameters::print(){
 		<< "   cWD0 = " << cWD0 << '\n'
 		<< "   eWD = " << eWD << '\n'
 		<< "   m_hydraulic = " << m_hydraulic << '\n'
+		<< "   m_inf = " << m_inf << '\n'
 		<< "   days_per_tunit = " << days_per_tunit << '\n'
 		<< "   years_per_tunit_avg = " << years_per_tunit_avg << '\n';
 }
@@ -316,6 +318,7 @@ void PlantParameters::save(std::ostream& fout){
 		, cWD0
 		, eWD
 		, m_hydraulic
+		, m_inf
 		, days_per_tunit
 		, years_per_tunit_avg
 	);
@@ -368,6 +371,7 @@ void PlantParameters::restore(std::istream& fin){
 		>> cWD0
 		>> eWD
 		>> m_hydraulic
+		>> m_inf
 		>> days_per_tunit
 		>> years_per_tunit_avg
 		;

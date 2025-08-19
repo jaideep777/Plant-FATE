@@ -71,6 +71,7 @@ RCPP_MODULE(plantfate_module){
 		.field("cWD0", &plant::PlantParameters::cWD0)
 		.field("eWD", &plant::PlantParameters::eWD)
 		.field("m_hydraulic", &plant::PlantParameters::m_hydraulic)
+		.field("m_inf", &plant::PlantParameters::m_inf)
 
 		.constructor()
 		.method("print", &plant::PlantParameters::print)

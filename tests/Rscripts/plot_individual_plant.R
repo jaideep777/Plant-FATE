@@ -83,8 +83,18 @@ plot_plant_trajectory = function(dat){
   
   # Instantaneous mortality
   dat %>% filter(diameter<0.5) %>% 
-    select(i, mortrate_0, mortrate_growth, mortrate_d, mortrate_hyd, mortality_inst) %>% 
-    with(matplot(y=.[,-1], x=.[,1], ylab="Instantaneous\nmortality rate", xlab="Diameter", type="l", lty=1, col=c("yellow3", "green3", "brown", "blue", "black")))
+    select(diameter, 
+              mortrate_0, 
+              mortrate_growth, 
+              mortrate_d, 
+              mortrate_hyd, 
+              mortality_inst) %>% 
+    with(matplot(y=.[,-1], x=.[,1], ylab="Instantaneous\nmortality rate", xlab="Diameter", type="l", lty=1, 
+       col=c("yellow3", 
+             "green3", 
+             "brown", 
+             "blue", 
+             "black")))
   
   matplot(y=cbind(dat$sapwood_fraction, 
                 dat$heartwood_fraction),

@@ -110,10 +110,9 @@ double Plant::mortality_rate(Env& env, double t){
 	// std::cout << "Hyd mortality rate (" << traits.species_name << ", h=" << geometry.height << "): " <<  res.dpsi_avg << " --> " << psi_xylem << " / " << pcrit_xylem << " --> " << mu_hyd << '\n';
 
 	double rgr_annual_avg = rates.rgr / par.years_per_tunit_avg;
-	mort.mu_0      = par.m_gamma * pow(traits.wood_density / par.cWD0, par.eWD_gamma);   //*pow(traits.wood_density/600, -1.8392) + 
+	mort.mu_0      = par.m_gamma * pow(traits.wood_density / par.cWD0, par.eWD_gamma); 
 	mort.mu_growth = par.m_alpha * pow(traits.wood_density / par.cWD0, par.eWD_alpha) * exp(-par.m_beta * rgr_annual_avg * D * 100);
-	mort.mu_d	   = par.cD0 * pow(traits.wood_density / par.cWD0, par.eWD) * pow(D, par.eD0) +
-		par.cD1 * exp(-D / 0.01);
+	mort.mu_d	   = par.m_inf + (par.cD0 * pow(traits.wood_density / par.cWD0, par.eWD)) * pow(D, par.eD0);
 	mort.mu_hyd	   = par.m_hydraulic * mu_hyd_norm;
 
 	// convert: yr-1 --> t_unit-1
