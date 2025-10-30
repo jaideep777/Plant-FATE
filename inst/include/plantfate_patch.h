@@ -50,7 +50,15 @@ class Patch{
 	void set_i_metFile(std::string file);
 	void set_a_metFile(std::string file);
 	void set_co2File(std::string co2file);
+	void init_co2(double co2);
 
+	// Need these getters for R exposing  
+	Structure get_props_structure();
+	Fluxes get_props_fluxes();
+	CommunitySpecies get_props_species();
+	Misc get_props_misc();
+	Acc_traits get_props_acc_traits();
+	
 	void init(double tstart, double tend);
 
 	void simulate_to(double t);

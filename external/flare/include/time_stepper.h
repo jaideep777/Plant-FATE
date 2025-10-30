@@ -29,7 +29,7 @@ class TimeStepper{
 	std::string unit_str;   ///< full string representation of time unit (e.g., "days since yyyy-mm-dd hh:mm:ss")
 	std::string tunit = ""; ///< time unit used by this stepper (e.g., "days", "months", etc)
 	double tscale = 1;      ///< multiplier to convert time intervals from stepper's unit to 'days'
-	std::tm t_base = {};    ///< epoch (base time) used by this stepper
+	time_point t_base = {};    ///< epoch (base time) used by this stepper
 	double j_base;          ///< epoch (base time) [julian days]
 
 	public:
@@ -85,9 +85,7 @@ class TimeStepper{
 		if (tunit == "months" || tunit == "years") std::cout << "Warning: using " << tunit << " as time unit. 365.2425 days per year will be assumed. Conversion of time points to dates may have an error of +/- 1 day.\n";
 
 		ss.str(tunit_str);
-		ss >> std::get_time(&t_base, std::string(tunit + " since %Y-%m-%d %H:%M:%S").c_str());
-		t_base.tm_zone = "GMT";
-
+		t_base = string_to_date(tunit_str, std::string(tunit + " since %d-%d-%d %d:%d:%d").c_str());
 		j_base = date_to_julian(t_base);
 	}
 
