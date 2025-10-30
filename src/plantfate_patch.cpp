@@ -81,6 +81,32 @@ void Patch::set_co2File(std::string co2file){
 }
 
 
+// Just a wrapper for R exposing
+void Patch::init_co2(double co2){
+	E.init_co2(co2);
+}
+
+Structure Patch::get_props_structure(){
+	return props.structure;
+}
+
+Fluxes Patch::get_props_fluxes(){
+	return props.fluxes;
+}
+
+CommunitySpecies Patch::get_props_species(){
+	return props.species;
+}
+
+Misc Patch::get_props_misc(){
+	return props.misc;
+}
+
+Acc_traits Patch::get_props_acc_traits(){
+	return props.acc_traits;
+}
+
+
 std::vector<plant::PlantTraits> Patch::readTraitsFromFile(std::string fname){
 
 	std::ifstream fin(fname.c_str());

@@ -64,7 +64,7 @@ CPPFLAGS += -Wno-sign-compare -Wno-unused-variable \
 
 # libs
 AR = ar
-LIBS = -lnetcdf_c++4	 # additional libs
+LIBS = #-lnetcdf_c++4	 # additional libs
 
 # files
 OBJECTS = $(patsubst src/%.cpp, build/%.o, $(SRCFILES))

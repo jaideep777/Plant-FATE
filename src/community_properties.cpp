@@ -154,9 +154,9 @@ void CommunityProperties::writeOut_inst(double t, Patch& P){
 	// consistently output date in decimal years across all files
 	double date = flare::julian_to_yearsCE(P.ts.to_julian(t));
 	auto tp = flare::julian_to_date(P.ts.to_julian(t));
-	int y = tp.tm_year+1900;
-	int m = tp.tm_mon+1;
-	int d = tp.tm_mday;
+	int y = tp.year;
+	int m = tp.mon;
+	int d = tp.day;
 
 	Solver* S = &P.S;
 

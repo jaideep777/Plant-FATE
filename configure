@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Get RcppEigen flags
+RCPPEIGEN_PATH=$(Rscript -e "cat(RcppEigen:::CxxFlags())")
+
+# Use R's detected CXX and AR, fallback to g++ and ar
+CXX=${CXX:-g++}
+AR=${AR:-ar}
+
+LIBPSPM_PATH="external/libpspm"
+
+# FIXME. For now, the eigen path is sent to PROFILING_FLAGS as thats available in libpspm Makefile. In the next subtree pull, create PKG_CPPFLAGS in libpspm and send eigen path to those.
+echo "Building libpspm in $LIBPSPM_PATH"
+(cd "$LIBPSPM_PATH" && \
+    make CXX="$CXX" AR="$AR" PROFILING_FLAGS="$RCPPEIGEN_PATH")
+
+exit 0
