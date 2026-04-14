@@ -21,7 +21,7 @@ int is_equal(const vector<double>& v1, const vector<double>& v2, double tol=1e-6
 
 int main(int argc, char ** argv){
 
-	string pfile = "tests/params/p_test_v2.ini";
+	string pfile = "tests/params/p_test_v3.ini";
 	if (argc > 1) pfile = argv[1];
 
 	int err = 0;
@@ -63,7 +63,8 @@ int main(int argc, char ** argv){
 		// err = is_equal(ba, {1.651351438, 7.370938402, 26.55374903});  // this is the output  at BIWEEKLY step_to after using daylength of 0.5 in phydro
 		// err = is_equal(ba, {1.651263056, 7.37018801, 26.55223556});   // this is the output  at BIWEEKLY step_to after bugfix in unit conversion in assimilation.tpp
 		// err = is_equal(ba, {1.651105762, 7.36321835, 26.55250009});   // this is the output  at BIWEEKLY step_to after adding this line in simulate_t(): if (fabs(t - S.current_time) < 1e-6) continue;
-		err = is_equal(ba, {1.599664245, 7.032133675, 25.91950726});      // this is the output  at BIWEEKLY step_to after switching to gf-guy dataset
+		// err = is_equal(ba, {1.599664245, 7.032133675, 25.91950726});  // this is the output  at BIWEEKLY step_to after switching to gf-guy dataset
+		err = is_equal(ba, {2.260371815, 8.60546924, 26.27389849});        // this is the output  at BIWEEKLY step_to with gf-guy dataset and NEW SAPWOOD RESP + NEW MORTALITY function
 
 		sim.close();
 	}

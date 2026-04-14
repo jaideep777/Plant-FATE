@@ -9,7 +9,7 @@ int main(){
 
 	cout << setprecision(12);
 	
-	pfate::LifeHistoryOptimizer lho("tests/params/p_test_v2.ini");
+	pfate::LifeHistoryOptimizer lho("tests/params/p_test_v3.ini");
 	// lho.C.init_co2(414);
 
 	// lho.ts.set_units("days since 0000-01-00 0:0:0");
@@ -74,8 +74,8 @@ int main(){
 	// if (fabs(fitness1 - 0.0999331152132) > 1e-6) return 1;  // expected value updated after implementing inst phydro and setting kphio to 0.045
 	// if (fabs(fitness1 - 0.0998537505871) > 1e-6) return 1;  // expected value updated after using actual p88/p50 ratio instead of 3.01
 	// if (fabs(fitness1 - 0.0192874440426) > 1e-6) return 1;  // expected value updated after using daylength in phydro
-	if (fabs(fitness1 - 0.0192813597174) > 1e-6) return 1;  // expected value updated after bugfix in unit conversion in assimilation.tpp
-
+	// if (fabs(fitness1 - 0.0192813597174) > 1e-6) return 1;  // expected value updated after bugfix in unit conversion in assimilation.tpp
+	if (fabs(fitness1 - 0.0417618742526) > 1e-6) return 1;  // expected value new sapwood resp and mortality fns
 
 	// FIXME. This reinit of LHO does not work. assim rate is NAN.
 	// lho.init();
