@@ -410,7 +410,14 @@ void Patch::calc_r0(double t){
 			throw std::runtime_error("r0 dt is less than the timestep!");
 		}
 
-		if (spp->seeds_hist1.size() > 0) assert(fabs(spp->birth_flux_in - spp->seeds_hist1.get()) < 1e-6); // unless seeds_hist1 is empty, it's avg should equal input seed rain
+		if (spp->seeds_hist1.size() > 0){
+			// unless seeds_hist1 is empty, it's avg should equal input seed rain
+			if(fabs(spp->birth_flux_in/spp->seeds_hist1.get()-1) > 1e-6){
+				cout << setprecision(12) << "Input birth flux does not match seeds history:" << spp->birth_flux_in << " =/= " << spp->seeds_hist1.get() << std::endl;
+				spp->seeds_hist1.print();
+				throw std::runtime_error("Input birth flux does not match seeds history");
+			} 
+		}
 
 		double seeds_in = spp->birth_flux_in;     // This was S1[t-dt, x(t-dt)]
 		double seeds_out = spp->seeds_hist2.get(); // This is  S2[t, x(t-dt)],    i.e. average over seed-rain-avg interval, either a year or successional time window 
